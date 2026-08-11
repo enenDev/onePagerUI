@@ -1,4 +1,5 @@
-import { MapPin, Store } from "lucide-react";
+import { useState } from "react";
+import { LayoutGrid, MapPin, Store, FileInput } from "lucide-react";
 
 import {
   Dialog,
@@ -8,12 +9,14 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
+type CreateStep = "type" | "retailer";
+
 type CreateOnePagerModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
 
-const OPTIONS = [
+const TYPE_OPTIONS = [
   {
     id: "national",
     label: "National One-Pager",
@@ -26,33 +29,84 @@ const OPTIONS = [
   },
 ] as const;
 
+const RETAILER_OPTIONS = [
+  {
+    id: "scratch",
+    label: "Build from Scratch",
+    icon: LayoutGrid,
+  },
+  {
+    id: "import",
+    label: "Import From National",
+    icon: FileInput,
+  },
+] as const;
+
 export function CreateOnePagerModal({
   open,
   onOpenChange,
 }: CreateOnePagerModalProps) {
+  const [step, setStep] = useState<CreateStep>("type");
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) {
+      setStep("type");
+    }
+    onOpenChange(nextOpen);
+  };
+
+  const closeFlow = () => handleOpenChange(false);
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl gap-6 sm:max-w-xl">
-        <DialogHeader>
-          <DialogTitle>Create New One-Pager</DialogTitle>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="flex h-[18rem] max-w-xl flex-col gap-6 overflow-hidden sm:max-w-xl">
+        <DialogHeader className="min-h-10 shrink-0 justify-center pr-8">
+          {step === "type" ? (
+            <DialogTitle>Create New One-Pager</DialogTitle>
+          ) : (
+            <DialogTitle className="flex flex-wrap items-center gap-1.5 text-base font-semibold">
+              <button
+                type="button"
+                className="cursor-pointer text-primary underline-offset-2 hover:underline"
+                onClick={() => setStep("type")}
+              >
+                Create New One-Pager
+              </button>
+              <span className="text-muted-foreground">&gt;</span>
+              <span className="text-foreground">Retailer One Pager</span>
+            </DialogTitle>
+          )}
         </DialogHeader>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {OPTIONS.map((option) => {
+        <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 sm:grid-cols-2">
+          {(step === "type" ? TYPE_OPTIONS : RETAILER_OPTIONS).map((option) => {
             const Icon = option.icon;
+            const isRetailerStep = step === "retailer";
+
             return (
               <button
                 key={option.id}
                 type="button"
                 className={cn(
-                  "flex min-h-36 flex-col items-center justify-center gap-3 rounded-xl border border-border bg-white p-6 text-center transition-colors",
+                  "flex h-full min-h-36 cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-border bg-white p-6 text-center transition-colors",
                   "hover:border-primary hover:bg-accent",
                 )}
-                // Wiring to National / Retailer flows comes later
-                onClick={() => onOpenChange(false)}
+                onClick={() => {
+                  if (!isRetailerStep && option.id === "retailer") {
+                    setStep("retailer");
+                    return;
+                  }
+                  // National / Build from Scratch / Import wiring comes later
+                  closeFlow();
+                }}
               >
                 <Icon className="size-8 text-primary" />
-                <span className="text-sm font-medium text-foreground">
+                <span
+                  className={cn(
+                    "text-sm font-medium",
+                    isRetailerStep ? "text-primary" : "text-foreground",
+                  )}
+                >
                   {option.label}
                 </span>
               </button>
