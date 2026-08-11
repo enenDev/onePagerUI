@@ -5,7 +5,7 @@ interface AppState {
 }
 
 const initialState: AppState = {
-  appName: "One Category Page",
+  appName: "One Pager",
 };
 
 const appSlice = createSlice({

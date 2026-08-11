@@ -1,9 +1,12 @@
 import { configureStore } from "@reduxjs/toolkit";
+
 import appReducer from "./appSlice";
+import landingReducer from "./landingSlice";
 
 export const store = configureStore({
   reducer: {
     app: appReducer,
+    landing: landingReducer,
   },
 });
 

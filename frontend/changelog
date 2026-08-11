@@ -1,0 +1,41 @@
+1. App shell & layout
+Shared PageContainer for consistent horizontal inset across pages
+MainLayout uses full width + shared inset (no max-width box)
+App background: white → light blue diagonal gradient (mostly white)
+Browser title set to One Pager
+Removed unused Content.tsx
+scrollbar-gutter: stable to stop layout shift when menus/dropdowns open
+
+2. Header (AppHeader)
+Logo + One Pager → home (/home)
+Center tabs: Active / Drafts / Archive (client-side filter)
+Avatar NN menu: placeholder email + Logout (UI only)
+Single desktop status-tab control (no mobile duplicate)
+Soft blue track background for status tabs
+
+3. Landing page
+Filters: Market, Retailer, Channel, Category, Campaign
+Submit / Clear all call mock list API; filter payload stored in Redux
+Create New opens National / Retailer modal (selection not wired yet)
+All / My tabs with counts (My = user-001)
+4-column card grid
+Cards: gray surface, inset white image slot, metadata, Weighted/Unweighted badge, ... menu (Track/Export/Edit/Delete) with full-width dividers — UI only
+
+4. Data & state
+Types in types/onePager.ts
+Mock getMetadata + list/search APIs
+Landing sample list (subset of form shape)
+landingSlice: filters, metadata, list, status/scope tabs, loading/error
+Page load: metadata + list; Submit/Clear: list only; status/scope: client filter
+
+5. UI system & polish
+shadcn components: dialog, select, dropdown-menu, badge, avatar, tabs, separator + cn util
+Dependencies: CVA, clsx, tailwind-merge, lucide-react, radix-ui
+Capsule Submit / Clear / Create New; Clear uses soft blue
+Filter bar bordered (Create New outside); dropdowns share remaining width
+Shared Loading under filters while list API runs
+Design tokens: --primary, --brand-soft, --brand-soft-hover, --card-surface, --avatar-bg/fg, etc.
+Temporary public/logo.svg until real logo is provided
+
+Not in this change
+Real backend/API, SSO/auth, National/Retailer create flows, card menu actions, real logo/exact brand hex

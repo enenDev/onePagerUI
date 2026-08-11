@@ -1,7 +1,6 @@
 import { Navigate } from "react-router-dom";
 
 import { Home } from "../pages/Home";
-
 import MainLayout from "../layouts/MainLayout";
 
 const routes = [
@@ -11,18 +10,14 @@ const routes = [
     children: [
       {
         index: true,
-        element: <Navigate to={"/home"} replace />,
+        element: <Navigate to="/home" replace />,
       },
       {
-        path: "/home",
+        path: "home",
         element: <Home />,
       },
     ],
   },
-  //   {
-  //     path: ROUTES.LOGIN,
-  //     element: <Login />,
-  //   },
 ];
 
 export default routes;
