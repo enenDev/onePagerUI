@@ -13,6 +13,9 @@ type UnsavedChangesModalProps = {
   onOpenChange: (open: boolean) => void;
   onDiscard: () => void;
   onSaveDraft: () => void;
+  saving?: boolean;
+  canSaveDraft?: boolean;
+  saveBlockedReason?: string | null;
 };
 
 export function UnsavedChangesModal({
@@ -20,6 +23,9 @@ export function UnsavedChangesModal({
   onOpenChange,
   onDiscard,
   onSaveDraft,
+  saving = false,
+  canSaveDraft = true,
+  saveBlockedReason = null,
 }: UnsavedChangesModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -36,12 +42,17 @@ export function UnsavedChangesModal({
           </p>
         </div>
 
+        {saveBlockedReason ? (
+          <p className="text-sm text-destructive">{saveBlockedReason}</p>
+        ) : null}
+
         <div className="flex justify-end gap-2 pt-2">
           <Button
             type="button"
             variant="outline"
             className="cursor-pointer rounded-full border-primary text-primary hover:bg-accent hover:text-primary"
             onClick={onDiscard}
+            disabled={saving}
           >
             Discard Changes
           </Button>
@@ -49,9 +60,11 @@ export function UnsavedChangesModal({
             type="button"
             className="cursor-pointer rounded-full"
             onClick={onSaveDraft}
+            disabled={saving || !canSaveDraft}
+            title={saveBlockedReason ?? undefined}
           >
             <Save className="size-4" />
-            Save Draft
+            {saving ? "Saving..." : "Save Draft"}
           </Button>
         </div>
       </DialogContent>

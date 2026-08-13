@@ -1,21 +1,21 @@
-import { Plus } from "lucide-react";
+import { Check, ChevronDown, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import {
   clearFilters,
   fetchOnePagers,
-  setFilter,
+  toggleFilterValue,
 } from "@/redux/landingSlice";
-import type { FilterKey } from "@/types/onePager";
-import { emptyFilters } from "@/types/onePager";
+import type { FilterKey, FilterOption } from "@/types/onePager";
+import { createEmptyFilters } from "@/types/onePager";
+import { cn } from "@/lib/utils";
 
 const FILTER_FIELDS: { key: FilterKey; label: string }[] = [
   { key: "market", label: "Market" },
@@ -29,6 +29,93 @@ type FilterBarProps = {
   onCreateNew: () => void;
 };
 
+function multiSelectLabel(
+  placeholder: string,
+  selected: string[],
+  options: FilterOption[],
+) {
+  if (selected.length === 0) return placeholder;
+  if (selected.length === 1) {
+    return (
+      options.find((option) => option.value === selected[0])?.label ??
+      selected[0]
+    );
+  }
+  return `${selected.length} selected`;
+}
+
+function MultiSelectFilter({
+  label,
+  options,
+  selected,
+  disabled,
+  onToggle,
+}: {
+  label: string;
+  options: FilterOption[];
+  selected: string[];
+  disabled?: boolean;
+  onToggle: (value: string) => void;
+}) {
+  const triggerLabel = multiSelectLabel(label, selected, options);
+  const hasSelection = selected.length > 0;
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild disabled={disabled}>
+        <button
+          type="button"
+          className={cn(
+            "flex h-9 w-full cursor-pointer items-center justify-between gap-1.5 rounded-lg border border-input bg-white py-2 pr-2 pl-2.5 text-sm whitespace-nowrap outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50",
+            hasSelection ? "text-foreground" : "text-muted-foreground",
+          )}
+        >
+          <span className="min-w-0 truncate text-left">{triggerLabel}</span>
+          <ChevronDown className="size-4 shrink-0 text-muted-foreground" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="start"
+        className="min-w-(--radix-dropdown-menu-trigger-width)"
+      >
+        {options.length === 0 ? (
+          <p className="px-2 py-1.5 text-sm text-muted-foreground">
+            No options
+          </p>
+        ) : (
+          options.map((option) => {
+            const isChecked = selected.includes(option.value);
+            return (
+              <DropdownMenuItem
+                key={option.value}
+                // Keep menu open so users can pick multiple values in one pass.
+                onSelect={(event) => {
+                  event.preventDefault();
+                  onToggle(option.value);
+                }}
+                className="cursor-pointer gap-2"
+              >
+                <span
+                  aria-hidden
+                  className={cn(
+                    "flex size-4 shrink-0 items-center justify-center rounded-[3px] border-2",
+                    isChecked
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-muted-foreground/55 bg-white",
+                  )}
+                >
+                  {isChecked ? <Check className="size-3 stroke-[3]" /> : null}
+                </span>
+                <span className="min-w-0 flex-1 truncate">{option.label}</span>
+              </DropdownMenuItem>
+            );
+          })
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 export function FilterBar({ onCreateNew }: FilterBarProps) {
   const dispatch = useAppDispatch();
   const { metadata, filters, listLoading, metadataLoading } = useAppSelector(
@@ -36,12 +123,28 @@ export function FilterBar({ onCreateNew }: FilterBarProps) {
   );
 
   const handleSubmit = () => {
+    // TODO: Replace submit with real FastAPI search.
+    // Temporary: dispatch(fetchOnePagers) → submitOnePagerSearch mock, which
+    // builds array-only body via toOnePagerSearchPayload.
+    // Next: POST /api/one-pagers/search with JSON:
+    // { market: string[], retailer: string[], channel: string[],
+    //   category: string[], campaign: string[] }
+    // (OR within key, AND across keys; [] = no constraint).
+    // Keep stable: FilterPayload / toOnePagerSearchPayload, Submit UX,
+    // Redux filters state, OnePagerListItem[] response.
     void dispatch(fetchOnePagers(filters));
   };
 
   const handleClear = () => {
+    // TODO: Clear still goes through the mock list API after resetting local state.
+    // Temporary: clearFilters() resets Redux multi-select arrays; then
+    // fetchOnePagers(createEmptyFilters()) reloads the unfiltered mock list.
+    // Next: same FastAPI search endpoint with empty arrays (or omit filters);
+    // optionally skip refetch if product prefers client-only clear until Submit.
+    // Keep stable: createEmptyFilters() / empty multi-select UI, Clear all label,
+    // and that all five filter keys reset together.
     dispatch(clearFilters());
-    void dispatch(fetchOnePagers(emptyFilters));
+    void dispatch(fetchOnePagers(createEmptyFilters()));
   };
 
   return (
@@ -54,32 +157,19 @@ export function FilterBar({ onCreateNew }: FilterBarProps) {
         <div className="flex min-w-0 flex-1 items-center gap-2">
           {FILTER_FIELDS.map((field) => {
             const options = metadata?.[field.key] ?? [];
-            const value = filters[field.key];
+            const selected = filters[field.key];
 
             return (
               <div key={field.key} className="min-w-0 flex-1">
-                <Select
-                  value={value || undefined}
-                  onValueChange={(next) =>
-                    dispatch(setFilter({ key: field.key, value: next ?? "" }))
-                  }
+                <MultiSelectFilter
+                  label={field.label}
+                  options={options}
+                  selected={selected}
                   disabled={metadataLoading || !metadata}
-                >
-                  <SelectTrigger className="h-9 w-full cursor-pointer rounded-lg bg-white">
-                    <SelectValue placeholder={field.label} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {options.map((option) => (
-                      <SelectItem
-                        key={option.value}
-                        value={option.value}
-                        className="cursor-pointer"
-                      >
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  onToggle={(value) =>
+                    dispatch(toggleFilterValue({ key: field.key, value }))
+                  }
+                />
               </div>
             );
           })}

@@ -127,6 +127,12 @@ function isValidDisplayDate(value: string) {
   );
 }
 
+/** Compare mm/dd/yyyy display dates via ISO (yyyy-mm-dd) lexicographic order. */
+function isDisplayDateBefore(a: string, b: string) {
+  if (!isValidDisplayDate(a) || !isValidDisplayDate(b)) return false;
+  return displayToIso(a) < displayToIso(b);
+}
+
 export function AddInitiativeModal({
   open,
   pillarName,
@@ -141,12 +147,10 @@ export function AddInitiativeModal({
   const [error, setError] = useState<string | null>(null);
   const startPickerRef = useRef<HTMLInputElement>(null);
   const endPickerRef = useRef<HTMLInputElement>(null);
-  const imageCountRef = useRef(0);
   const retainedImageIdsRef = useRef(
     new Set(initialInitiative?.images.map((image) => image.id) ?? []),
   );
   const atImageLimit = form.images.length >= MAX_INITIATIVE_IMAGES;
-  imageCountRef.current = form.images.length;
 
   // Radix can leave body pointer-events stuck after the dialog unmounts
   // (especially after a native file picker). Only repair on teardown.
@@ -223,6 +227,8 @@ export function AddInitiativeModal({
         nextImages.push({
           id: `${file.name}-${file.lastModified}-${crypto.randomUUID()}`,
           name: file.name,
+          // TODO: On Save/Publish with real backend, upload `file` and replace blobUrl
+          // with the permanent URL before/while building NationalOnePagerCreatePayload.
           blobUrl: URL.createObjectURL(file),
           file,
         });
@@ -233,7 +239,7 @@ export function AddInitiativeModal({
 
   /** Fresh input per pick — avoids Radix/dialog file-input getting stuck after the first OS picker. */
   const openImagePicker = () => {
-    if (imageCountRef.current >= MAX_INITIATIVE_IMAGES) return;
+    if (atImageLimit) return;
 
     document
       .querySelectorAll("[data-initiative-file-picker='true']")
@@ -309,6 +315,10 @@ export function AddInitiativeModal({
     }
     if (!isValidDisplayDate(form.week_end)) {
       setError("Week End must be a valid date in mm/dd/yyyy format.");
+      return;
+    }
+    if (isDisplayDateBefore(form.week_end, form.week_start)) {
+      setError("Week End must be on or after Week Start.");
       return;
     }
     if (!form.guidelines.trim()) {
@@ -465,13 +475,29 @@ export function AddInitiativeModal({
             required
             value={form.week_start}
             pickerRef={startPickerRef}
-            onChange={(value) => patch({ week_start: value })}
+            onChange={(value) => {
+              // If start moves past end, clear end so it cannot stay invalid.
+              const next: Partial<FormState> = { week_start: value };
+              if (
+                form.week_end &&
+                isValidDisplayDate(value) &&
+                isDisplayDateBefore(form.week_end, value)
+              ) {
+                next.week_end = "";
+              }
+              patch(next);
+            }}
           />
           <DateField
             label="Week End"
             required
             value={form.week_end}
             pickerRef={endPickerRef}
+            minIso={
+              isValidDisplayDate(form.week_start)
+                ? displayToIso(form.week_start)
+                : undefined
+            }
             onChange={(value) => patch({ week_end: value })}
           />
         </div>
@@ -576,12 +602,15 @@ function DateField({
   value,
   onChange,
   pickerRef,
+  minIso,
 }: {
   label: string;
   required?: boolean;
   value: string;
   onChange: (value: string) => void;
   pickerRef: RefObject<HTMLInputElement | null>;
+  /** ISO yyyy-mm-dd lower bound for the native date picker (e.g. week end ≥ start). */
+  minIso?: string;
 }) {
   const openPicker = () => {
     const picker = pickerRef.current;
@@ -618,7 +647,8 @@ function DateField({
             }
           }}
           aria-label={`${label}, open calendar`}
-        />        <button
+        />
+        <button
           type="button"
           className="absolute top-1/2 right-2 -translate-y-1/2 cursor-pointer text-muted-foreground hover:text-foreground"
           onClick={openPicker}
@@ -631,6 +661,7 @@ function DateField({
           type="date"
           className="sr-only"
           value={displayToIso(value)}
+          min={minIso}
           onChange={(event) => onChange(isoToDisplay(event.target.value))}
           tabIndex={-1}
         />

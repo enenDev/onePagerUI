@@ -3,7 +3,7 @@ import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/tool
 import { getMetadata } from "@/services/metadataApi";
 import { submitOnePagerSearch } from "@/services/onePagerApi";
 import {
-  emptyFilters,
+  createEmptyFilters,
   type FilterKey,
   type FilterMetadata,
   type FilterPayload,
@@ -25,7 +25,7 @@ interface LandingState {
 
 const initialState: LandingState = {
   metadata: null,
-  filters: { ...emptyFilters },
+  filters: createEmptyFilters(),
   items: [],
   statusTab: "active",
   scopeTab: "all",
@@ -48,14 +48,19 @@ const landingSlice = createSlice({
   name: "landing",
   initialState,
   reducers: {
-    setFilter(
+    toggleFilterValue(
       state,
       action: PayloadAction<{ key: FilterKey; value: string }>,
     ) {
-      state.filters[action.payload.key] = action.payload.value;
+      const { key, value } = action.payload;
+      const current = state.filters[key];
+      state.filters[key] = current.includes(value)
+        ? current.filter((item) => item !== value)
+        : [...current, value];
     },
     clearFilters(state) {
-      state.filters = { ...emptyFilters };
+      // Fresh arrays so Clear all always resets UI selection state.
+      state.filters = createEmptyFilters();
     },
     setStatusTab(state, action: PayloadAction<StatusTab>) {
       state.statusTab = action.payload;
@@ -93,7 +98,7 @@ const landingSlice = createSlice({
   },
 });
 
-export const { setFilter, clearFilters, setStatusTab, setScopeTab } =
+export const { toggleFilterValue, clearFilters, setStatusTab, setScopeTab } =
   landingSlice.actions;
 
 export default landingSlice.reducer;

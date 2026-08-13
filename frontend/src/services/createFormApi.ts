@@ -23,6 +23,9 @@ const markets: FilterOption[] = [
 ];
 
 /** In-memory campaign list per market — Add Campaign appends here (mock DB). */
+// TODO: Remove in-memory `campaignsByMarket` when campaigns come from backend.
+// Real flow should load campaigns via market-scoped options API and persist new
+// campaigns with POST add-campaign (see `addCampaign` TODO below).
 const campaignsByMarket: Record<string, FilterOption[]> = {
   National: [
     { label: "National Growth Program", value: "National Growth Program" },
@@ -60,6 +63,8 @@ const channelsByMarket: Record<string, FilterOption[]> = {
 };
 
 export async function getCreateFormMarkets(): Promise<FilterOption[]> {
+  // TODO: Replace with real API (e.g. GET /api/create-form/markets).
+  // Keep `FilterOption[]` return shape for NationalStrategyForm selects.
   await delay();
   return structuredClone(markets);
 }
@@ -67,6 +72,9 @@ export async function getCreateFormMarkets(): Promise<FilterOption[]> {
 export async function getOptionsForMarket(
   market: string,
 ): Promise<MarketScopedOptions> {
+  // TODO: Replace with real API (e.g. GET /api/create-form/options?market=...).
+  // Must return categories/campaigns/channels for the selected market.
+  // On market change the FE already resets category/campaign/channel — keep that contract.
   await delay();
   if (!market) {
     return { categories: [], campaigns: [], channels: [] };
@@ -83,7 +91,12 @@ export type AddCampaignResult =
   | { ok: true; campaign: FilterOption }
   | { ok: false; error: string };
 
-/** Mock API — replace with real backend call later. */
+/**
+ * TODO: Replace with real FastAPI add-campaign endpoint.
+ * - POST body: { market, campaign_name }
+ * - On success, FE already appends to local campaign select + selects the new value.
+ * - Remove mutation of in-memory `campaignsByMarket`.
+ */
 export async function addCampaign(
   market: string,
   campaignName: string,
@@ -115,7 +128,20 @@ export async function addCampaign(
   return { ok: true, campaign };
 }
 
-/** Image fields persisted on the national create payload (blob URLs for now). */
+/**
+ * Image fields on the national create/save payload.
+ *
+ * TODO: Image upload / blob storage integration
+ * - Today `blob_url` is a browser-only `blob:...` object URL (not durable, not sendable as final CDN URL).
+ * - Keep payload field names stable for the form (`name` + `blob_url`) OR introduce `url` alongside
+ *   `blob_url` and map after upload — avoid renaming form state fields without a migration plan.
+ * - Real flow (preferred):
+ *   1) Upload cover `File` + each initiative `File` to backend/storage (multipart or signed URL).
+ *   2) Receive permanent URLs from API.
+ *   3) Put those permanent URLs into this payload (same shape consumers expect).
+ * - FE already keeps `File` on cover (`coverImageFile`) and initiative images (`file`) for upload.
+ * - Until then, mock save/publish stores `blob_url` in memory only (lost on refresh).
+ */
 export type NationalImagePayload = {
   id?: string;
   name: string;
@@ -157,7 +183,14 @@ export type NationalOnePagerCreatePayload = {
   pillars: NationalPillarPayload[];
 };
 
-/** Builds the create/save payload, including blob: URLs for every image on the form. */
+/**
+ * Builds the create/save/publish request body from form state.
+ *
+ * TODO: When image upload exists, either:
+ * - Upload files first, then call this builder with permanent URLs already written into form state, OR
+ * - Extend this builder to accept uploaded URL maps and substitute `blob_url` before POST.
+ * Do not POST raw `blob:` URLs to FastAPI as final image locations.
+ */
 export function buildNationalOnePagerPayload(
   values: NationalFormValues,
   scoringMode: ScoringMode,
@@ -205,18 +238,85 @@ export function buildNationalOnePagerPayload(
   };
 }
 
-type SaveDraftResult = { ok: true; id: string } | { ok: false; error: string };
+export type OnePagerRecordStatus = "draft" | "published";
 
-const draftStore: NationalOnePagerCreatePayload[] = [];
+/** Response shape the real backend should return for save/publish. */
+export type NationalOnePagerMutationResult =
+  | { ok: true; id: string; status: OnePagerRecordStatus }
+  | { ok: false; error: string };
 
-/** Mock save-draft API — stores payload (with image blob URLs) in memory. */
+type StoredNationalRecord = {
+  id: string;
+  status: OnePagerRecordStatus;
+  payload: NationalOnePagerCreatePayload;
+};
+
+/**
+ * In-memory mock DB for national one-pagers.
+ *
+ * TODO: Delete `nationalRecords` Map when FastAPI persistence exists.
+ * - Real drafts/publishes must live in backend DB (survive refresh / multi-device).
+ * - Add GET-by-id for Edit-from-home prepopulation (not implemented on FE yet).
+ * - Landing Active/Drafts lists should read from the same backend source, not only sample data.
+ * - Required-field validation belongs on the backend; FE already gates via `getNationalSubmitBlockers`.
+ */
+const nationalRecords = new Map<string, StoredNationalRecord>();
+
+function createRecordId(status: OnePagerRecordStatus) {
+  const prefix = status === "draft" ? "draft" : "published";
+  return `${prefix}-${crypto.randomUUID()}`;
+}
+
+function upsertNationalRecord(
+  payload: NationalOnePagerCreatePayload,
+  status: OnePagerRecordStatus,
+  id?: string | null,
+): NationalOnePagerMutationResult {
+  const existing = id ? nationalRecords.get(id) : undefined;
+  const nextId = existing?.id ?? createRecordId(status);
+
+  nationalRecords.set(nextId, {
+    id: nextId,
+    status,
+    payload: structuredClone(payload),
+  });
+
+  return { ok: true, id: nextId, status };
+}
+
+/**
+ * Mock POST save-draft — swap implementation body for real HTTP call.
+ *
+ * TODO: Integrate real API
+ * - Endpoint (example): POST /api/national-one-pagers/draft
+ * - Body: `NationalOnePagerCreatePayload` (+ id when updating existing draft)
+ * - Response: `{ id, status: "draft" }` (keep `NationalOnePagerMutationResult` shape)
+ * - After image upload exists, payload image URLs must be permanent (see NationalImagePayload TODO).
+ * - Remove `delay` + `upsertNationalRecord` in-memory path.
+ */
 export async function saveNationalDraft(
   payload: NationalOnePagerCreatePayload,
-): Promise<SaveDraftResult> {
+  id?: string | null,
+): Promise<NationalOnePagerMutationResult> {
   await delay(400);
-  if (!payload.title.trim()) {
-    return { ok: false, error: "Title is required to save a draft." };
-  }
-  draftStore.push(structuredClone(payload));
-  return { ok: true, id: `draft-${draftStore.length}` };
+  return upsertNationalRecord(payload, "draft", id);
+}
+
+/**
+ * Mock POST publish — swap implementation body for real HTTP call.
+ *
+ * TODO: Integrate real API
+ * - Endpoint (example): POST /api/national-one-pagers/publish
+ * - Creates published OR promotes existing draft id → published
+ * - Response: `{ id, status: "published" }`
+ * - FE: "Preview & Publish" navigates to `/create/national/preview` first;
+ *   confirm Publish on that screen calls this function (mock today).
+ * - Remove in-memory upsert once backend owns status transitions.
+ */
+export async function publishNationalOnePager(
+  payload: NationalOnePagerCreatePayload,
+  id?: string | null,
+): Promise<NationalOnePagerMutationResult> {
+  await delay(500);
+  return upsertNationalRecord(payload, "published", id);
 }

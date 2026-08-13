@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useOutletContext } from "react-router-dom";
+import { useLocation, useNavigate, useOutletContext } from "react-router-dom";
 
 import { FormActionBar } from "@/components/form/FormActionBar";
+import { FormToast } from "@/components/form/FormToast";
 import {
   emptyNationalFormValues,
+  getNationalSubmitBlockers,
   type NationalFormValues,
 } from "@/components/form/nationalForm";
 import { NationalStrategyForm } from "@/components/form/NationalStrategyForm";
@@ -17,6 +19,7 @@ import {
 import { UnsavedChangesModal } from "@/components/form/UnsavedChangesModal";
 import { PageContainer } from "@/components/layout/PageContainer";
 import type { FormLayoutContext } from "@/layouts/MainLayout";
+import type { NationalPreviewLocationState } from "@/pages/PreviewNationalOnePager";
 import {
   buildNationalOnePagerPayload,
   saveNationalDraft,
@@ -60,22 +63,77 @@ function revokeFormImageUrls(
   });
 }
 
-export function CreateNationalOnePager() {
-  const navigate = useNavigate();
-  const { setBackHandler } = useOutletContext<FormLayoutContext>();
-  const [values, setValues] = useState<NationalFormValues>(
-    emptyNationalFormValues,
-  );
-  const [scoringMode, setScoringMode] = useState<ScoringMode>("UNWEIGHTED");
-  const [pillars, setPillars] = useState<PillarDraft[]>(createDefaultPillars);
-  const [unsavedOpen, setUnsavedOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
+function isPreviewReturnState(
+  value: unknown,
+): value is NationalPreviewLocationState {
+  if (!value || typeof value !== "object") return false;
+  const state = value as Partial<NationalPreviewLocationState>;
+  return Boolean(state.values && state.pillars && state.payload);
+}
 
-  const dirty = useMemo(
-    () => isFormDirty(values, scoringMode, pillars),
+export function CreateNationalOnePager() {
+  // TODO: Edit-from-home prepopulation
+  // - Add route param (e.g. /create/national/:id) or /edit/national/:id.
+  // - On mount, GET one-pager by id from backend (mock getById first if needed).
+  // - Hydrate values / pillars / scoringMode / recordId from response payload.
+  // - Image fields: if API returns permanent URLs, set coverImageUrl + initiative blobUrl
+  //   (or rename to url) and note File may be null in edit mode until user replaces image.
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { setBackHandler } = useOutletContext<FormLayoutContext>();
+
+  const restored = isPreviewReturnState(location.state) ? location.state : null;
+
+  const [values, setValues] = useState<NationalFormValues>(
+    () => restored?.values ?? emptyNationalFormValues,
+  );
+  const [scoringMode, setScoringMode] = useState<ScoringMode>(
+    () => restored?.scoringMode ?? "UNWEIGHTED",
+  );
+  const [pillars, setPillars] = useState<PillarDraft[]>(
+    () => restored?.pillars ?? createDefaultPillars(),
+  );
+  const [recordId, setRecordId] = useState<string | null>(
+    () => restored?.recordId ?? null,
+  );
+  const [savedFingerprint, setSavedFingerprint] = useState<string | null>(
+    () => (restored ? JSON.stringify(restored.payload) : null),
+  );
+  const [unsavedOpen, setUnsavedOpen] = useState(false);
+  const [savingDraft, setSavingDraft] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [toastOpen, setToastOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+
+  useEffect(() => {
+    // Consume one-time restore state so refresh doesn't keep rehydrating.
+    if (restored) {
+      navigate(location.pathname, { replace: true, state: null });
+    }
+    // Only on mount for return-from-preview handoff.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const payloadFingerprint = useMemo(
+    () =>
+      JSON.stringify(
+        buildNationalOnePagerPayload(values, scoringMode, pillars),
+      ),
     [values, scoringMode, pillars],
   );
+
+  const dirty =
+    savedFingerprint === null
+      ? isFormDirty(values, scoringMode, pillars)
+      : payloadFingerprint !== savedFingerprint;
+
+  const submitBlockedReason = getNationalSubmitBlockers(values, pillars);
+  const canSubmit = submitBlockedReason === null;
+
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    setToastOpen(true);
+  };
 
   const requestLeave = () => {
     if (dirty) {
@@ -85,20 +143,58 @@ export function CreateNationalOnePager() {
     navigate("/home");
   };
 
-  const handleSaveDraft = async () => {
-    setSaving(true);
+  const handleSaveDraft = async (options?: { redirectHome?: boolean }) => {
+    if (!canSubmit) {
+      setSaveError(submitBlockedReason);
+      return false;
+    }
+
+    setSavingDraft(true);
     setSaveError(null);
     const payload = buildNationalOnePagerPayload(values, scoringMode, pillars);
-    const result = await saveNationalDraft(payload);
-    setSaving(false);
+    // TODO: When backend is live, `saveNationalDraft` becomes the real HTTP call.
+    // Keep toast + homepage redirect UX for action-bar Save Draft; only swap service.
+    const result = await saveNationalDraft(payload, recordId);
+    setSavingDraft(false);
 
     if (!result.ok) {
       setSaveError(result.error);
       return false;
     }
 
+    setRecordId(result.id);
+    setSavedFingerprint(JSON.stringify(payload));
     setSaveError(null);
+
+    if (options?.redirectHome !== false) {
+      navigate("/home", { replace: true });
+      return true;
+    }
+
+    showToast("Draft saved successfully.");
     return true;
+  };
+
+  const handlePreviewPublish = () => {
+    if (!canSubmit) {
+      setSaveError(submitBlockedReason);
+      return;
+    }
+
+    setSaveError(null);
+    const payload = buildNationalOnePagerPayload(values, scoringMode, pillars);
+    // TODO: Preview route is FE-only handoff via location.state today.
+    // Next: persist draft (or preview snapshot) then open /create/national/preview/:id
+    // from backend id. Keep NationalPreviewLocationState field names until then.
+    // Publish itself happens on the preview page (not here).
+    const previewState: NationalPreviewLocationState = {
+      values,
+      scoringMode,
+      pillars,
+      recordId,
+      payload,
+    };
+    navigate("/create/national/preview", { state: previewState });
   };
 
   useEffect(() => {
@@ -128,18 +224,22 @@ export function CreateNationalOnePager() {
       </PageContainer>
 
       <FormActionBar
+        savingDraft={savingDraft}
+        publishing={false}
+        canSubmit={canSubmit}
+        submitBlockedReason={submitBlockedReason}
         onCancel={requestLeave}
         onSaveDraft={() => {
-          void handleSaveDraft();
+          void handleSaveDraft({ redirectHome: true });
         }}
-        onPreviewPublish={() => {
-          // Preview uses the same blob-url payload shape once the screen exists.
-          void buildNationalOnePagerPayload(values, scoringMode, pillars);
-        }}
+        onPreviewPublish={handlePreviewPublish}
       />
 
       <UnsavedChangesModal
         open={unsavedOpen}
+        saving={savingDraft}
+        canSaveDraft={canSubmit}
+        saveBlockedReason={submitBlockedReason}
         onOpenChange={setUnsavedOpen}
         onDiscard={() => {
           revokeFormImageUrls(values, pillars);
@@ -148,7 +248,7 @@ export function CreateNationalOnePager() {
         }}
         onSaveDraft={() => {
           void (async () => {
-            const ok = await handleSaveDraft();
+            const ok = await handleSaveDraft({ redirectHome: true });
             if (ok) {
               setUnsavedOpen(false);
             }
@@ -156,11 +256,11 @@ export function CreateNationalOnePager() {
         }}
       />
 
-      {saving ? (
-        <span className="sr-only" aria-live="polite">
-          Saving draft
-        </span>
-      ) : null}
+      <FormToast
+        open={toastOpen}
+        message={toastMessage}
+        onOpenChange={setToastOpen}
+      />
     </div>
   );
 }

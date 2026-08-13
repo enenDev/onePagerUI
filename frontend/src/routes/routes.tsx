@@ -2,6 +2,7 @@ import { Navigate } from "react-router-dom";
 
 import { Home } from "../pages/Home";
 import { CreateNationalOnePager } from "../pages/CreateNationalOnePager";
+import { PreviewNationalOnePager } from "../pages/PreviewNationalOnePager";
 import MainLayout from "../layouts/MainLayout";
 
 const routes = [
@@ -23,6 +24,14 @@ const routes = [
         handle: {
           headerVariant: "simple",
           title: "Create New National One-Pager",
+        },
+      },
+      {
+        path: "create/national/preview",
+        element: <PreviewNationalOnePager />,
+        handle: {
+          headerVariant: "simple",
+          title: "Preview National One-Pager",
         },
       },
     ],

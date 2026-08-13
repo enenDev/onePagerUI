@@ -10,7 +10,7 @@ import {
   fetchOnePagers,
   setScopeTab,
 } from "@/redux/landingSlice";
-import { CURRENT_USER_ID, emptyFilters } from "@/types/onePager";
+import { CURRENT_USER_ID, createEmptyFilters } from "@/types/onePager";
 import { cn } from "@/lib/utils";
 
 const STATUS_MAP = {
@@ -28,7 +28,7 @@ export const Home = () => {
 
   useEffect(() => {
     void dispatch(fetchMetadata());
-    void dispatch(fetchOnePagers(emptyFilters));
+    void dispatch(fetchOnePagers(createEmptyFilters()));
   }, [dispatch]);
 
   const visibleItems = useMemo(() => {

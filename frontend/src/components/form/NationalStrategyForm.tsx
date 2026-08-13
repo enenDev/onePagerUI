@@ -1,7 +1,8 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { CloudUpload } from "lucide-react";
 
 import { AddCampaignModal } from "@/components/form/AddCampaignModal";
+import type { NationalFormValues } from "@/components/form/nationalForm";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -17,7 +18,6 @@ import {
   getOptionsForMarket,
   type FilterOption,
 } from "@/services/createFormApi";
-import type { NationalFormValues } from "@/components/form/nationalForm";
 
 type NationalStrategyFormProps = {
   values: NationalFormValues;
@@ -34,6 +34,7 @@ export function NationalStrategyForm({
   const [channels, setChannels] = useState<FilterOption[]>([]);
   const [optionsLoading, setOptionsLoading] = useState(false);
   const [addCampaignOpen, setAddCampaignOpen] = useState(false);
+  const marketOptionsRequestId = useRef(0);
 
   const marketSelected = Boolean(values.market);
   const dependentDisabled = !marketSelected || optionsLoading;
@@ -43,37 +44,54 @@ export function NationalStrategyForm({
   }, []);
 
   const loadMarketOptions = async (market: string) => {
+    const requestId = ++marketOptionsRequestId.current;
     setOptionsLoading(true);
+    setCategories([]);
+    setCampaigns([]);
+    setChannels([]);
+
     const options = await getOptionsForMarket(market);
+    // Ignore stale responses if the user changed market again quickly.
+    if (requestId !== marketOptionsRequestId.current) return;
+
     setCategories(options.categories);
     setCampaigns(options.campaigns);
     setChannels(options.channels);
     setOptionsLoading(false);
   };
 
+  // Reload dependent dropdown options whenever market is set — including restore
+  // from preview (values are in parent state, but option lists live only here).
+  useEffect(() => {
+    if (!values.market) {
+      marketOptionsRequestId.current += 1;
+      setOptionsLoading(false);
+      setCategories([]);
+      setCampaigns([]);
+      setChannels([]);
+      return;
+    }
+    void loadMarketOptions(values.market);
+  }, [values.market]);
+
   const handleMarketChange = (market: string) => {
+    // Always reset dependent filters when market changes.
+    // Option lists reload via the values.market effect above.
     onChange({
       ...values,
       market,
       category: "",
       campaign: "",
       channel: "",
-      // title intentionally unchanged
     });
-
-    if (!market) {
-      setCategories([]);
-      setCampaigns([]);
-      setChannels([]);
-      return;
-    }
-
-    void loadMarketOptions(market);
   };
 
   const patch = (partial: Partial<NationalFormValues>) => {
     onChange({ ...values, ...partial });
   };
+
+  // Remount dependent selects when market changes so Radix clears the visible value.
+  const dependentSelectKey = values.market || "no-market";
 
   return (
     <>
@@ -108,6 +126,7 @@ export function NationalStrategyForm({
 
             <Field label="Category" required>
               <Select
+                key={`category-${dependentSelectKey}`}
                 value={values.category || undefined}
                 onValueChange={(value) => patch({ category: value ?? "" })}
                 disabled={dependentDisabled}
@@ -142,6 +161,7 @@ export function NationalStrategyForm({
                 </button>
               </div>
               <Select
+                key={`campaign-${dependentSelectKey}`}
                 value={values.campaign || undefined}
                 onValueChange={(value) => patch({ campaign: value ?? "" })}
                 disabled={dependentDisabled}
@@ -165,6 +185,7 @@ export function NationalStrategyForm({
 
             <Field label="Channel" required>
               <Select
+                key={`channel-${dependentSelectKey}`}
                 value={values.channel || undefined}
                 onValueChange={(value) => patch({ channel: value ?? "" })}
                 disabled={dependentDisabled}
@@ -213,6 +234,8 @@ export function NationalStrategyForm({
                     if (values.coverImageUrl.startsWith("blob:")) {
                       URL.revokeObjectURL(values.coverImageUrl);
                     }
+                    // TODO: When upload API exists, optionally upload `file` here (or on Save)
+                    // and store the returned permanent URL in coverImageUrl instead of blob:.
                     patch({
                       coverImageName: file?.name ?? "",
                       coverImageUrl: file ? URL.createObjectURL(file) : "",

@@ -105,7 +105,10 @@ export function CreateOnePagerModal({
                     return;
                   }
 
-                  // Build from Scratch / Import From National wiring comes later
+                  // TODO: Retailer create flows not wired yet.
+                  // - "Build from Scratch" → navigate to retailer create form (route TBD).
+                  // - "Import From National" → open national-import picker screen/modal, then create retailer one-pager from selected national.
+                  // Do not only closeFlow() once those screens exist.
                   closeFlow();
                 }}
               >

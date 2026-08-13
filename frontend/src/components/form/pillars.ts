@@ -3,8 +3,15 @@ export type ScoringMode = "UNWEIGHTED" | "WEIGHTED";
 export type InitiativeImage = {
   id: string;
   name: string;
-  /** In-browser blob: URL kept on the form until a real upload API exists. */
+  /**
+   * In-browser preview URL (`blob:...`) until real image upload exists.
+   *
+   * TODO: Swap to permanent storage URL after upload API without breaking previews:
+   * - Upload `file` → receive URL → set this field to that URL (keep name/id).
+   * - On edit load from API, populate from server URL; `file` may be absent.
+   */
   blobUrl: string;
+  /** Raw file for future upload; required on create picks, optional when hydrating from API. */
   file: File;
 };
 
@@ -41,6 +48,20 @@ const DEFAULT_PILLARS = [
 
 export const MAX_INITIATIVES_PER_PILLAR = 3;
 export const MAX_INITIATIVE_IMAGES = 3;
+export const REQUIRED_PILLAR_COUNT = 5;
+
+/** Save Draft / Publish require at least one initiative on every pillar. */
+export function everyPillarHasInitiative(pillars: PillarDraft[]): boolean {
+  if (pillars.length < REQUIRED_PILLAR_COUNT) return false;
+  return pillars.every((pillar) => pillar.initiatives.length >= 1);
+}
+
+export function pillarsMissingInitiatives(pillars: PillarDraft[]): string[] {
+  return pillars
+    .filter((pillar) => pillar.initiatives.length === 0)
+    .map((pillar) => pillar.pillar_name);
+}
+
 
 export function createDefaultPillars(): PillarDraft[] {
   return DEFAULT_PILLARS.map((pillar) => ({

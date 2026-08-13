@@ -23,12 +23,28 @@ export interface FilterMetadata {
   campaign: FilterOption[];
 }
 
+/**
+ * Homepage search body for backend (mock today, FastAPI later).
+ * Every dropdown is multi-select → each key is always a `string[]`
+ * (empty array = no filter on that key; never a bare string).
+ */
 export interface FilterPayload {
-  market: string;
-  retailer: string;
-  channel: string;
-  category: string;
-  campaign: string;
+  market: string[];
+  retailer: string[];
+  channel: string[];
+  category: string[];
+  campaign: string[];
+}
+
+/** Clone UI filter state into the array-only API request body. */
+export function toOnePagerSearchPayload(filters: FilterPayload): FilterPayload {
+  return {
+    market: [...filters.market],
+    retailer: [...filters.retailer],
+    channel: [...filters.channel],
+    category: [...filters.category],
+    campaign: [...filters.campaign],
+  };
 }
 
 export interface OnePagerListItem {
@@ -51,9 +67,20 @@ export const CURRENT_USER_EMAIL = "nitesh@example.com";
 export const CURRENT_USER_INITIALS = "NN";
 
 export const emptyFilters: FilterPayload = {
-  market: "",
-  retailer: "",
-  channel: "",
-  category: "",
-  campaign: "",
+  market: [],
+  retailer: [],
+  channel: [],
+  category: [],
+  campaign: [],
 };
+
+/** Fresh empty selection — avoid sharing array refs with Redux state. */
+export function createEmptyFilters(): FilterPayload {
+  return {
+    market: [],
+    retailer: [],
+    channel: [],
+    category: [],
+    campaign: [],
+  };
+}
