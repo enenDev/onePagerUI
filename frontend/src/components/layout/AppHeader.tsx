@@ -53,9 +53,11 @@ export function AppHeader({
             aria-label="One Pager home"
           >
             <img src="/logo.svg" alt="" className="size-8 object-contain" />
-            <span className="text-base font-semibold text-foreground">
-              One Pager
-            </span>
+            {variant === "list" && (
+              <span className="text-base font-semibold text-foreground">
+                One Pager
+              </span>
+            )}
           </Link>
 
           {variant === "simple" && (
@@ -66,6 +68,7 @@ export function AppHeader({
                   variant="ghost"
                   size="icon-sm"
                   onClick={onBack}
+                  className="cursor-pointer"
                   aria-label="Go back"
                 >
                   <span className="text-lg leading-none">&lt;</span>

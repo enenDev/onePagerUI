@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { LayoutGrid, MapPin, Store, FileInput } from "lucide-react";
 
 import {
@@ -46,6 +47,7 @@ export function CreateOnePagerModal({
   open,
   onOpenChange,
 }: CreateOnePagerModalProps) {
+  const navigate = useNavigate();
   const [step, setStep] = useState<CreateStep>("type");
 
   const handleOpenChange = (nextOpen: boolean) => {
@@ -96,7 +98,14 @@ export function CreateOnePagerModal({
                     setStep("retailer");
                     return;
                   }
-                  // National / Build from Scratch / Import wiring comes later
+
+                  if (!isRetailerStep && option.id === "national") {
+                    closeFlow();
+                    navigate("/create/national");
+                    return;
+                  }
+
+                  // Build from Scratch / Import From National wiring comes later
                   closeFlow();
                 }}
               >
