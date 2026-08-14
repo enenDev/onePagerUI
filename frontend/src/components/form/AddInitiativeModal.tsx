@@ -650,20 +650,26 @@ function DateField({
         />
         <button
           type="button"
-          className="absolute top-1/2 right-2 -translate-y-1/2 cursor-pointer text-muted-foreground hover:text-foreground"
+          className="absolute top-1/2 right-2 z-20 -translate-y-1/2 cursor-pointer text-muted-foreground hover:text-foreground"
           onClick={openPicker}
           aria-label={`Pick ${label}`}
         >
           <CalendarDays className="size-4" />
         </button>
+        {/*
+          Native date pickers anchor to this input's box. `sr-only` left a 1px
+          hit-target on the right, so the popup opened at the far right.
+          Match the visible field so the calendar opens under the input.
+        */}
         <input
           ref={pickerRef}
           type="date"
-          className="sr-only"
+          className="pointer-events-none absolute inset-0 h-full w-full opacity-0"
           value={displayToIso(value)}
           min={minIso}
           onChange={(event) => onChange(isoToDisplay(event.target.value))}
           tabIndex={-1}
+          aria-hidden
         />
       </div>
     </div>
