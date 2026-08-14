@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useOutletContext } from "react-router-dom";
 
 import { FormActionBar } from "@/components/form/FormActionBar";
+import { buildNationalFormSample } from "@/components/form/fillNationalFormSample";
 import { FormToast } from "@/components/form/FormToast";
 import {
   emptyNationalFormValues,
@@ -83,15 +84,20 @@ export function CreateNationalOnePager() {
   const { setBackHandler } = useOutletContext<FormLayoutContext>();
 
   const restored = isPreviewReturnState(location.state) ? location.state : null;
+  const shouldFillSample =
+    import.meta.env.DEV &&
+    !restored &&
+    new URLSearchParams(location.search).get("fill") === "1";
+  const initialSample = shouldFillSample ? buildNationalFormSample() : null;
 
   const [values, setValues] = useState<NationalFormValues>(
-    () => restored?.values ?? emptyNationalFormValues,
+    () => restored?.values ?? initialSample?.values ?? emptyNationalFormValues,
   );
   const [scoringMode, setScoringMode] = useState<ScoringMode>(
-    () => restored?.scoringMode ?? "UNWEIGHTED",
+    () => restored?.scoringMode ?? initialSample?.scoringMode ?? "UNWEIGHTED",
   );
   const [pillars, setPillars] = useState<PillarDraft[]>(
-    () => restored?.pillars ?? createDefaultPillars(),
+    () => restored?.pillars ?? initialSample?.pillars ?? createDefaultPillars(),
   );
   const [recordId, setRecordId] = useState<string | null>(
     () => restored?.recordId ?? null,
@@ -105,12 +111,21 @@ export function CreateNationalOnePager() {
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
 
+  const applySampleData = () => {
+    revokeFormImageUrls(values, pillars);
+    const sample = buildNationalFormSample();
+    setValues(sample.values);
+    setScoringMode(sample.scoringMode);
+    setPillars(sample.pillars);
+    setSaveError(null);
+  };
+
   useEffect(() => {
-    // Consume one-time restore state so refresh doesn't keep rehydrating.
-    if (restored) {
+    // Consume one-time restore / ?fill=1 so refresh doesn't keep rehydrating.
+    if (restored || shouldFillSample) {
       navigate(location.pathname, { replace: true, state: null });
     }
-    // Only on mount for return-from-preview handoff.
+    // Only on mount for return-from-preview and dev fill handoff.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -229,6 +244,7 @@ export function CreateNationalOnePager() {
         canSubmit={canSubmit}
         submitBlockedReason={submitBlockedReason}
         onCancel={requestLeave}
+        onFillSample={import.meta.env.DEV ? applySampleData : undefined}
         onSaveDraft={() => {
           void handleSaveDraft({ redirectHome: true });
         }}

@@ -7,6 +7,8 @@ type FormActionBarProps = {
   onCancel?: () => void;
   onSaveDraft?: () => void;
   onPreviewPublish?: () => void;
+  /** Dev-only sample fill. Omit in production UI. */
+  onFillSample?: () => void;
   savingDraft?: boolean;
   publishing?: boolean;
   /** When false, Save Draft + Preview & Publish stay disabled. */
@@ -18,6 +20,7 @@ export function FormActionBar({
   onCancel,
   onSaveDraft,
   onPreviewPublish,
+  onFillSample,
   savingDraft = false,
   publishing = false,
   canSubmit = true,
@@ -35,15 +38,28 @@ export function FormActionBar({
           </p>
         ) : null}
         <div className="flex items-center justify-between gap-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
-            disabled={busy}
-            className="h-9 cursor-pointer rounded-lg border-[#f0a8a0] px-5 text-[#e11d48] hover:bg-red-50 hover:text-[#e11d48]"
-          >
-            Cancel
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              disabled={busy}
+              className="h-9 cursor-pointer rounded-lg border-[#f0a8a0] px-5 text-[#e11d48] hover:bg-red-50 hover:text-[#e11d48]"
+            >
+              Cancel
+            </Button>
+            {onFillSample ? (
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={onFillSample}
+                disabled={busy}
+                className="h-9 cursor-pointer rounded-lg px-3 text-muted-foreground"
+              >
+                Fill sample data
+              </Button>
+            ) : null}
+          </div>
 
           <div className="flex items-center gap-2">
             <Button

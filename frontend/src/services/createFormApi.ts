@@ -309,8 +309,8 @@ export async function saveNationalDraft(
  * - Endpoint (example): POST /api/national-one-pagers/publish
  * - Creates published OR promotes existing draft id → published
  * - Response: `{ id, status: "published" }`
- * - FE: "Preview & Publish" navigates to `/create/national/preview` first;
- *   confirm Publish on that screen calls this function (mock today).
+ * - FE: confirm Publish on preview calls this with `NationalOnePagerCreatePayload` (+ id).
+ *   On success the preview stays on-page (toast, drop "(Preview)" prefix, enable More Options).
  * - Remove in-memory upsert once backend owns status transitions.
  */
 export async function publishNationalOnePager(

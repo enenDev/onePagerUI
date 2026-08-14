@@ -26,6 +26,29 @@
   --color-card-surface: var(--card-surface);
   --color-avatar-bg: var(--avatar-bg);
   --color-avatar-fg: var(--avatar-fg);
+  --color-preview-priority-p1: var(--preview-priority-p1);
+  --color-preview-priority-p2: var(--preview-priority-p2);
+  --color-preview-priority-p3: var(--preview-priority-p3);
+  --color-preview-priority-fg: var(--preview-priority-fg);
+  --color-preview-dept: var(--preview-dept);
+  --color-preview-date: var(--preview-date);
+  --color-preview-date-fg: var(--preview-date-fg);
+  --color-preview-active: var(--preview-active);
+  --color-preview-divider: var(--preview-divider);
+  --color-preview-pillar-1: var(--preview-pillar-1-bg);
+  --color-preview-pillar-1-title: var(--preview-pillar-1-title);
+  --color-preview-pillar-2: var(--preview-pillar-2-bg);
+  --color-preview-pillar-2-title: var(--preview-pillar-2-title);
+  --color-preview-pillar-3: var(--preview-pillar-3-bg);
+  --color-preview-pillar-3-title: var(--preview-pillar-3-title);
+  --color-preview-pillar-4: var(--preview-pillar-4-bg);
+  --color-preview-pillar-4-title: var(--preview-pillar-4-title);
+  --color-preview-pillar-5: var(--preview-pillar-5-bg);
+  --color-preview-pillar-5-title: var(--preview-pillar-5-title);
+  --color-preview-pillar-label: var(--preview-pillar-label);
+  --shadow-preview-card: var(--preview-card-shadow-value);
+  --radius-preview-badge: var(--preview-badge-radius);
+  --radius-preview-card: var(--preview-card-radius);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -60,6 +83,34 @@
 
   --avatar-bg: #ddd6fe;
   --avatar-fg: #5b21b6;
+
+  /* Preview / one-pager document — change hex here, not in components */
+  --preview-priority-p1: #fde6d4;
+  --preview-priority-p2: #ffedd5;
+  --preview-priority-p3: #fef3c7;
+  --preview-priority-fg: #3d3d3d;
+  --preview-dept: #e0e0e0;
+  --preview-date: #a4f9ff;
+  --preview-date-fg: #1f2937;
+  --preview-active: #c1f5c3;
+  --preview-divider: #9aa7b8;
+  --preview-card-shadow: #cad3e2;
+  --preview-card-shadow-value: 0 0 4px 0 var(--preview-card-shadow);
+  --preview-badge-radius: 8px;
+  --preview-card-radius: 10px;
+
+  /* Preview pillar cards — bg + title from product mapping */
+  --preview-pillar-1-bg: #fff7f6; /* Category Leadership */
+  --preview-pillar-1-title: #e73c43;
+  --preview-pillar-2-bg: #fff7ff; /* Unmissable Retail Theater */
+  --preview-pillar-2-title: #e863e6;
+  --preview-pillar-3-bg: #f4fcf9; /* More Stores Better Stores */
+  --preview-pillar-3-title: #00c79d;
+  --preview-pillar-4-bg: #fafcf4; /* Frictionless Digital */
+  --preview-pillar-4-title: #a5ba02;
+  --preview-pillar-5-bg: #fefaf5; /* Always Available */
+  --preview-pillar-5-title: #ef9e22;
+  --preview-pillar-label: #0066cc; /* "Pillar 1", "Pillar 2", … */
 
   /* Mostly white, light blue only toward bottom-right */
   --app-gradient: linear-gradient(

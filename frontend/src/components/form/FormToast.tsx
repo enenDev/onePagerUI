@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { CheckCircle2, X } from "lucide-react";
+import { Check, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -18,7 +18,7 @@ export function FormToast({
   open,
   message,
   onOpenChange,
-  durationMs = 3200,
+  durationMs = 5000,
   className,
 }: FormToastProps) {
   useEffect(() => {
@@ -34,15 +34,17 @@ export function FormToast({
       role="status"
       aria-live="polite"
       className={cn(
-        "fixed right-4 bottom-24 z-50 flex max-w-sm items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm text-emerald-900 shadow-md",
+        "fixed bottom-24 left-1/2 z-50 flex w-max max-w-[min(92vw,48rem)] -translate-x-1/2 items-center gap-2.5 rounded-[24px] bg-[#E3FFE4] px-[18px] py-4 text-sm whitespace-nowrap text-[#1f2937] shadow-[0_0_4px_0_#7EA2F1]",
         className,
       )}
     >
-      <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-600" />
-      <p className="flex-1 leading-snug">{message}</p>
+      <span className="inline-flex size-5 shrink-0 items-center justify-center rounded-full bg-[#119511]">
+        <Check className="size-3 text-white" strokeWidth={3} />
+      </span>
+      <p className="min-w-0 overflow-hidden text-ellipsis">{message}</p>
       <button
         type="button"
-        className="cursor-pointer rounded p-0.5 text-emerald-700 hover:bg-emerald-100"
+        className="cursor-pointer rounded p-0.5 text-[#1f2937] hover:bg-black/10"
         aria-label="Dismiss"
         onClick={() => onOpenChange(false)}
       >

@@ -11,6 +11,7 @@ type RouteHandle = {
 
 export type FormLayoutContext = {
   setBackHandler: (handler: (() => void) | null) => void;
+  setHeaderTitle: (title: string | null) => void;
 };
 
 const MainLayout = () => {
@@ -20,9 +21,14 @@ const MainLayout = () => {
   const [backHandler, setBackHandlerState] = useState<(() => void) | null>(
     null,
   );
+  const [headerTitle, setHeaderTitleState] = useState<string | null>(null);
 
   const setBackHandler = useCallback((handler: (() => void) | null) => {
     setBackHandlerState(() => handler);
+  }, []);
+
+  const setHeaderTitle = useCallback((title: string | null) => {
+    setHeaderTitleState(title);
   }, []);
 
   const handle = [...matches]
@@ -30,7 +36,7 @@ const MainLayout = () => {
     .find((match) => match.handle)?.handle as RouteHandle | undefined;
 
   const headerVariant = handle?.headerVariant ?? "list";
-  const title = handle?.title;
+  const title = headerTitle ?? handle?.title;
   const isFormPage = headerVariant === "simple";
   const isCreatePage = location.pathname.startsWith("/create");
 
@@ -53,10 +59,14 @@ const MainLayout = () => {
       />
       <main className="flex flex-1 flex-col">
         {isCreatePage ? (
-          <Outlet context={{ setBackHandler } satisfies FormLayoutContext} />
+          <Outlet
+            context={{ setBackHandler, setHeaderTitle } satisfies FormLayoutContext}
+          />
         ) : (
           <PageContainer className="py-6">
-            <Outlet context={{ setBackHandler } satisfies FormLayoutContext} />
+            <Outlet
+              context={{ setBackHandler, setHeaderTitle } satisfies FormLayoutContext}
+            />
           </PageContainer>
         )}
       </main>

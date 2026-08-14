@@ -75,7 +75,10 @@ export function AppHeader({
                 </Button>
               )}
               {title && (
-                <h1 className="truncate text-sm font-semibold text-foreground md:text-base">
+                <h1
+                  title={title}
+                  className="truncate text-sm font-semibold text-foreground md:text-base"
+                >
                   {title}
                 </h1>
               )}
