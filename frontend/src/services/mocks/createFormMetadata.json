@@ -1,0 +1,84 @@
+{
+  "markets": [
+    { "label": "National", "value": "National" },
+    { "label": "US", "value": "US" }
+  ],
+  "optionsByMarket": {
+    "National": {
+      "categories": [
+        { "label": "Hair Care", "value": "Hair Care" },
+        { "label": "Oral Care", "value": "Oral Care" },
+        { "label": "Execution Excellence", "value": "Execution Excellence" }
+      ],
+      "campaigns": [
+        { "label": "National Growth Program", "value": "National Growth Program" },
+        { "label": "Summer Freshness", "value": "Summer Freshness" }
+      ],
+      "channels": [
+        { "label": "All Channels", "value": "All Channels" },
+        { "label": "Supermarket", "value": "Supermarket" }
+      ],
+      "retailers": [
+        { "label": "All Retailers", "value": "All Retailers" },
+        { "label": "Supermarket", "value": "Supermarket" }
+      ]
+    },
+    "US": {
+      "categories": [
+        { "label": "Hair Care", "value": "Hair Care" },
+        { "label": "Oral Care", "value": "Oral Care" },
+        { "label": "Deodorants", "value": "Deodorants" }
+      ],
+      "campaigns": [
+        { "label": "Summer Freshness", "value": "Summer Freshness" },
+        { "label": "Scalp & Shine", "value": "Scalp & Shine" },
+        { "label": "Fresh Breath", "value": "Fresh Breath" }
+      ],
+      "channels": [
+        { "label": "Supermarket", "value": "Supermarket" },
+        { "label": "Hypermarket", "value": "Hypermarket" }
+      ],
+      "retailers": [
+        { "label": "Walmart", "value": "Walmart" },
+        { "label": "Target", "value": "Target" },
+        { "label": "Kroger", "value": "Kroger" }
+      ]
+    }
+  },
+  "accountableDepartments": [
+    { "label": "CSP & Brand Operations", "value": "CSP & Brand Operations" },
+    { "label": "Trade Marketing / Merchandising", "value": "Trade Marketing / Merchandising" },
+    { "label": "CBD Accounts Team", "value": "CBD Accounts Team" },
+    { "label": "Digital Commerce Team", "value": "Digital Commerce Team" },
+    { "label": "Supply Chain Operations", "value": "Supply Chain Operations" },
+    { "label": "Customer Business Development (CBD)", "value": "Customer Business Development (CBD)" },
+    { "label": "Human Resources", "value": "Human Resources" },
+    { "label": "Sales", "value": "Sales" }
+  ],
+  "kpisByPillarNumber": {
+    "1": [
+      { "label": "Value Sales", "value": "Value Sales" },
+      { "label": "Brand Consideration", "value": "Brand Consideration" },
+      { "label": "Share of Voice", "value": "Share of Voice" }
+    ],
+    "2": [
+      { "label": "Display Compliance", "value": "Display Compliance" },
+      { "label": "Promo Uplift", "value": "Promo Uplift" },
+      { "label": "Shopper Engagement Rate", "value": "Shopper Engagement Rate" }
+    ],
+    "3": [
+      { "label": "Store Coverage", "value": "Store Coverage" },
+      { "label": "Distribution Points", "value": "Distribution Points" },
+      { "label": "New Store Openings", "value": "New Store Openings" }
+    ],
+    "4": [
+      { "label": "Digital Adoption", "value": "Digital Adoption" },
+      { "label": "Sales Conversion Rate", "value": "Sales Conversion Rate" },
+      { "label": "Online Availability", "value": "Online Availability" }
+    ],
+    "5": [
+      { "label": "Product Availability", "value": "Product Availability" },
+      { "label": "Process Compliance", "value": "Process Compliance" }
+    ]
+  }
+}

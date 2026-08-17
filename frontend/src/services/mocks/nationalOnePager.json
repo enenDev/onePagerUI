@@ -1,6 +1,10 @@
 {
   "id": "pager-001",
   "status": "published",
+  "created_by": "user-001",
+  "pager_type": "national",
+  "list_status": "ACTIVE",
+  "published_at": "15 Jun 2026, 20:00",
   "payload": {
     "market": "US",
     "category": "Hair Care",

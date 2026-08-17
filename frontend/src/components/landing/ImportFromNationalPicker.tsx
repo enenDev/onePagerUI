@@ -83,7 +83,7 @@ export function ImportFromNationalPicker({
 
     void (async () => {
       // TODO: This list is the mock landing search (submitOnePagerSearch →
-      // landingSampleData). Next: swap to FastAPI national list, e.g.
+      // mocks/landingOnePagers.json). Next: swap to FastAPI national list, e.g.
       // GET /api/one-pagers/search?pager_type=national excluding drafts, plus
       // GET /api/metadata for Market / Category / Campaign / Channel options.
       // Keep OnePagerListItem + pager_id / pager_type stable.

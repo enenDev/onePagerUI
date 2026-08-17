@@ -24,6 +24,7 @@ export function EditOnePager() {
   const { setBackHandler, setHeaderTitle } =
     useOutletContext<FormLayoutContext>();
   const [error, setError] = useState<string | null>(null);
+  const displayError = pagerId ? error : "Missing one-pager id.";
 
   useEffect(() => {
     setHeaderTitle("Edit One-Pager");
@@ -35,10 +36,7 @@ export function EditOnePager() {
   }, [navigate, setBackHandler, setHeaderTitle]);
 
   useEffect(() => {
-    if (!pagerId) {
-      setError("Missing one-pager id.");
-      return;
-    }
+    if (!pagerId) return;
 
     let cancelled = false;
 
@@ -69,9 +67,9 @@ export function EditOnePager() {
 
   return (
     <PageContainer className="flex flex-1 flex-col py-6">
-      {error ? (
+      {displayError ? (
         <div className="flex flex-col items-start gap-3">
-          <p className="text-sm text-destructive">{error}</p>
+          <p className="text-sm text-destructive">{displayError}</p>
           <Button
             type="button"
             variant="outline"

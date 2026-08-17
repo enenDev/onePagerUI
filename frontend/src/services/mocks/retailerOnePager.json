@@ -3,6 +3,8 @@
   "status": "published",
   "created_by": "user-001",
   "pager_type": "retailer",
+  "list_status": "ACTIVE",
+  "published_at": "20 May 2026, 11:00",
   "payload": {
     "market": "US",
     "target_retailer": "Target",

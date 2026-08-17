@@ -3,6 +3,7 @@ import type {
   PillarDraft,
   ScoringMode,
 } from "@/components/form/pillars";
+import createFormMetadataMock from "@/services/mocks/createFormMetadata.json";
 import nationalOnePagerMock from "@/services/mocks/nationalOnePager.json";
 
 export type FilterOption = {
@@ -20,64 +21,6 @@ export type MarketScopedOptions = {
 
 const delay = (ms = 250) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const markets: FilterOption[] = [
-  { label: "National", value: "National" },
-  { label: "US", value: "US" },
-];
-
-/** In-memory campaign list per market — Add Campaign appends here (mock DB). */
-// TODO: Remove in-memory `campaignsByMarket` when campaigns come from backend.
-// Real flow should load campaigns via market-scoped options API and persist new
-// campaigns with POST add-campaign (see `addCampaign` TODO below).
-const campaignsByMarket: Record<string, FilterOption[]> = {
-  National: [
-    { label: "National Growth Program", value: "National Growth Program" },
-    { label: "Summer Freshness", value: "Summer Freshness" },
-  ],
-  US: [
-    { label: "Summer Freshness", value: "Summer Freshness" },
-    { label: "Scalp & Shine", value: "Scalp & Shine" },
-    { label: "Fresh Breath", value: "Fresh Breath" },
-  ],
-};
-
-const categoriesByMarket: Record<string, FilterOption[]> = {
-  National: [
-    { label: "Hair Care", value: "Hair Care" },
-    { label: "Oral Care", value: "Oral Care" },
-    { label: "Execution Excellence", value: "Execution Excellence" },
-  ],
-  US: [
-    { label: "Hair Care", value: "Hair Care" },
-    { label: "Oral Care", value: "Oral Care" },
-    { label: "Deodorants", value: "Deodorants" },
-  ],
-};
-
-const channelsByMarket: Record<string, FilterOption[]> = {
-  National: [
-    { label: "All Channels", value: "All Channels" },
-    { label: "Supermarket", value: "Supermarket" },
-  ],
-  US: [
-    { label: "Supermarket", value: "Supermarket" },
-    { label: "Hypermarket", value: "Hypermarket" },
-  ],
-};
-
-/** Target Retailer options by market (Retailer create form). */
-const retailersByMarket: Record<string, FilterOption[]> = {
-  National: [
-    { label: "All Retailers", value: "All Retailers" },
-    { label: "Supermarket", value: "Supermarket" },
-  ],
-  US: [
-    { label: "Walmart", value: "Walmart" },
-    { label: "Target", value: "Target" },
-    { label: "Kroger", value: "Kroger" },
-  ],
-};
-
 export type CreateFormMetadata = {
   markets: FilterOption[];
   /** All dependent dropdown options, keyed by market value. */
@@ -91,73 +34,37 @@ export type CreateFormMetadata = {
   kpisByPillarNumber: Record<number, FilterOption[]>;
 };
 
-/** Initiative Accountable Function / Department options (shared). */
-const accountableDepartments: FilterOption[] = [
-  { label: "CSP & Brand Operations", value: "CSP & Brand Operations" },
-  {
-    label: "Trade Marketing / Merchandising",
-    value: "Trade Marketing / Merchandising",
-  },
-  { label: "CBD Accounts Team", value: "CBD Accounts Team" },
-  { label: "Digital Commerce Team", value: "Digital Commerce Team" },
-  { label: "Supply Chain Operations", value: "Supply Chain Operations" },
-  {
-    label: "Customer Business Development (CBD)",
-    value: "Customer Business Development (CBD)",
-  },
-  { label: "Human Resources", value: "Human Resources" },
-  { label: "Sales", value: "Sales" },
-];
+function emptyMarketOptions(): MarketScopedOptions {
+  return { categories: [], campaigns: [], channels: [], retailers: [] };
+}
+
+function loadCreateFormCatalog(): CreateFormMetadata {
+  const raw = structuredClone(createFormMetadataMock);
+  const kpisByPillarNumber: Record<number, FilterOption[]> = {};
+  for (const [key, options] of Object.entries(raw.kpisByPillarNumber)) {
+    kpisByPillarNumber[Number(key)] = options as FilterOption[];
+  }
+  return {
+    markets: raw.markets as FilterOption[],
+    optionsByMarket: raw.optionsByMarket as Record<string, MarketScopedOptions>,
+    accountableDepartments: raw.accountableDepartments as FilterOption[],
+    kpisByPillarNumber,
+  };
+}
 
 /**
- * Mock KPIs by pillar — 14 total, different sets per pillar.
- * Pillar names stay hardcoded in pillars.ts; only KPI lists live here.
+ * Mutable copy of mocks/createFormMetadata.json — Add Campaign appends here (mock DB).
+ * TODO: Remove in-memory catalog mutation when campaigns come from backend.
+ * Real flow should load campaigns via getCreateFormMetadata and persist new
+ * campaigns with POST add-campaign (see `addCampaign` TODO below).
  */
-const kpisByPillarNumber: Record<number, FilterOption[]> = {
-  1: [
-    { label: "Value Sales", value: "Value Sales" },
-    { label: "Brand Consideration", value: "Brand Consideration" },
-    { label: "Share of Voice", value: "Share of Voice" },
-  ],
-  2: [
-    { label: "Display Compliance", value: "Display Compliance" },
-    { label: "Promo Uplift", value: "Promo Uplift" },
-    { label: "Shopper Engagement Rate", value: "Shopper Engagement Rate" },
-  ],
-  3: [
-    { label: "Store Coverage", value: "Store Coverage" },
-    { label: "Distribution Points", value: "Distribution Points" },
-    { label: "New Store Openings", value: "New Store Openings" },
-  ],
-  4: [
-    { label: "Digital Adoption", value: "Digital Adoption" },
-    { label: "Sales Conversion Rate", value: "Sales Conversion Rate" },
-    { label: "Online Availability", value: "Online Availability" },
-  ],
-  5: [
-    { label: "Product Availability", value: "Product Availability" },
-    { label: "Process Compliance", value: "Process Compliance" },
-  ],
-};
+let createFormCatalog: CreateFormMetadata | null = null;
 
-function buildOptionsByMarket(): Record<string, MarketScopedOptions> {
-  const keys = new Set([
-    ...Object.keys(categoriesByMarket),
-    ...Object.keys(campaignsByMarket),
-    ...Object.keys(channelsByMarket),
-    ...Object.keys(retailersByMarket),
-  ]);
-
-  const result: Record<string, MarketScopedOptions> = {};
-  for (const market of keys) {
-    result[market] = {
-      categories: structuredClone(categoriesByMarket[market] ?? []),
-      campaigns: structuredClone(campaignsByMarket[market] ?? []),
-      channels: structuredClone(channelsByMarket[market] ?? []),
-      retailers: structuredClone(retailersByMarket[market] ?? []),
-    };
+function getCreateFormCatalog(): CreateFormMetadata {
+  if (!createFormCatalog) {
+    createFormCatalog = loadCreateFormCatalog();
   }
-  return result;
+  return createFormCatalog;
 }
 
 /**
@@ -165,17 +72,14 @@ function buildOptionsByMarket(): Record<string, MarketScopedOptions> {
  * Pillar names stay hardcoded in the app (consistent across screens).
  *
  * TODO: Replace with real FastAPI GET (e.g. /api/create-form/metadata).
+ * Temporary: dummy from `mocks/createFormMetadata.json` (independent of
+ * homepage `getMetadata` / `mocks/homepageMetadata.json`).
  * Keep CreateFormMetadata shape. Client filters optionsByMarket / kpisByPillarNumber
  * — do not add per-market or per-pillar option round-trips for dropdowns.
  */
 export async function getCreateFormMetadata(): Promise<CreateFormMetadata> {
   await delay();
-  return {
-    markets: structuredClone(markets),
-    optionsByMarket: buildOptionsByMarket(),
-    accountableDepartments: structuredClone(accountableDepartments),
-    kpisByPillarNumber: structuredClone(kpisByPillarNumber),
-  };
+  return structuredClone(getCreateFormCatalog());
 }
 
 export type AddCampaignResult =
@@ -186,7 +90,8 @@ export type AddCampaignResult =
  * TODO: Replace with real FastAPI add-campaign endpoint.
  * - POST body: { market, campaign_name }
  * - On success, FE already appends to local campaign select + selects the new value.
- * - Remove mutation of in-memory `campaignsByMarket`.
+ * - Remove mutation of in-memory create-form catalog (loaded from
+ *   mocks/createFormMetadata.json).
  */
 export async function addCampaign(
   market: string,
@@ -202,7 +107,11 @@ export async function addCampaign(
     return { ok: false, error: "Campaign name is required." };
   }
 
-  const list = campaignsByMarket[market] ?? (campaignsByMarket[market] = []);
+  const catalog = getCreateFormCatalog();
+  const scoped =
+    catalog.optionsByMarket[market] ??
+    (catalog.optionsByMarket[market] = emptyMarketOptions());
+  const list = scoped.campaigns;
   const exists = list.some(
     (item) => item.value.toLowerCase() === trimmed.toLowerCase(),
   );

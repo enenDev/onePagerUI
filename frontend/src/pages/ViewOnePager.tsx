@@ -39,6 +39,7 @@ export function ViewOnePager() {
     useOutletContext<FormLayoutContext>();
   const [record, setRecord] = useState<OnePagerByIdRecord | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const displayError = pagerId ? error : "Missing one-pager id.";
 
   useEffect(() => {
     setBackHandler(() => navigate("/home"));
@@ -57,10 +58,7 @@ export function ViewOnePager() {
   }, [record, setHeaderTitle]);
 
   useEffect(() => {
-    if (!pagerId) {
-      setError("Missing one-pager id.");
-      return;
-    }
+    if (!pagerId) return;
 
     let cancelled = false;
 
@@ -82,9 +80,9 @@ export function ViewOnePager() {
   return (
     <div className="flex min-h-[calc(100svh-3.5rem)] w-full flex-col">
       <PageContainer className="flex flex-1 flex-col py-6">
-        {error ? (
+        {displayError ? (
           <div className="flex flex-col items-start gap-3">
-            <p className="text-sm text-destructive">{error}</p>
+            <p className="text-sm text-destructive">{displayError}</p>
             <Button
               type="button"
               variant="outline"

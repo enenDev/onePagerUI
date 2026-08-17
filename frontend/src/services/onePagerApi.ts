@@ -1,4 +1,4 @@
-import { landingOnePagers } from "@/services/landingSampleData";
+import landingOnePagersMock from "@/services/mocks/landingOnePagers.json";
 import nationalOnePagerMock from "@/services/mocks/nationalOnePager.json";
 import retailerOnePagerMock from "@/services/mocks/retailerOnePager.json";
 import type {
@@ -7,7 +7,6 @@ import type {
 } from "@/services/createFormApi";
 import type { RetailerOnePagerCreatePayload } from "@/services/retailerCreateFormApi";
 import {
-  CURRENT_USER_ID,
   toOnePagerSearchPayload,
   type FilterPayload,
   type OnePagerListItem,
@@ -16,6 +15,8 @@ import {
 } from "@/types/onePager";
 
 const delay = (ms = 300) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const landingOnePagers = landingOnePagersMock as OnePagerListItem[];
 
 function matchesFilter(item: OnePagerListItem, filters: FilterPayload) {
   // Multi-select: empty array = no constraint; non-empty = OR match on that key.
@@ -48,8 +49,8 @@ function matchesFilter(item: OnePagerListItem, filters: FilterPayload) {
 
 /**
  * TODO: Replace with real FastAPI list/search endpoint.
- * Temporary: normalize to array-only payload, then filter `landingSampleData`
- * in-memory (used by Submit + Clear all).
+ * Temporary: normalize to array-only payload, then filter
+ * `mocks/landingOnePagers.json` in-memory (used by Submit + Clear all).
  * Next: POST /api/one-pagers/search with JSON body from toOnePagerSearchPayload —
  * always `{ market: string[], retailer: string[], channel: string[],
  * category: string[], campaign: string[] }` (never scalar strings).
@@ -57,7 +58,7 @@ function matchesFilter(item: OnePagerListItem, filters: FilterPayload) {
  * tabs are filtered on the FE from this full mock list.
  * Keep stable: FilterPayload / toOnePagerSearchPayload array shape,
  * OnePagerListItem[] response.
- * Remove dependency on `landingSampleData` once API returns real cards.
+ * Remove dependency on `mocks/landingOnePagers.json` once API returns real cards.
  */
 export async function submitOnePagerSearch(
   filters: FilterPayload,
@@ -133,31 +134,6 @@ function resolvePagerType(id: string): OnePagerType {
   return "national";
 }
 
-function resolveCreatedBy(id: string): string {
-  return (
-    landingOnePagers.find((item) => item.pager_id === id)?.created_by ??
-    CURRENT_USER_ID
-  );
-}
-
-function resolveStatus(id: string): OnePagerRecordStatus {
-  const listing = landingOnePagers.find((item) => item.pager_id === id);
-  if (listing?.status === "DRAFT") return "draft";
-  return "published";
-}
-
-function resolveListStatus(id: string): OnePagerStatus {
-  return (
-    landingOnePagers.find((item) => item.pager_id === id)?.status ?? "ACTIVE"
-  );
-}
-
-function resolvePublishedAt(id: string): string {
-  return (
-    landingOnePagers.find((item) => item.pager_id === id)?.published_at ?? ""
-  );
-}
-
 /**
  * Mock GET-by-id for edit (landing ⋯ Edit / published Edit) and view (card click).
  *
@@ -166,9 +142,10 @@ function resolvePublishedAt(id: string): string {
  * (`pager_type` + matching payload, `list_status`, `published_at`, `created_by`).
  * View stays on `/view/:id` and renders the document. Edit still branches
  * pager_type → `/create/national` or `/create/retailer` — do not merge those forms.
- * Temporary: dummy JSON (nationalOnePager.json / retailerOnePager.json);
- * pager_type / list_status / published_at come from the landing list when the
- * id matches, else id prefix + ACTIVE.
+ * Temporary: one complete dummy JSON per pager_type
+ * (nationalOnePager.json / retailerOnePager.json). Stamp `id` from the URL.
+ * Landing list is only used to choose national vs retailer for known card ids;
+ * do not overlay card title/owner/status onto this response.
  * Import From National still uses getNationalOnePager (national-only).
  */
 export async function getOnePagerById(
@@ -176,21 +153,12 @@ export async function getOnePagerById(
 ): Promise<OnePagerByIdRecord | null> {
   await delay(300);
   const pagerType = resolvePagerType(id);
-  const createdBy = resolveCreatedBy(id);
-  const status = resolveStatus(id);
-  const listStatus = resolveListStatus(id);
-  const publishedAt = resolvePublishedAt(id);
 
   if (pagerType === "retailer") {
     const record = structuredClone(
       retailerOnePagerMock,
     ) as RetailerOnePagerByIdRecord;
     record.id = id;
-    record.pager_type = "retailer";
-    record.created_by = createdBy;
-    record.status = status;
-    record.list_status = listStatus;
-    record.published_at = publishedAt;
     return record;
   }
 
@@ -198,10 +166,5 @@ export async function getOnePagerById(
     nationalOnePagerMock,
   ) as NationalOnePagerByIdRecord;
   record.id = id;
-  record.pager_type = "national";
-  record.created_by = createdBy;
-  record.status = status;
-  record.list_status = listStatus;
-  record.published_at = publishedAt;
   return record;
 }
