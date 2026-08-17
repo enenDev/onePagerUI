@@ -35,6 +35,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import type { CreateFormMetadata } from "@/services/createFormApi";
 
 const PILLAR_META = [
   {
@@ -74,6 +75,8 @@ type PillarsSectionProps = {
   pillars: PillarDraft[];
   onScoringModeChange: (mode: ScoringMode) => void;
   onPillarsChange: (pillars: PillarDraft[]) => void;
+  /** Shared create-form catalog (initiative dropdowns). */
+  catalog: CreateFormMetadata | null;
 };
 
 export function PillarsSection({
@@ -81,6 +84,7 @@ export function PillarsSection({
   pillars,
   onScoringModeChange,
   onPillarsChange,
+  catalog,
 }: PillarsSectionProps) {
   const [expanded, setExpanded] = useState<number[]>([1]);
   const [activePillarNumber, setActivePillarNumber] = useState<number | null>(
@@ -331,8 +335,8 @@ export function PillarsSection({
                     {initiativeCount > 1 ? "s" : ""}
                   </span>
                 ) : (
-                  <span className="text-xs font-medium text-destructive">
-                    Atleast 1 initiative is required
+                  <span className="text-xs font-medium text-amber-600">
+                    Atleast 1 initiative is recommended
                   </span>
                 )}
 
@@ -503,6 +507,10 @@ export function PillarsSection({
           open={activePillarNumber !== null}
           pillarName={activePillar.pillar_name}
           priorityLevel={activePriority}
+          accountableOptions={catalog?.accountableDepartments ?? []}
+          kpiOptions={
+            catalog?.kpisByPillarNumber[activePillar.pillar_number] ?? []
+          }
           initialInitiative={editingInitiative}
           onOpenChange={(open) => {
             if (!open) closeInitiativeModal();

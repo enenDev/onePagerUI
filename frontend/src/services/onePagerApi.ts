@@ -1,8 +1,18 @@
 import { landingOnePagers } from "@/services/landingSampleData";
+import nationalOnePagerMock from "@/services/mocks/nationalOnePager.json";
+import retailerOnePagerMock from "@/services/mocks/retailerOnePager.json";
+import type {
+  NationalOnePagerCreatePayload,
+  OnePagerRecordStatus,
+} from "@/services/createFormApi";
+import type { RetailerOnePagerCreatePayload } from "@/services/retailerCreateFormApi";
 import {
+  CURRENT_USER_ID,
   toOnePagerSearchPayload,
   type FilterPayload,
   type OnePagerListItem,
+  type OnePagerStatus,
+  type OnePagerType,
 } from "@/types/onePager";
 
 const delay = (ms = 300) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -56,4 +66,142 @@ export async function submitOnePagerSearch(
   const payload = toOnePagerSearchPayload(filters);
   await delay();
   return landingOnePagers.filter((item) => matchesFilter(item, payload));
+}
+
+type OnePagerByIdBase = {
+  id: string;
+  status: OnePagerRecordStatus;
+  created_by: string;
+  /** Landing tab / view badge — Active, Draft, or Archive. */
+  list_status: OnePagerStatus;
+  published_at: string;
+};
+
+export type NationalOnePagerByIdRecord = OnePagerByIdBase & {
+  pager_type: "national";
+  payload: NationalOnePagerCreatePayload;
+};
+
+export type RetailerOnePagerByIdRecord = OnePagerByIdBase & {
+  pager_type: "retailer";
+  payload: RetailerOnePagerCreatePayload;
+};
+
+/** Common GET-by-id response — branch on `pager_type` then open the matching form. */
+export type OnePagerByIdRecord =
+  | NationalOnePagerByIdRecord
+  | RetailerOnePagerByIdRecord;
+
+export type EditOnePagerLocationState = {
+  editRecord: OnePagerByIdRecord;
+};
+
+export function isEditLocationState(
+  value: unknown,
+): value is EditOnePagerLocationState {
+  if (!value || typeof value !== "object") return false;
+  const state = value as Partial<EditOnePagerLocationState>;
+  const record = state.editRecord;
+  if (!record || typeof record !== "object") return false;
+  return (
+    typeof record.id === "string" &&
+    (record.pager_type === "national" || record.pager_type === "retailer") &&
+    Boolean(record.payload)
+  );
+}
+
+export function isNationalEditState(
+  value: unknown,
+): value is { editRecord: NationalOnePagerByIdRecord } {
+  return (
+    isEditLocationState(value) && value.editRecord.pager_type === "national"
+  );
+}
+
+export function isRetailerEditState(
+  value: unknown,
+): value is { editRecord: RetailerOnePagerByIdRecord } {
+  return (
+    isEditLocationState(value) && value.editRecord.pager_type === "retailer"
+  );
+}
+
+function resolvePagerType(id: string): OnePagerType {
+  const listing = landingOnePagers.find((item) => item.pager_id === id);
+  if (listing) return listing.pager_type;
+  if (id.startsWith("retailer-")) return "retailer";
+  return "national";
+}
+
+function resolveCreatedBy(id: string): string {
+  return (
+    landingOnePagers.find((item) => item.pager_id === id)?.created_by ??
+    CURRENT_USER_ID
+  );
+}
+
+function resolveStatus(id: string): OnePagerRecordStatus {
+  const listing = landingOnePagers.find((item) => item.pager_id === id);
+  if (listing?.status === "DRAFT") return "draft";
+  return "published";
+}
+
+function resolveListStatus(id: string): OnePagerStatus {
+  return (
+    landingOnePagers.find((item) => item.pager_id === id)?.status ?? "ACTIVE"
+  );
+}
+
+function resolvePublishedAt(id: string): string {
+  return (
+    landingOnePagers.find((item) => item.pager_id === id)?.published_at ?? ""
+  );
+}
+
+/**
+ * Mock GET-by-id for edit (landing ⋯ Edit / published Edit) and view (card click).
+ *
+ * TODO: Replace the function body with GET /api/one-pagers/:id
+ * Keep signature `getOnePagerById(id)` and OnePagerByIdRecord
+ * (`pager_type` + matching payload, `list_status`, `published_at`, `created_by`).
+ * View stays on `/view/:id` and renders the document. Edit still branches
+ * pager_type → `/create/national` or `/create/retailer` — do not merge those forms.
+ * Temporary: dummy JSON (nationalOnePager.json / retailerOnePager.json);
+ * pager_type / list_status / published_at come from the landing list when the
+ * id matches, else id prefix + ACTIVE.
+ * Import From National still uses getNationalOnePager (national-only).
+ */
+export async function getOnePagerById(
+  id: string,
+): Promise<OnePagerByIdRecord | null> {
+  await delay(300);
+  const pagerType = resolvePagerType(id);
+  const createdBy = resolveCreatedBy(id);
+  const status = resolveStatus(id);
+  const listStatus = resolveListStatus(id);
+  const publishedAt = resolvePublishedAt(id);
+
+  if (pagerType === "retailer") {
+    const record = structuredClone(
+      retailerOnePagerMock,
+    ) as RetailerOnePagerByIdRecord;
+    record.id = id;
+    record.pager_type = "retailer";
+    record.created_by = createdBy;
+    record.status = status;
+    record.list_status = listStatus;
+    record.published_at = publishedAt;
+    return record;
+  }
+
+  const record = structuredClone(
+    nationalOnePagerMock,
+  ) as NationalOnePagerByIdRecord;
+  record.id = id;
+  record.pager_type = "national";
+  record.created_by = createdBy;
+  record.status = status;
+  record.list_status = listStatus;
+  record.published_at = publishedAt;
+  return record;
 }

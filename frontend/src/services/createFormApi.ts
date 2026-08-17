@@ -3,6 +3,7 @@ import type {
   PillarDraft,
   ScoringMode,
 } from "@/components/form/pillars";
+import nationalOnePagerMock from "@/services/mocks/nationalOnePager.json";
 
 export type FilterOption = {
   label: string;
@@ -13,6 +14,8 @@ export type MarketScopedOptions = {
   categories: FilterOption[];
   campaigns: FilterOption[];
   channels: FilterOption[];
+  /** Used by Retailer create (Target Retailer). National form ignores this. */
+  retailers: FilterOption[];
 };
 
 const delay = (ms = 250) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -62,28 +65,116 @@ const channelsByMarket: Record<string, FilterOption[]> = {
   ],
 };
 
-export async function getCreateFormMarkets(): Promise<FilterOption[]> {
-  // TODO: Replace with real API (e.g. GET /api/create-form/markets).
-  // Keep `FilterOption[]` return shape for NationalStrategyForm selects.
-  await delay();
-  return structuredClone(markets);
+/** Target Retailer options by market (Retailer create form). */
+const retailersByMarket: Record<string, FilterOption[]> = {
+  National: [
+    { label: "All Retailers", value: "All Retailers" },
+    { label: "Supermarket", value: "Supermarket" },
+  ],
+  US: [
+    { label: "Walmart", value: "Walmart" },
+    { label: "Target", value: "Target" },
+    { label: "Kroger", value: "Kroger" },
+  ],
+};
+
+export type CreateFormMetadata = {
+  markets: FilterOption[];
+  /** All dependent dropdown options, keyed by market value. */
+  optionsByMarket: Record<string, MarketScopedOptions>;
+  /** Shared across all pillars (initiative modal). */
+  accountableDepartments: FilterOption[];
+  /**
+   * KPI options per pillar_number (1–5). Different lists per pillar; mock has 14 total.
+   * TODO: Replace with real KPI catalog from FastAPI; keep this keyed shape.
+   */
+  kpisByPillarNumber: Record<number, FilterOption[]>;
+};
+
+/** Initiative Accountable Function / Department options (shared). */
+const accountableDepartments: FilterOption[] = [
+  { label: "CSP & Brand Operations", value: "CSP & Brand Operations" },
+  {
+    label: "Trade Marketing / Merchandising",
+    value: "Trade Marketing / Merchandising",
+  },
+  { label: "CBD Accounts Team", value: "CBD Accounts Team" },
+  { label: "Digital Commerce Team", value: "Digital Commerce Team" },
+  { label: "Supply Chain Operations", value: "Supply Chain Operations" },
+  {
+    label: "Customer Business Development (CBD)",
+    value: "Customer Business Development (CBD)",
+  },
+  { label: "Human Resources", value: "Human Resources" },
+  { label: "Sales", value: "Sales" },
+];
+
+/**
+ * Mock KPIs by pillar — 14 total, different sets per pillar.
+ * Pillar names stay hardcoded in pillars.ts; only KPI lists live here.
+ */
+const kpisByPillarNumber: Record<number, FilterOption[]> = {
+  1: [
+    { label: "Value Sales", value: "Value Sales" },
+    { label: "Brand Consideration", value: "Brand Consideration" },
+    { label: "Share of Voice", value: "Share of Voice" },
+  ],
+  2: [
+    { label: "Display Compliance", value: "Display Compliance" },
+    { label: "Promo Uplift", value: "Promo Uplift" },
+    { label: "Shopper Engagement Rate", value: "Shopper Engagement Rate" },
+  ],
+  3: [
+    { label: "Store Coverage", value: "Store Coverage" },
+    { label: "Distribution Points", value: "Distribution Points" },
+    { label: "New Store Openings", value: "New Store Openings" },
+  ],
+  4: [
+    { label: "Digital Adoption", value: "Digital Adoption" },
+    { label: "Sales Conversion Rate", value: "Sales Conversion Rate" },
+    { label: "Online Availability", value: "Online Availability" },
+  ],
+  5: [
+    { label: "Product Availability", value: "Product Availability" },
+    { label: "Process Compliance", value: "Process Compliance" },
+  ],
+};
+
+function buildOptionsByMarket(): Record<string, MarketScopedOptions> {
+  const keys = new Set([
+    ...Object.keys(categoriesByMarket),
+    ...Object.keys(campaignsByMarket),
+    ...Object.keys(channelsByMarket),
+    ...Object.keys(retailersByMarket),
+  ]);
+
+  const result: Record<string, MarketScopedOptions> = {};
+  for (const market of keys) {
+    result[market] = {
+      categories: structuredClone(categoriesByMarket[market] ?? []),
+      campaigns: structuredClone(campaignsByMarket[market] ?? []),
+      channels: structuredClone(channelsByMarket[market] ?? []),
+      retailers: structuredClone(retailersByMarket[market] ?? []),
+    };
+  }
+  return result;
 }
 
-export async function getOptionsForMarket(
-  market: string,
-): Promise<MarketScopedOptions> {
-  // TODO: Replace with real API (e.g. GET /api/create-form/options?market=...).
-  // Must return categories/campaigns/channels for the selected market.
-  // On market change the FE already resets category/campaign/channel — keep that contract.
+/**
+ * One-shot create-form catalog: strategy dropdowns + initiative dropdowns.
+ * Pillar names stay hardcoded in the app (consistent across screens).
+ *
+ * TODO: Replace with real FastAPI GET (e.g. /api/create-form/metadata).
+ * Keep CreateFormMetadata shape. Client filters optionsByMarket / kpisByPillarNumber
+ * — do not add per-market or per-pillar option round-trips for dropdowns.
+ */
+export async function getCreateFormMetadata(): Promise<CreateFormMetadata> {
   await delay();
-  if (!market) {
-    return { categories: [], campaigns: [], channels: [] };
-  }
-
   return {
-    categories: structuredClone(categoriesByMarket[market] ?? []),
-    campaigns: structuredClone(campaignsByMarket[market] ?? []),
-    channels: structuredClone(channelsByMarket[market] ?? []),
+    markets: structuredClone(markets),
+    optionsByMarket: buildOptionsByMarket(),
+    accountableDepartments: structuredClone(accountableDepartments),
+    kpisByPillarNumber: structuredClone(kpisByPillarNumber),
   };
 }
 
@@ -256,7 +347,8 @@ type StoredNationalRecord = {
  *
  * TODO: Delete `nationalRecords` Map when FastAPI persistence exists.
  * - Real drafts/publishes must live in backend DB (survive refresh / multi-device).
- * - Add GET-by-id for Edit-from-home prepopulation (not implemented on FE yet).
+ * - GET-by-id is mocked below (constant JSON) for Import-from-National.
+ *   Edit uses the common getOnePagerById in onePagerApi.ts instead.
  * - Landing Active/Drafts lists should read from the same backend source, not only sample data.
  * - Required-field validation belongs on the backend; FE already gates via `getNationalSubmitBlockers`.
  */
@@ -319,4 +411,29 @@ export async function publishNationalOnePager(
 ): Promise<NationalOnePagerMutationResult> {
   await delay(500);
   return upsertNationalRecord(payload, "published", id);
+}
+
+export type NationalOnePagerRecord = {
+  id: string;
+  status: OnePagerRecordStatus;
+  payload: NationalOnePagerCreatePayload;
+};
+
+/**
+ * Mock GET-by-id for a national one-pager.
+ *
+ * TODO: Replace the function body with GET /api/national-one-pagers/:id
+ * Keep signature `getNationalOnePager(id)` and NationalOnePagerRecord shape.
+ * Temporary: any id returns mocks/nationalOnePager.json (same full record).
+ * Delete that JSON when FastAPI returns the real record for `id`.
+ */
+export async function getNationalOnePager(
+  id: string,
+): Promise<NationalOnePagerRecord | null> {
+  await delay(300);
+  const record = structuredClone(
+    nationalOnePagerMock,
+  ) as NationalOnePagerRecord;
+  record.id = id;
+  return record;
 }

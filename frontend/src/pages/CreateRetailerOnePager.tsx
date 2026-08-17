@@ -1,16 +1,20 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useOutletContext } from "react-router-dom";
 
+import { Loading } from "@/components/common/Loading";
 import { FormActionBar } from "@/components/form/FormActionBar";
-import { buildNationalFormSample } from "@/components/form/fillNationalFormSample";
+import { buildRetailerFormSample } from "@/components/form/fillRetailerFormSample";
 import { FormToast } from "@/components/form/FormToast";
-import { hydrateNationalFormFromPayload } from "@/components/form/hydrateFromPayload";
 import {
-  emptyNationalFormValues,
-  getNationalSubmitBlockers,
-  type NationalFormValues,
-} from "@/components/form/nationalForm";
-import { NationalStrategyForm } from "@/components/form/NationalStrategyForm";
+  hydrateRetailerFormFromNationalPayload,
+  hydrateRetailerFormFromPayload,
+} from "@/components/form/hydrateFromPayload";
+import {
+  emptyRetailerFormValues,
+  getRetailerSubmitBlockers,
+  type RetailerFormValues,
+} from "@/components/form/retailerForm";
+import { RetailerStrategyForm } from "@/components/form/RetailerStrategyForm";
 import { PillarsSection } from "@/components/form/PillarsSection";
 import {
   createDefaultPillars,
@@ -21,22 +25,47 @@ import {
 import { UnsavedChangesModal } from "@/components/form/UnsavedChangesModal";
 import { PageContainer } from "@/components/layout/PageContainer";
 import type { FormLayoutContext } from "@/layouts/MainLayout";
-import type { NationalPreviewLocationState } from "@/pages/PreviewNationalOnePager";
+import type { RetailerPreviewLocationState } from "@/pages/PreviewRetailerOnePager";
 import {
-  buildNationalOnePagerPayload,
+  buildRetailerOnePagerPayload,
   getCreateFormMetadata,
-  saveNationalDraft,
+  saveRetailerDraft,
+} from "@/services/retailerCreateFormApi";
+import {
+  getNationalOnePager,
   type CreateFormMetadata,
 } from "@/services/createFormApi";
-import { isNationalEditState } from "@/services/onePagerApi";
+import { isRetailerEditState } from "@/services/onePagerApi";
+import type { OnePagerListItem } from "@/types/onePager";
+
+/**
+ * Create-modal Import From National handoff.
+ * Distinct from RetailerPreviewLocationState (which includes `payload`).
+ */
+export type RetailerImportLocationState = {
+  importFrom: "national";
+  source: OnePagerListItem;
+};
+
+function isImportLocationState(
+  value: unknown,
+): value is RetailerImportLocationState {
+  if (!value || typeof value !== "object") return false;
+  const state = value as Partial<RetailerImportLocationState>;
+  return (
+    state.importFrom === "national" &&
+    Boolean(state.source && state.source.pager_id)
+  );
+}
 
 function isFormDirty(
-  values: NationalFormValues,
+  values: RetailerFormValues,
   scoringMode: ScoringMode,
   pillars: PillarDraft[],
 ) {
   const strategyDirty =
     values.market.trim() !== "" ||
+    values.targetRetailer.trim() !== "" ||
     values.category.trim() !== "" ||
     values.campaign.trim() !== "" ||
     values.channel.trim() !== "" ||
@@ -55,7 +84,7 @@ function isFormDirty(
 }
 
 function revokeFormImageUrls(
-  values: NationalFormValues,
+  values: RetailerFormValues,
   pillars: PillarDraft[],
 ) {
   if (values.coverImageUrl.startsWith("blob:")) {
@@ -70,17 +99,18 @@ function revokeFormImageUrls(
 
 function isPreviewReturnState(
   value: unknown,
-): value is NationalPreviewLocationState {
+): value is RetailerPreviewLocationState {
   if (!value || typeof value !== "object") return false;
-  const state = value as Partial<NationalPreviewLocationState>;
+  const state = value as Partial<RetailerPreviewLocationState>;
   return Boolean(state.values && state.pillars && state.payload);
 }
 
-export function CreateNationalOnePager() {
+export function CreateRetailerOnePager() {
   // Edit: `/edit/:id` calls getOnePagerById then navigates here with editRecord.
-  // TODO: Keep hydrating from OnePagerByIdRecord.payload + recordId.
-  // Image fields: API URLs go into coverImageUrl + initiative blobUrl; File is
-  // null until the user replaces an image.
+  // Import-from-National: picker passes pager_id; this page calls
+  // getNationalOnePager(id) and hydrates from that one record.
+  // TODO: Swap getOnePagerById (edit) and getNationalOnePager (import) only.
+  // recordId stays null on import (new retailer draft). Scope stays locked on import.
   const navigate = useNavigate();
   const location = useLocation();
   const { setBackHandler, setHeaderTitle } =
@@ -88,24 +118,35 @@ export function CreateNationalOnePager() {
 
   const restored = isPreviewReturnState(location.state) ? location.state : null;
   const edited =
-    !restored && isNationalEditState(location.state) ? location.state : null;
+    !restored && isRetailerEditState(location.state) ? location.state : null;
   const editedForm = edited
-    ? hydrateNationalFormFromPayload(edited.editRecord.payload)
+    ? hydrateRetailerFormFromPayload(edited.editRecord.payload)
     : null;
+  const imported =
+    !restored && !edited && isImportLocationState(location.state)
+      ? location.state
+      : null;
   const shouldFillSample =
     import.meta.env.DEV &&
     !restored &&
     !edited &&
+    !imported &&
     new URLSearchParams(location.search).get("fill") === "1";
-  const initialSample = shouldFillSample ? buildNationalFormSample() : null;
+  const initialSample = shouldFillSample ? buildRetailerFormSample() : null;
 
   const [isEditing] = useState(() => Boolean(edited));
-  const [values, setValues] = useState<NationalFormValues>(
+  const [importPagerId] = useState(() => imported?.source.pager_id ?? null);
+  const [scopeLocked, setScopeLocked] = useState(
+    () => Boolean(imported) || Boolean(restored?.scopeLocked),
+  );
+  const [importLoading, setImportLoading] = useState(() => Boolean(imported));
+
+  const [values, setValues] = useState<RetailerFormValues>(
     () =>
       restored?.values ??
       editedForm?.values ??
       initialSample?.values ??
-      emptyNationalFormValues,
+      emptyRetailerFormValues,
   );
   const [scoringMode, setScoringMode] = useState<ScoringMode>(
     () =>
@@ -130,7 +171,7 @@ export function CreateNationalOnePager() {
         ? JSON.stringify(restored.payload)
         : editedForm
           ? JSON.stringify(
-              buildNationalOnePagerPayload(
+              buildRetailerOnePagerPayload(
                 editedForm.values,
                 editedForm.scoringMode,
                 editedForm.pillars,
@@ -148,7 +189,7 @@ export function CreateNationalOnePager() {
 
   const applySampleData = () => {
     revokeFormImageUrls(values, pillars);
-    const sample = buildNationalFormSample();
+    const sample = buildRetailerFormSample();
     setValues(sample.values);
     setScoringMode(sample.scoringMode);
     setPillars(sample.pillars);
@@ -156,19 +197,44 @@ export function CreateNationalOnePager() {
   };
 
   useEffect(() => {
-    // Consume one-time restore / edit / ?fill=1 so refresh doesn't keep rehydrating.
-    if (restored || edited || shouldFillSample) {
+    if (restored || edited || imported || shouldFillSample) {
       navigate(location.pathname, { replace: true, state: null });
     }
-    // Only on mount for return-from-preview, edit handoff, and dev fill.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (!isEditing) return;
-    setHeaderTitle("Edit National One-Pager");
+    setHeaderTitle("Edit Retailer One-Pager");
     return () => setHeaderTitle(null);
   }, [isEditing, setHeaderTitle]);
+
+  useEffect(() => {
+    if (!importPagerId) return;
+    let cancelled = false;
+
+    void (async () => {
+      // TODO: Real FastAPI — swap getNationalOnePager to GET /api/national-one-pagers/:id.
+      const record = await getNationalOnePager(importPagerId);
+      if (cancelled) return;
+      if (!record) {
+        setSaveError("Could not load the national one-pager.");
+        setImportLoading(false);
+        return;
+      }
+      const next = hydrateRetailerFormFromNationalPayload(record.payload);
+      setValues(next.values);
+      setScoringMode(next.scoringMode);
+      setPillars(next.pillars);
+      setScopeLocked(true);
+      setSaveError(null);
+      setImportLoading(false);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [importPagerId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -189,7 +255,7 @@ export function CreateNationalOnePager() {
   const payloadFingerprint = useMemo(
     () =>
       JSON.stringify(
-        buildNationalOnePagerPayload(values, scoringMode, pillars),
+        buildRetailerOnePagerPayload(values, scoringMode, pillars),
       ),
     [values, scoringMode, pillars],
   );
@@ -199,7 +265,7 @@ export function CreateNationalOnePager() {
       ? isFormDirty(values, scoringMode, pillars)
       : payloadFingerprint !== savedFingerprint;
 
-  const submitBlockedReason = getNationalSubmitBlockers(values, pillars);
+  const submitBlockedReason = getRetailerSubmitBlockers(values, pillars);
   const canSubmit = submitBlockedReason === null;
 
   const showToast = (message: string) => {
@@ -218,10 +284,10 @@ export function CreateNationalOnePager() {
   const handleSaveDraft = async (options?: { redirectHome?: boolean }) => {
     setSavingDraft(true);
     setSaveError(null);
-    const payload = buildNationalOnePagerPayload(values, scoringMode, pillars);
-    // TODO: When backend is live, `saveNationalDraft` becomes the real HTTP call.
+    const payload = buildRetailerOnePagerPayload(values, scoringMode, pillars);
+    // TODO: When backend is live, saveRetailerDraft becomes the real HTTP call.
     // Keep toast + homepage redirect UX for action-bar Save Draft; only swap service.
-    const result = await saveNationalDraft(payload, recordId);
+    const result = await saveRetailerDraft(payload, recordId);
     setSavingDraft(false);
 
     if (!result.ok) {
@@ -249,19 +315,19 @@ export function CreateNationalOnePager() {
     }
 
     setSaveError(null);
-    const payload = buildNationalOnePagerPayload(values, scoringMode, pillars);
+    const payload = buildRetailerOnePagerPayload(values, scoringMode, pillars);
     // TODO: Preview route is FE-only handoff via location.state today.
-    // Next: persist draft (or preview snapshot) then open /create/national/preview/:id
-    // from backend id. Keep NationalPreviewLocationState field names until then.
-    // Publish itself happens on the preview page (not here).
-    const previewState: NationalPreviewLocationState = {
+    // Next: persist draft then open /create/retailer/preview/:id from backend id.
+    // Publish happens on the preview page (not here).
+    const previewState: RetailerPreviewLocationState = {
       values,
       scoringMode,
       pillars,
       recordId,
       payload,
+      scopeLocked,
     };
-    navigate("/create/national/preview", { state: previewState });
+    navigate("/create/retailer/preview", { state: previewState });
   };
 
   useEffect(() => {
@@ -278,20 +344,26 @@ export function CreateNationalOnePager() {
   return (
     <div className="flex min-h-[calc(100svh-3.5rem)] w-full flex-col">
       <PageContainer className="flex flex-1 flex-col gap-6 py-6">
-        <NationalStrategyForm
-          values={values}
-          onChange={setValues}
-          catalog={catalog}
-          catalogLoading={catalogLoading}
-          onCatalogChange={setCatalog}
-        />
-        <PillarsSection
-          scoringMode={scoringMode}
-          pillars={pillars}
-          onScoringModeChange={setScoringMode}
-          onPillarsChange={setPillars}
-          catalog={catalog}
-        />
+        {importLoading ? (
+          <Loading label="Loading national one-pager…" />
+        ) : (
+          <>
+            <RetailerStrategyForm
+              values={values}
+              onChange={setValues}
+              catalog={catalog}
+              catalogLoading={catalogLoading}
+              lockScope={scopeLocked}
+            />
+            <PillarsSection
+              scoringMode={scoringMode}
+              pillars={pillars}
+              onScoringModeChange={setScoringMode}
+              onPillarsChange={setPillars}
+              catalog={catalog}
+            />
+          </>
+        )}
         {saveError ? (
           <p className="text-sm text-destructive">{saveError}</p>
         ) : null}

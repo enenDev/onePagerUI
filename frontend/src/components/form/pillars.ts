@@ -11,8 +11,8 @@ export type InitiativeImage = {
    * - On edit load from API, populate from server URL; `file` may be absent.
    */
   blobUrl: string;
-  /** Raw file for future upload; required on create picks, optional when hydrating from API. */
-  file: File;
+  /** Raw file for future upload; required on create picks, null when hydrating from API. */
+  file: File | null;
 };
 
 export type InitiativeDraft = {
@@ -50,7 +50,7 @@ export const MAX_INITIATIVES_PER_PILLAR = 3;
 export const MAX_INITIATIVE_IMAGES = 3;
 export const REQUIRED_PILLAR_COUNT = 5;
 
-/** Save Draft / Publish require at least one initiative on every pillar. */
+/** True when every pillar has at least one initiative (recommended, not required). */
 export function everyPillarHasInitiative(pillars: PillarDraft[]): boolean {
   if (pillars.length < REQUIRED_PILLAR_COUNT) return false;
   return pillars.every((pillar) => pillar.initiatives.length >= 1);

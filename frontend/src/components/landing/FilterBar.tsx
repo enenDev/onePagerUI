@@ -13,6 +13,7 @@ import {
   fetchOnePagers,
   toggleFilterValue,
 } from "@/redux/landingSlice";
+import { unionMarketScopedOptions } from "@/services/metadataApi";
 import type { FilterKey, FilterOption } from "@/types/onePager";
 import { createEmptyFilters } from "@/types/onePager";
 import { cn } from "@/lib/utils";
@@ -65,6 +66,7 @@ function MultiSelectFilter({
       <DropdownMenuTrigger asChild disabled={disabled}>
         <button
           type="button"
+          disabled={disabled}
           className={cn(
             "flex h-9 w-full cursor-pointer items-center justify-between gap-1.5 rounded-lg border border-input bg-white py-2 pr-2 pl-2.5 text-sm whitespace-nowrap outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50",
             hasSelection ? "text-foreground" : "text-muted-foreground",
@@ -122,6 +124,10 @@ export function FilterBar({ onCreateNew }: FilterBarProps) {
     (state) => state.landing,
   );
 
+  const marketSelected = filters.market.length > 0;
+  const dependentsDisabled =
+    metadataLoading || !metadata || !marketSelected;
+
   const handleSubmit = () => {
     // TODO: Replace submit with real FastAPI search.
     // Temporary: dispatch(fetchOnePagers) → submitOnePagerSearch mock, which
@@ -147,6 +153,13 @@ export function FilterBar({ onCreateNew }: FilterBarProps) {
     void dispatch(fetchOnePagers(createEmptyFilters()));
   };
 
+  const optionsFor = (key: FilterKey): FilterOption[] => {
+    if (!metadata) return [];
+    if (key === "market") return metadata.market;
+    if (!marketSelected) return [];
+    return unionMarketScopedOptions(metadata, filters.market, key);
+  };
+
   return (
     <div className="flex w-full items-center gap-4">
       <div className="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-border bg-white/80 p-3">
@@ -156,8 +169,12 @@ export function FilterBar({ onCreateNew }: FilterBarProps) {
 
         <div className="flex min-w-0 flex-1 items-center gap-2">
           {FILTER_FIELDS.map((field) => {
-            const options = metadata?.[field.key] ?? [];
+            const options = optionsFor(field.key);
             const selected = filters[field.key];
+            const disabled =
+              field.key === "market"
+                ? metadataLoading || !metadata
+                : dependentsDisabled;
 
             return (
               <div key={field.key} className="min-w-0 flex-1">
@@ -165,7 +182,7 @@ export function FilterBar({ onCreateNew }: FilterBarProps) {
                   label={field.label}
                   options={options}
                   selected={selected}
-                  disabled={metadataLoading || !metadata}
+                  disabled={disabled}
                   onToggle={(value) =>
                     dispatch(toggleFilterValue({ key: field.key, value }))
                   }

@@ -1,4 +1,12 @@
-import { Archive, MoreVertical, Pencil, Share2, Target, Trash2 } from "lucide-react";
+import {
+  Archive,
+  Info,
+  MoreVertical,
+  Pencil,
+  Share2,
+  Target,
+  Trash2,
+} from "lucide-react";
 
 import {
   formatPreviewDateRange,
@@ -12,11 +20,29 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type {
-  NationalInitiativePayload,
-  NationalOnePagerCreatePayload,
-} from "@/services/createFormApi";
+import type { NationalInitiativePayload } from "@/services/createFormApi";
+import type { RetailerOnePagerCreatePayload } from "@/services/retailerCreateFormApi";
+import type { OnePagerStatus } from "@/types/onePager";
 import { cn } from "@/lib/utils";
+
+const STATUS_BADGE: Record<
+  OnePagerStatus,
+  { label: string; className: string }
+> = {
+  ACTIVE: {
+    label: "Active",
+    className:
+      "bg-preview-active text-preview-priority-fg hover:bg-preview-active",
+  },
+  DRAFT: {
+    label: "Draft",
+    className: "bg-slate-200 text-slate-800 hover:bg-slate-200",
+  },
+  ARCHIVE: {
+    label: "Archive",
+    className: "bg-orange-100 text-orange-800 hover:bg-orange-100",
+  },
+};
 
 const PILLAR_THEME: Record<number, { card: string; title: string }> = {
   1: { card: "bg-preview-pillar-1", title: "text-preview-pillar-1-title" },
@@ -32,26 +58,34 @@ const PRIORITY_CLASS: Record<string, string> = {
   P3: "bg-preview-priority-p3 text-preview-priority-fg",
 };
 
+/** National payload shape, or retailer payload (includes target_retailer). */
+type PreviewDocumentPayload = Omit<
+  RetailerOnePagerCreatePayload,
+  "target_retailer"
+> & {
+  target_retailer?: string;
+};
+
 type NationalPreviewDocumentProps = {
-  payload: NationalOnePagerCreatePayload;
+  payload: PreviewDocumentPayload;
   owner: string;
   publishedAt: string;
   onEdit: () => void;
   /** Track/Export/Archive/Edit/Delete — off in create Preview, on after publish. */
   moreOptionsEnabled?: boolean;
+  /** Edit stays visible for non-owners but is disabled. */
+  canEdit?: boolean;
+  /** Landing / GET list status. Create-publish preview stays Active. */
+  status?: OnePagerStatus;
 };
 
-function PreviewField({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+function PreviewField({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0 px-4 first:pl-0">
       <p className="text-xs font-medium text-muted-foreground">{label}</p>
-      <p className="mt-0.5 text-sm font-semibold text-foreground">{value || "—"}</p>
+      <p className="mt-0.5 text-sm font-semibold text-foreground">
+        {value || "—"}
+      </p>
     </div>
   );
 }
@@ -66,7 +100,9 @@ function PreviewSection({
   return (
     <div className="space-y-1">
       <p className="text-xs font-semibold text-primary">{label}</p>
-      <p className="text-sm leading-snug text-foreground/90">{children || "—"}</p>
+      <p className="text-sm leading-snug text-foreground/90">
+        {children || "—"}
+      </p>
     </div>
   );
 }
@@ -141,12 +177,26 @@ export function NationalPreviewDocument({
   publishedAt,
   onEdit,
   moreOptionsEnabled = false,
+  canEdit = true,
+  status = "ACTIVE",
 }: NationalPreviewDocumentProps) {
+  const statusBadge = STATUS_BADGE[status];
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-start justify-between gap-6">
         <div className="min-w-0 flex-1">
-          <dl className="grid grid-cols-2 divide-x divide-border sm:grid-cols-4">
+          <dl
+            className={cn(
+              "grid grid-cols-2 divide-x divide-border",
+              payload.target_retailer ? "sm:grid-cols-5" : "sm:grid-cols-4",
+            )}
+          >
+            {payload.target_retailer ? (
+              <PreviewField
+                label="Target Retailer"
+                value={payload.target_retailer}
+              />
+            ) : null}
             <PreviewField label="Channel" value={payload.channel} />
             <PreviewField label="Category" value={payload.category} />
             <PreviewField label="Campaign Focus" value={payload.campaign} />
@@ -189,6 +239,12 @@ export function NationalPreviewDocument({
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="m-0" />
                 <DropdownMenuItem
+                  disabled={!canEdit}
+                  title={
+                    canEdit
+                      ? undefined
+                      : "Only the owner can edit this one-pager"
+                  }
                   className="cursor-pointer rounded-none px-3 py-2"
                   onClick={onEdit}
                 >
@@ -216,20 +272,32 @@ export function NationalPreviewDocument({
             </span>
           )}
 
-          <Badge className="mt-1 rounded-full bg-preview-active px-2.5 text-preview-priority-fg hover:bg-preview-active">
-            Active
+          <Badge
+            className={cn(
+              "mt-1 rounded-full px-2.5",
+              statusBadge.className,
+            )}
+          >
+            {statusBadge.label}
           </Badge>
           <p className="text-xs text-muted-foreground">
             <span className="font-semibold text-foreground">Published:</span>{" "}
             {publishedAt}
           </p>
           <p className="text-xs text-muted-foreground">
-            <span className="font-semibold text-foreground">Owner:</span> {owner}
+            <span className="font-semibold text-foreground">Owner:</span>{" "}
+            {owner}
           </p>
         </div>
       </div>
 
       <div className="space-y-3">
+        {payload.pillars.some((pillar) => pillar.initiatives.length === 0) ? (
+          <div className="flex items-center gap-2.5 rounded-lg border border-amber-300 bg-amber-50 px-3.5 py-3 text-medium font-medium text-amber-950">
+            <Info className="mt-0.5 size-4 shrink-0 text-amber-700" />
+            <p>You haven't added an initiative to every pillar</p>
+          </div>
+        ) : null}
         <h2 className="text-sm font-semibold text-foreground">
           Five Category Execution Pillars & Directives
         </h2>
@@ -238,7 +306,8 @@ export function NationalPreviewDocument({
           <div className="grid min-w-[72rem] grid-cols-5 gap-3">
             {payload.pillars.map((pillar) => {
               const targetCount = pillar.initiatives.length;
-              const theme = PILLAR_THEME[pillar.pillar_number] ?? PILLAR_THEME[1];
+              const theme =
+                PILLAR_THEME[pillar.pillar_number] ?? PILLAR_THEME[1];
 
               return (
                 <article
@@ -272,7 +341,9 @@ export function NationalPreviewDocument({
                         <div
                           key={`${pillar.pillar_number}-${initiative.initiative_number}`}
                           className={cn(
-                            index > 0 ? "border-t border-preview-divider pt-4" : "",
+                            index > 0
+                              ? "border-t border-preview-divider pt-4"
+                              : "",
                           )}
                         >
                           <InitiativeBlock initiative={initiative} />

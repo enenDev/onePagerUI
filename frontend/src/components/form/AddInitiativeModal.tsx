@@ -23,6 +23,7 @@ import {
   type InitiativeDraft,
   type InitiativeImage,
 } from "@/components/form/pillars";
+import type { FilterOption } from "@/services/createFormApi";
 
 function isImageFile(file: File) {
   if (file.type.startsWith("image/")) return true;
@@ -30,30 +31,14 @@ function isImageFile(file: File) {
   return /\.(avif|bmp|gif|jpe?g|png|svg|webp)$/i.test(file.name);
 }
 
-const ACCOUNTABLE_OPTIONS = [
-  "CSP & Brand Operations",
-  "Trade Marketing / Merchandising",
-  "CBD Accounts Team",
-  "Digital Commerce Team",
-  "Supply Chain Operations",
-  "Customer Business Development (CBD)",
-  "Human Resources",
-  "Sales",
-];
-
-const KPI_OPTIONS = [
-  "Value Sales",
-  "Training Completion Rate",
-  "Process Compliance",
-  "Product Availability",
-  "Sales Conversion Rate",
-  "Digital Adoption",
-];
-
 type AddInitiativeModalProps = {
   open: boolean;
   pillarName: string;
   priorityLevel: InitiativeDraft["priority_level"];
+  /** From create-form catalog (shared across pillars). */
+  accountableOptions: FilterOption[];
+  /** From create-form catalog — already scoped to this pillar. */
+  kpiOptions: FilterOption[];
   initialInitiative?: InitiativeDraft | null;
   onOpenChange: (open: boolean) => void;
   onSave: (initiative: Omit<InitiativeDraft, "initiative_number">) => void;
@@ -137,6 +122,8 @@ export function AddInitiativeModal({
   open,
   pillarName,
   priorityLevel,
+  accountableOptions,
+  kpiOptions,
   initialInitiative = null,
   onOpenChange,
   onSave,
@@ -391,13 +378,13 @@ export function AddInitiativeModal({
                 <SelectValue placeholder="Select" />
               </SelectTrigger>
               <SelectContent>
-                {ACCOUNTABLE_OPTIONS.map((option) => (
+                {accountableOptions.map((option) => (
                   <SelectItem
-                    key={option}
-                    value={option}
+                    key={option.value}
+                    value={option.value}
                     className="cursor-pointer"
                   >
-                    {option}
+                    {option.label}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -432,13 +419,13 @@ export function AddInitiativeModal({
                 <SelectValue placeholder="Select KPI Metric" />
               </SelectTrigger>
               <SelectContent>
-                {KPI_OPTIONS.map((option) => (
+                {kpiOptions.map((option) => (
                   <SelectItem
-                    key={option}
-                    value={option}
+                    key={option.value}
+                    value={option.value}
                     className="cursor-pointer"
                   >
-                    {option}
+                    {option.label}
                   </SelectItem>
                 ))}
               </SelectContent>

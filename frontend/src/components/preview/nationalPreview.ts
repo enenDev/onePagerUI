@@ -85,6 +85,27 @@ export function composeNationalPreviewTitle(
     .join("-");
 }
 
+/** Retailer preview header title — includes Target Retailer. */
+export function composeRetailerPreviewTitle(payload: {
+  target_retailer: string;
+  channel: string;
+  category: string;
+  campaign: string;
+  market: string;
+}) {
+  return [
+    "Retailer",
+    payload.target_retailer,
+    payload.channel,
+    payload.category,
+    payload.campaign,
+    payload.market,
+  ]
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .join("-");
+}
+
 export function formatPreviewDateRange(start: string, end: string) {
   const from = formatMonthDay(start);
   const to = formatMonthDay(end);

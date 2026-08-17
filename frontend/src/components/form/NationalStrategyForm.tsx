@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+﻿import { useState, type ReactNode } from "react";
 import { CloudUpload } from "lucide-react";
 
 import { AddCampaignModal } from "@/components/form/AddCampaignModal";
@@ -13,70 +13,35 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  getCreateFormMarkets,
-  getOptionsForMarket,
-  type FilterOption,
-} from "@/services/createFormApi";
+import type { CreateFormMetadata } from "@/services/createFormApi";
 
 type NationalStrategyFormProps = {
   values: NationalFormValues;
   onChange: (next: NationalFormValues) => void;
+  catalog: CreateFormMetadata | null;
+  catalogLoading: boolean;
+  onCatalogChange: (next: CreateFormMetadata) => void;
 };
 
 export function NationalStrategyForm({
   values,
   onChange,
+  catalog,
+  catalogLoading,
+  onCatalogChange,
 }: NationalStrategyFormProps) {
-  const [markets, setMarkets] = useState<FilterOption[]>([]);
-  const [categories, setCategories] = useState<FilterOption[]>([]);
-  const [campaigns, setCampaigns] = useState<FilterOption[]>([]);
-  const [channels, setChannels] = useState<FilterOption[]>([]);
-  const [optionsLoading, setOptionsLoading] = useState(false);
   const [addCampaignOpen, setAddCampaignOpen] = useState(false);
-  const marketOptionsRequestId = useRef(0);
 
+  const markets = catalog?.markets ?? [];
+  const optionsByMarket = catalog?.optionsByMarket ?? {};
   const marketSelected = Boolean(values.market);
-  const dependentDisabled = !marketSelected || optionsLoading;
-
-  useEffect(() => {
-    void getCreateFormMarkets().then(setMarkets);
-  }, []);
-
-  const loadMarketOptions = async (market: string) => {
-    const requestId = ++marketOptionsRequestId.current;
-    setOptionsLoading(true);
-    setCategories([]);
-    setCampaigns([]);
-    setChannels([]);
-
-    const options = await getOptionsForMarket(market);
-    // Ignore stale responses if the user changed market again quickly.
-    if (requestId !== marketOptionsRequestId.current) return;
-
-    setCategories(options.categories);
-    setCampaigns(options.campaigns);
-    setChannels(options.channels);
-    setOptionsLoading(false);
-  };
-
-  // Reload dependent dropdown options whenever market is set — including restore
-  // from preview (values are in parent state, but option lists live only here).
-  useEffect(() => {
-    if (!values.market) {
-      marketOptionsRequestId.current += 1;
-      setOptionsLoading(false);
-      setCategories([]);
-      setCampaigns([]);
-      setChannels([]);
-      return;
-    }
-    void loadMarketOptions(values.market);
-  }, [values.market]);
+  const scoped = values.market ? optionsByMarket[values.market] : undefined;
+  const categoryOptions = scoped?.categories ?? [];
+  const campaignOptions = scoped?.campaigns ?? [];
+  const channelOptions = scoped?.channels ?? [];
+  const dependentDisabled = !marketSelected || catalogLoading;
 
   const handleMarketChange = (market: string) => {
-    // Always reset dependent filters when market changes.
-    // Option lists reload via the values.market effect above.
     onChange({
       ...values,
       market,
@@ -90,7 +55,6 @@ export function NationalStrategyForm({
     onChange({ ...values, ...partial });
   };
 
-  // Remount dependent selects when market changes so Radix clears the visible value.
   const dependentSelectKey = values.market || "no-market";
 
   return (
@@ -106,8 +70,9 @@ export function NationalStrategyForm({
               <Select
                 value={values.market || undefined}
                 onValueChange={(value) => handleMarketChange(value ?? "")}
+                disabled={catalogLoading}
               >
-                <SelectTrigger className="h-9 w-full cursor-pointer bg-white">
+                <SelectTrigger className="h-9 w-full cursor-pointer bg-white disabled:cursor-not-allowed">
                   <SelectValue placeholder="Select Market" />
                 </SelectTrigger>
                 <SelectContent>
@@ -135,7 +100,7 @@ export function NationalStrategyForm({
                   <SelectValue placeholder="Select Category" />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories.map((option) => (
+                  {categoryOptions.map((option) => (
                     <SelectItem
                       key={option.value}
                       value={option.value}
@@ -154,7 +119,7 @@ export function NationalStrategyForm({
                 <button
                   type="button"
                   className="cursor-pointer text-sm font-medium text-primary hover:underline disabled:cursor-not-allowed disabled:opacity-50"
-                  disabled={!marketSelected}
+                  disabled={!marketSelected || catalogLoading}
                   onClick={() => setAddCampaignOpen(true)}
                 >
                   + Add New
@@ -170,7 +135,7 @@ export function NationalStrategyForm({
                   <SelectValue placeholder="Select Campaign" />
                 </SelectTrigger>
                 <SelectContent>
-                  {campaigns.map((option) => (
+                  {campaignOptions.map((option) => (
                     <SelectItem
                       key={option.value}
                       value={option.value}
@@ -194,7 +159,7 @@ export function NationalStrategyForm({
                   <SelectValue placeholder="Select Channel" />
                 </SelectTrigger>
                 <SelectContent>
-                  {channels.map((option) => (
+                  {channelOptions.map((option) => (
                     <SelectItem
                       key={option.value}
                       value={option.value}
@@ -234,7 +199,7 @@ export function NationalStrategyForm({
                     if (values.coverImageUrl.startsWith("blob:")) {
                       URL.revokeObjectURL(values.coverImageUrl);
                     }
-                    // TODO: When upload API exists, optionally upload `file` here (or on Save)
+                    // TODO: When upload API exists, optionally upload file here (or on Save)
                     // and store the returned permanent URL in coverImageUrl instead of blob:.
                     patch({
                       coverImageName: file?.name ?? "",
@@ -276,11 +241,32 @@ export function NationalStrategyForm({
         market={values.market}
         onOpenChange={setAddCampaignOpen}
         onAdded={(campaignValue) => {
-          setCampaigns((prev) =>
-            prev.some((item) => item.value === campaignValue)
-              ? prev
-              : [...prev, { label: campaignValue, value: campaignValue }],
-          );
+          const market = values.market;
+          if (catalog && market) {
+            const current = catalog.optionsByMarket[market] ?? {
+              categories: [],
+              campaigns: [],
+              channels: [],
+              retailers: [],
+            };
+            if (
+              !current.campaigns.some((item) => item.value === campaignValue)
+            ) {
+              onCatalogChange({
+                ...catalog,
+                optionsByMarket: {
+                  ...catalog.optionsByMarket,
+                  [market]: {
+                    ...current,
+                    campaigns: [
+                      ...current.campaigns,
+                      { label: campaignValue, value: campaignValue },
+                    ],
+                  },
+                },
+              });
+            }
+          }
           patch({ campaign: campaignValue });
         }}
       />

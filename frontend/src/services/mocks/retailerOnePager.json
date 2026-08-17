@@ -1,0 +1,143 @@
+{
+  "id": "pager-005",
+  "status": "published",
+  "created_by": "user-001",
+  "pager_type": "retailer",
+  "payload": {
+    "market": "US",
+    "target_retailer": "Target",
+    "category": "Hair Care",
+    "campaign": "Scalp & Shine",
+    "channel": "Supermarket",
+    "title": "National Haircare H2 Superior Scalp & Shine Focus Campaign",
+    "business_outcome_statement": "Lead with updated hero images and clear product role messaging across premium hair ranges.",
+    "cover_image": {
+      "id": "cover-r1",
+      "name": "cover.jpg",
+      "blob_url": "https://picsum.photos/seed/retailer-cover/800/320"
+    },
+    "scoring_mode": "WEIGHTED",
+    "pillars": [
+      {
+        "pillar_number": 1,
+        "pillar_name": "People Excellence",
+        "pillar_description": "Build capability, accountability, and engagement across the field organization.",
+        "pillar_weight": 20,
+        "initiatives": [
+          {
+            "initiative_number": 1,
+            "priority_level": "P1",
+            "accountable_function_department": "Human Resources",
+            "initiative_description": "Conduct monthly capability development sessions for field teams.",
+            "kpi_metric": "Training Completion Rate",
+            "success_target": "95",
+            "unit": "%",
+            "week_start": "2026-08-10",
+            "week_end": "2026-08-31",
+            "guidelines": "All eligible employees must complete the monthly capability session.",
+            "checklist_compliance_notes": "Verify attendance, completion, and manager sign-off.",
+            "images": [
+              { "id": "r-p1-i1-1", "name": "pillar1-initiative1-1.jpg", "blob_url": "https://picsum.photos/seed/rp1i1a/400/280" }
+            ]
+          }
+        ]
+      },
+      {
+        "pillar_number": 2,
+        "pillar_name": "Customer Excellence",
+        "pillar_description": "Improve customer experience, engagement, and service quality.",
+        "pillar_weight": 20,
+        "initiatives": [
+          {
+            "initiative_number": 1,
+            "priority_level": "P1",
+            "accountable_function_department": "Customer Business Development (CBD)",
+            "initiative_description": "Improve customer engagement through structured customer visits.",
+            "kpi_metric": "Customer Visit Completion",
+            "success_target": "95",
+            "unit": "%",
+            "week_start": "2026-08-10",
+            "week_end": "2026-08-31",
+            "guidelines": "Teams should follow the defined customer engagement checklist.",
+            "checklist_compliance_notes": "Capture visit evidence and customer feedback.",
+            "images": [
+              { "id": "r-p2-i1-1", "name": "pillar2-initiative1-1.jpg", "blob_url": "https://picsum.photos/seed/rp2i1a/400/280" }
+            ]
+          }
+        ]
+      },
+      {
+        "pillar_number": 3,
+        "pillar_name": "Operational Excellence",
+        "pillar_description": "Improve operational efficiency, process compliance, and execution discipline.",
+        "pillar_weight": 20,
+        "initiatives": [
+          {
+            "initiative_number": 1,
+            "priority_level": "P1",
+            "accountable_function_department": "Supply Chain Operations",
+            "initiative_description": "Standardize daily operational execution across all locations.",
+            "kpi_metric": "Process Compliance",
+            "success_target": "95",
+            "unit": "%",
+            "week_start": "2026-08-10",
+            "week_end": "2026-08-31",
+            "guidelines": "Follow the approved standard operating procedures.",
+            "checklist_compliance_notes": "Validate daily operational checklist completion.",
+            "images": [
+              { "id": "r-p3-i1-1", "name": "pillar3-initiative1-1.jpg", "blob_url": "https://picsum.photos/seed/rp3i1a/400/280" }
+            ]
+          }
+        ]
+      },
+      {
+        "pillar_number": 4,
+        "pillar_name": "Commercial Excellence",
+        "pillar_description": "Drive revenue growth, conversion, productivity, and commercial performance.",
+        "pillar_weight": 20,
+        "initiatives": [
+          {
+            "initiative_number": 1,
+            "priority_level": "P1",
+            "accountable_function_department": "Sales",
+            "initiative_description": "Increase sales conversion through focused execution in priority accounts.",
+            "kpi_metric": "Sales Conversion Rate",
+            "success_target": "15",
+            "unit": "%",
+            "week_start": "2026-08-10",
+            "week_end": "2026-08-31",
+            "guidelines": "Focus on priority accounts and high-potential opportunities.",
+            "checklist_compliance_notes": "Review conversion performance weekly.",
+            "images": [
+              { "id": "r-p4-i1-1", "name": "pillar4-initiative1-1.jpg", "blob_url": "https://picsum.photos/seed/rp4i1a/400/280" }
+            ]
+          }
+        ]
+      },
+      {
+        "pillar_number": 5,
+        "pillar_name": "Digital Excellence",
+        "pillar_description": "Use technology, data, and digital tools to improve business execution.",
+        "pillar_weight": 20,
+        "initiatives": [
+          {
+            "initiative_number": 1,
+            "priority_level": "P1",
+            "accountable_function_department": "Digital Commerce Team",
+            "initiative_description": "Increase adoption of digital tools across field teams.",
+            "kpi_metric": "Digital Adoption",
+            "success_target": "90",
+            "unit": "%",
+            "week_start": "2026-08-10",
+            "week_end": "2026-08-31",
+            "guidelines": "Ensure all users are trained and actively using approved digital tools.",
+            "checklist_compliance_notes": "Review adoption dashboard and user activity.",
+            "images": [
+              { "id": "r-p5-i1-1", "name": "pillar5-initiative1-1.jpg", "blob_url": "https://picsum.photos/seed/rp5i1a/400/280" }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

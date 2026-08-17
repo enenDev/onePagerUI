@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LayoutGrid, MapPin, Store, FileInput } from "lucide-react";
 
+import { ImportFromNationalPicker } from "@/components/landing/ImportFromNationalPicker";
 import {
   Dialog,
   DialogContent,
@@ -9,8 +10,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import type { RetailerImportLocationState } from "@/pages/CreateRetailerOnePager";
+import type { OnePagerListItem } from "@/types/onePager";
 
-type CreateStep = "type" | "retailer";
+type CreateStep = "type" | "retailer" | "import";
 
 type CreateOnePagerModalProps = {
   open: boolean;
@@ -59,9 +62,25 @@ export function CreateOnePagerModal({
 
   const closeFlow = () => handleOpenChange(false);
 
+  const handleImportSubmit = (item: OnePagerListItem) => {
+    const state: RetailerImportLocationState = {
+      importFrom: "national",
+      source: item,
+    };
+    closeFlow();
+    navigate("/create/retailer", { state });
+  };
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="flex h-[18rem] max-w-xl flex-col gap-6 overflow-hidden sm:max-w-xl">
+      <DialogContent
+        className={cn(
+          "flex flex-col overflow-hidden",
+          step === "import"
+            ? "h-[min(36rem,85vh)] max-w-3xl gap-4 sm:max-w-3xl"
+            : "h-[18rem] max-w-xl gap-6 sm:max-w-xl",
+        )}
+      >
         <DialogHeader className="min-h-10 shrink-0 justify-center pr-8">
           {step === "type" ? (
             <DialogTitle>Create New One-Pager</DialogTitle>
@@ -75,56 +94,82 @@ export function CreateOnePagerModal({
                 Create New One-Pager
               </button>
               <span className="text-muted-foreground">&gt;</span>
-              <span className="text-foreground">Retailer One Pager</span>
+              {step === "import" ? (
+                <>
+                  <button
+                    type="button"
+                    className="cursor-pointer text-primary underline-offset-2 hover:underline"
+                    onClick={() => setStep("retailer")}
+                  >
+                    Retailer One Pager
+                  </button>
+                  <span className="text-muted-foreground">&gt;</span>
+                  <span className="text-foreground">
+                    Import from National One Pager
+                  </span>
+                </>
+              ) : (
+                <span className="text-foreground">Retailer One Pager</span>
+              )}
             </DialogTitle>
           )}
         </DialogHeader>
 
-        <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 sm:grid-cols-2">
-          {(step === "type" ? TYPE_OPTIONS : RETAILER_OPTIONS).map((option) => {
-            const Icon = option.icon;
-            const isRetailerStep = step === "retailer";
+        {step === "import" ? (
+          <ImportFromNationalPicker onSubmit={handleImportSubmit} />
+        ) : (
+          <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 sm:grid-cols-2">
+            {(step === "type" ? TYPE_OPTIONS : RETAILER_OPTIONS).map(
+              (option) => {
+                const Icon = option.icon;
+                const isRetailerStep = step === "retailer";
 
-            return (
-              <button
-                key={option.id}
-                type="button"
-                className={cn(
-                  "flex h-full min-h-36 cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-border bg-white p-6 text-center transition-colors",
-                  "hover:border-primary hover:bg-accent",
-                )}
-                onClick={() => {
-                  if (!isRetailerStep && option.id === "retailer") {
-                    setStep("retailer");
-                    return;
-                  }
+                return (
+                  <button
+                    key={option.id}
+                    type="button"
+                    className={cn(
+                      "flex h-full min-h-36 cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-border bg-white p-6 text-center transition-colors",
+                      "hover:border-primary hover:bg-accent",
+                    )}
+                    onClick={() => {
+                      if (!isRetailerStep && option.id === "retailer") {
+                        setStep("retailer");
+                        return;
+                      }
 
-                  if (!isRetailerStep && option.id === "national") {
-                    closeFlow();
-                    navigate("/create/national");
-                    return;
-                  }
+                      if (!isRetailerStep && option.id === "national") {
+                        closeFlow();
+                        navigate("/create/national");
+                        return;
+                      }
 
-                  // TODO: Retailer create flows not wired yet.
-                  // - "Build from Scratch" → navigate to retailer create form (route TBD).
-                  // - "Import From National" → open national-import picker screen/modal, then create retailer one-pager from selected national.
-                  // Do not only closeFlow() once those screens exist.
-                  closeFlow();
-                }}
-              >
-                <Icon className="size-8 text-primary" />
-                <span
-                  className={cn(
-                    "text-sm font-medium",
-                    isRetailerStep ? "text-primary" : "text-foreground",
-                  )}
-                >
-                  {option.label}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+                      if (isRetailerStep && option.id === "scratch") {
+                        closeFlow();
+                        navigate("/create/retailer");
+                        return;
+                      }
+
+                      if (isRetailerStep && option.id === "import") {
+                        setStep("import");
+                      }
+                    }}
+                  >
+                    <Icon className="size-8 text-primary" />
+                    <span
+                      className={cn(
+                        "text-sm font-medium",
+                        isRetailerStep ? "text-primary" : "text-foreground",
+                      )}
+                    >
+                      {option.label}
+                    </span>
+                  </button>
+                );
+              },
+            )}
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

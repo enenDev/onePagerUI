@@ -11,7 +11,7 @@ type FormActionBarProps = {
   onFillSample?: () => void;
   savingDraft?: boolean;
   publishing?: boolean;
-  /** When false, Save Draft + Preview & Publish stay disabled. */
+  /** When false, Preview & Publish stays disabled. Save Draft is never gated by this. */
   canSubmit?: boolean;
   submitBlockedReason?: string | null;
 };
@@ -27,7 +27,7 @@ export function FormActionBar({
   submitBlockedReason = null,
 }: FormActionBarProps) {
   const busy = savingDraft || publishing;
-  const actionsDisabled = busy || !canSubmit;
+  const previewDisabled = busy || !canSubmit;
 
   return (
     <div className="sticky bottom-0 z-30 w-full border-t border-border bg-white/95 backdrop-blur-sm">
@@ -66,8 +66,7 @@ export function FormActionBar({
               type="button"
               variant="outline"
               onClick={onSaveDraft}
-              disabled={actionsDisabled}
-              title={submitBlockedReason ?? undefined}
+              disabled={busy}
               className="h-9 cursor-pointer rounded-lg border-primary px-4 text-primary hover:bg-accent hover:text-primary"
             >
               <Save className="size-4" />
@@ -76,7 +75,7 @@ export function FormActionBar({
             <Button
               type="button"
               onClick={onPreviewPublish}
-              disabled={actionsDisabled}
+              disabled={previewDisabled}
               title={submitBlockedReason ?? undefined}
               className="h-9 cursor-pointer rounded-lg bg-primary px-4 text-primary-foreground"
             >

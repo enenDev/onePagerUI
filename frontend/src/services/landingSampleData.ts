@@ -3,7 +3,9 @@ import type { OnePagerListItem } from "@/types/onePager";
 /** Landing-page subset shaped like sampleData (full form stays in sampleData.ts). */
 export const landingOnePagers: OnePagerListItem[] = [
   {
-    market: "National",
+    pager_id: "pager-001",
+    pager_type: "national",
+    market: "US",
     retailer: "Supermarket",
     category: "Hair Care",
     campaign_focus: "Summer Freshness",
@@ -18,7 +20,9 @@ export const landingOnePagers: OnePagerListItem[] = [
     pillars: [],
   },
   {
-    market: "National",
+    pager_id: "pager-002",
+    pager_type: "national",
+    market: "US",
     retailer: "Supermarket",
     category: "Hair Care",
     campaign_focus: "Summer Freshness",
@@ -33,7 +37,9 @@ export const landingOnePagers: OnePagerListItem[] = [
     pillars: [],
   },
   {
-    market: "National",
+    pager_id: "pager-003",
+    pager_type: "national",
+    market: "US",
     retailer: "All Retailers",
     category: "Execution Excellence",
     campaign_focus: "National Growth Program",
@@ -48,6 +54,8 @@ export const landingOnePagers: OnePagerListItem[] = [
     pillars: [],
   },
   {
+    pager_id: "pager-004",
+    pager_type: "retailer",
     market: "US",
     retailer: "Walmart",
     category: "Oral Care",
@@ -63,6 +71,8 @@ export const landingOnePagers: OnePagerListItem[] = [
     pillars: [],
   },
   {
+    pager_id: "pager-005",
+    pager_type: "retailer",
     market: "US",
     retailer: "Target",
     category: "Hair Care",
@@ -78,7 +88,9 @@ export const landingOnePagers: OnePagerListItem[] = [
     pillars: [],
   },
   {
-    market: "National",
+    pager_id: "pager-006",
+    pager_type: "national",
+    market: "US",
     retailer: "All Retailers",
     category: "Deodorants",
     campaign_focus: "Maximum Protection",

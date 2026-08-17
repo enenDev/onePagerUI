@@ -7,42 +7,43 @@ import {
 } from "react-router-dom";
 import { Pencil, Send } from "lucide-react";
 
-import type { NationalFormValues } from "@/components/form/nationalForm";
+import type { RetailerFormValues } from "@/components/form/retailerForm";
 import { FormToast } from "@/components/form/FormToast";
 import type { PillarDraft, ScoringMode } from "@/components/form/pillars";
 import { NationalPreviewDocument } from "@/components/preview/NationalPreviewDocument";
 import { PublishIncompletePillarsModal } from "@/components/preview/PublishIncompletePillarsModal";
 import {
-  composeNationalPreviewTitle,
+  composeRetailerPreviewTitle,
   formatPublishedAt,
 } from "@/components/preview/nationalPreview";
 import { Button } from "@/components/ui/button";
 import { PageContainer } from "@/components/layout/PageContainer";
 import type { FormLayoutContext } from "@/layouts/MainLayout";
 import {
-  publishNationalOnePager,
-  type NationalOnePagerCreatePayload,
-} from "@/services/createFormApi";
+  publishRetailerOnePager,
+  type RetailerOnePagerCreatePayload,
+} from "@/services/retailerCreateFormApi";
 import { CURRENT_USER_ID, isCurrentUserOwner } from "@/types/onePager";
 
-export type NationalPreviewLocationState = {
-  values: NationalFormValues;
+export type RetailerPreviewLocationState = {
+  values: RetailerFormValues;
   scoringMode: ScoringMode;
   pillars: PillarDraft[];
   recordId: string | null;
-  payload: NationalOnePagerCreatePayload;
+  payload: RetailerOnePagerCreatePayload;
+  scopeLocked?: boolean;
 };
 
-function isPreviewState(value: unknown): value is NationalPreviewLocationState {
+function isPreviewState(value: unknown): value is RetailerPreviewLocationState {
   if (!value || typeof value !== "object") return false;
-  const state = value as Partial<NationalPreviewLocationState>;
+  const state = value as Partial<RetailerPreviewLocationState>;
   return Boolean(state.values && state.pillars && state.payload);
 }
 
-export function PreviewNationalOnePager() {
+export function PreviewRetailerOnePager() {
   // TODO: Replace location.state preview handoff with a real preview route keyed by id.
-  // Temporary: create form navigates here with NationalPreviewLocationState in memory.
-  // Next: GET /api/national-one-pagers/:id (or draft snapshot) and render read-only preview;
+  // Temporary: create form navigates here with RetailerPreviewLocationState in memory.
+  // Next: GET /api/retailer-one-pagers/:id and render read-only preview;
   // Confirm Publish calls POST publish. Keep payload field names + on-page toast UX.
   const location = useLocation();
   const navigate = useNavigate();
@@ -51,7 +52,7 @@ export function PreviewNationalOnePager() {
   const state = isPreviewState(location.state) ? location.state : null;
   const owner = CURRENT_USER_ID;
   const payload = state?.payload ?? null;
-  const composedTitle = payload ? composeNationalPreviewTitle(payload) : "";
+  const composedTitle = payload ? composeRetailerPreviewTitle(payload) : "";
 
   const [publishing, setPublishing] = useState(false);
   const [published, setPublished] = useState(false);
@@ -77,10 +78,10 @@ export function PreviewNationalOnePager() {
       }
     }
     if (!state) {
-      navigate("/create/national");
+      navigate("/create/retailer");
       return;
     }
-    navigate("/create/national", { state });
+    navigate("/create/retailer", { state });
   }, [navigate, published, recordId, state]);
 
   useEffect(() => {
@@ -98,16 +99,19 @@ export function PreviewNationalOnePager() {
   }, [composedTitle, published, setHeaderTitle]);
 
   if (!state || !payload) {
-    return <Navigate to="/create/national" replace />;
+    return <Navigate to="/create/retailer" replace />;
   }
 
   const handlePublish = async () => {
     setPublishing(true);
     setError(null);
-    // TODO: Confirm Publish → real FastAPI POST /api/national-one-pagers/publish.
-    // Temporary: publishNationalOnePager mock upsert with NationalOnePagerCreatePayload + optional id.
-    // Keep response { id, status: "published" }. Stay on this page (no home redirect).
-    const result = await publishNationalOnePager(payload, recordId ?? state.recordId);
+    // TODO: Confirm Publish → real FastAPI POST /api/retailer-one-pagers/publish.
+    // Temporary: publishRetailerOnePager mock. Keep { id, status: "published" }.
+    // Stay on this page (no home redirect).
+    const result = await publishRetailerOnePager(
+      payload,
+      recordId ?? state.recordId,
+    );
     setPublishing(false);
 
     if (!result.ok) {

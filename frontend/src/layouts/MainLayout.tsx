@@ -38,7 +38,10 @@ const MainLayout = () => {
   const headerVariant = handle?.headerVariant ?? "list";
   const title = headerTitle ?? handle?.title;
   const isFormPage = headerVariant === "simple";
-  const isCreatePage = location.pathname.startsWith("/create");
+  const isFullBleedPage =
+    location.pathname.startsWith("/create") ||
+    location.pathname.startsWith("/edit") ||
+    location.pathname.startsWith("/view");
 
   return (
     <div className="app-shell flex min-h-svh w-full flex-col">
@@ -58,7 +61,7 @@ const MainLayout = () => {
         }
       />
       <main className="flex flex-1 flex-col">
-        {isCreatePage ? (
+        {isFullBleedPage ? (
           <Outlet
             context={{ setBackHandler, setHeaderTitle } satisfies FormLayoutContext}
           />

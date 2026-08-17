@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
-import { getMetadata } from "@/services/metadataApi";
+import { getMetadata, unionMarketScopedOptions } from "@/services/metadataApi";
 import { submitOnePagerSearch } from "@/services/onePagerApi";
 import {
   createEmptyFilters,
@@ -11,6 +11,13 @@ import {
   type ScopeTab,
   type StatusTab,
 } from "@/types/onePager";
+
+const DEPENDENT_FILTER_KEYS = [
+  "retailer",
+  "channel",
+  "category",
+  "campaign",
+] as const satisfies ReadonlyArray<Exclude<FilterKey, "market">>;
 
 interface LandingState {
   metadata: FilterMetadata | null;
@@ -44,6 +51,31 @@ export const fetchOnePagers = createAsyncThunk(
   async (filters: FilterPayload) => submitOnePagerSearch(filters),
 );
 
+/** When markets change: clear dependents if empty; else drop values not in the union. */
+function syncDependentFilters(state: LandingState) {
+  const markets = state.filters.market;
+  if (markets.length === 0) {
+    state.filters.retailer = [];
+    state.filters.channel = [];
+    state.filters.category = [];
+    state.filters.campaign = [];
+    return;
+  }
+
+  if (!state.metadata) return;
+
+  for (const key of DEPENDENT_FILTER_KEYS) {
+    const allowed = new Set(
+      unionMarketScopedOptions(state.metadata, markets, key).map(
+        (option) => option.value,
+      ),
+    );
+    state.filters[key] = state.filters[key].filter((value) =>
+      allowed.has(value),
+    );
+  }
+}
+
 const landingSlice = createSlice({
   name: "landing",
   initialState,
@@ -57,6 +89,10 @@ const landingSlice = createSlice({
       state.filters[key] = current.includes(value)
         ? current.filter((item) => item !== value)
         : [...current, value];
+
+      if (key === "market") {
+        syncDependentFilters(state);
+      }
     },
     clearFilters(state) {
       // Fresh arrays so Clear all always resets UI selection state.
@@ -78,6 +114,8 @@ const landingSlice = createSlice({
       .addCase(fetchMetadata.fulfilled, (state, action) => {
         state.metadataLoading = false;
         state.metadata = action.payload;
+        // Re-prune in case filters were set before metadata loaded.
+        syncDependentFilters(state);
       })
       .addCase(fetchMetadata.rejected, (state, action) => {
         state.metadataLoading = false;

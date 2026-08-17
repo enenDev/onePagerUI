@@ -1,4 +1,5 @@
 export type OnePagerStatus = "ACTIVE" | "DRAFT" | "ARCHIVE";
+export type OnePagerType = "national" | "retailer";
 export type ScoringMode = "WEIGHTED" | "UNWEIGHTED";
 export type StatusTab = "active" | "drafts" | "archive";
 export type ScopeTab = "all" | "my";
@@ -15,12 +16,22 @@ export interface FilterOption {
   value: string;
 }
 
-export interface FilterMetadata {
-  market: FilterOption[];
+/** Dependent homepage filters for one market (not used by create-form APIs). */
+export interface MarketScopedFilterOptions {
   retailer: FilterOption[];
   channel: FilterOption[];
   category: FilterOption[];
   campaign: FilterOption[];
+}
+
+/**
+ * Homepage filter metadata.
+ * - `market` stays a flat option list (always available).
+ * - `optionsByMarket` holds retailer/channel/category/campaign per market value.
+ */
+export interface FilterMetadata {
+  market: FilterOption[];
+  optionsByMarket: Record<string, MarketScopedFilterOptions>;
 }
 
 /**
@@ -48,6 +59,10 @@ export function toOnePagerSearchPayload(filters: FilterPayload): FilterPayload {
 }
 
 export interface OnePagerListItem {
+  /** Stable record id — used for GET-by-id, edit, track, export. */
+  pager_id: string;
+  /** Which create/edit form and API surface this row belongs to. */
+  pager_type: OnePagerType;
   market: string;
   retailer: string;
   category: string;
@@ -65,6 +80,10 @@ export interface OnePagerListItem {
 export const CURRENT_USER_ID = "user-001";
 export const CURRENT_USER_EMAIL = "nitesh@example.com";
 export const CURRENT_USER_INITIALS = "NN";
+
+export function isCurrentUserOwner(createdBy: string) {
+  return createdBy === CURRENT_USER_ID;
+}
 
 export const emptyFilters: FilterPayload = {
   market: [],

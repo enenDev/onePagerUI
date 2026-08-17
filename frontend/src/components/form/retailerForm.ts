@@ -1,7 +1,13 @@
 import { type PillarDraft } from "@/components/form/pillars";
 
-export type NationalFormValues = {
+/**
+ * Retailer create/edit strategy fields.
+ * Separate from NationalFormValues — includes required Target Retailer.
+ */
+export type RetailerFormValues = {
   market: string;
+  /** Required for retailer one-pagers (National create has no Target Retailer). */
+  targetRetailer: string;
   category: string;
   campaign: string;
   channel: string;
@@ -19,8 +25,9 @@ export type NationalFormValues = {
   coverImageFile: File | null;
 };
 
-export const emptyNationalFormValues: NationalFormValues = {
+export const emptyRetailerFormValues: RetailerFormValues = {
   market: "",
+  targetRetailer: "",
   category: "",
   campaign: "",
   channel: "",
@@ -32,11 +39,12 @@ export const emptyNationalFormValues: NationalFormValues = {
 };
 
 /** Required strategy fields. Campaign/cover/outcome are optional. Initiatives are recommended, not required. */
-export function getNationalSubmitBlockers(
-  values: NationalFormValues,
+export function getRetailerSubmitBlockers(
+  values: RetailerFormValues,
   _pillars: PillarDraft[],
 ): string | null {
   if (!values.market.trim()) return "Select a Market.";
+  if (!values.targetRetailer.trim()) return "Select a Target Retailer.";
   if (!values.category.trim()) return "Select a Category.";
   if (!values.channel.trim()) return "Select a Channel.";
   if (!values.title.trim()) return "Enter a Title.";
