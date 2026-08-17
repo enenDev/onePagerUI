@@ -23,18 +23,15 @@ import {
   type ScoringMode,
 } from "@/components/form/pillars";
 import { UnsavedChangesModal } from "@/components/form/UnsavedChangesModal";
+import { useCreateFormCatalog } from "@/components/form/useCreateFormCatalog";
 import { PageContainer } from "@/components/layout/PageContainer";
 import type { FormLayoutContext } from "@/layouts/MainLayout";
 import type { RetailerPreviewLocationState } from "@/pages/PreviewRetailerOnePager";
 import {
   buildRetailerOnePagerPayload,
-  getCreateFormMetadata,
   saveRetailerDraft,
 } from "@/services/retailerCreateFormApi";
-import {
-  getNationalOnePager,
-  type CreateFormMetadata,
-} from "@/services/createFormApi";
+import { getNationalOnePager } from "@/services/createFormApi";
 import { isRetailerEditState } from "@/services/onePagerApi";
 import type { OnePagerListItem } from "@/types/onePager";
 
@@ -184,8 +181,7 @@ export function CreateRetailerOnePager() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
-  const [catalog, setCatalog] = useState<CreateFormMetadata | null>(null);
-  const [catalogLoading, setCatalogLoading] = useState(true);
+  const { catalog, catalogLoading } = useCreateFormCatalog();
 
   const applySampleData = () => {
     revokeFormImageUrls(values, pillars);
@@ -235,22 +231,6 @@ export function CreateRetailerOnePager() {
       cancelled = true;
     };
   }, [importPagerId]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    void (async () => {
-      // TODO: Real FastAPI — swap getCreateFormMetadata implementation only.
-      const metadata = await getCreateFormMetadata();
-      if (cancelled) return;
-      setCatalog(metadata);
-      setCatalogLoading(false);
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   const payloadFingerprint = useMemo(
     () =>

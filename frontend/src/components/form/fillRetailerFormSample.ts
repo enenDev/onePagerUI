@@ -20,7 +20,7 @@ export function buildRetailerFormSample(): {
   const values: RetailerFormValues = {
     market: "US",
     targetRetailer: "Walmart",
-    // Must match create-form catalog options for market "US" (not National-only values).
+    // Must match homepage metadata options for market "US" (not National-only values).
     category: "Hair Care",
     campaign: "Scalp & Shine",
     channel: "Supermarket",

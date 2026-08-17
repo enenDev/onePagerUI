@@ -33,8 +33,10 @@ export function unionMarketScopedOptions(
 /**
  * TODO: Replace with real FastAPI GET metadata endpoint.
  * Temporary: dummy from `mocks/homepageMetadata.json`
- * (markets flat + dependents keyed by market). Independent of create-form
- * `getCreateFormMetadata` / `mocks/createFormMetadata.json`.
+ * (markets flat + dependents keyed by market).
+ * Shared by homepage filters AND create/edit strategy dropdowns
+ * (Market, Retailer, Channel, Category, Campaign) via `landing.metadata`.
+ * Initiative departments/KPIs stay on getCreateFormMetadata.
  * Next: GET /api/metadata (or /api/filters) returning the same FilterMetadata shape
  * (`market` + `optionsByMarket`). Keep FilterPayload search body array-only.
  */

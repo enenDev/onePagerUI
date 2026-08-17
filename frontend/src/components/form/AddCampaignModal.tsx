@@ -10,18 +10,20 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { addCampaign } from "@/services/createFormApi";
+import { addCampaign, type FilterOption } from "@/services/createFormApi";
 
 type AddCampaignModalProps = {
   open: boolean;
   market: string;
+  existingCampaigns: FilterOption[];
   onOpenChange: (open: boolean) => void;
-  onAdded: (campaignValue: string) => void;
+  onAdded: (campaign: FilterOption) => void;
 };
 
 export function AddCampaignModal({
   open,
   market,
+  existingCampaigns,
   onOpenChange,
   onAdded,
 }: AddCampaignModalProps) {
@@ -41,7 +43,7 @@ export function AddCampaignModal({
   const handleAdd = async () => {
     setSaving(true);
     setError(null);
-    const result = await addCampaign(market, name);
+    const result = await addCampaign(market, name, existingCampaigns);
     setSaving(false);
 
     if (!result.ok) {
@@ -49,7 +51,7 @@ export function AddCampaignModal({
       return;
     }
 
-    onAdded(result.campaign.value);
+    onAdded(result.campaign);
     handleOpenChange(false);
   };
 

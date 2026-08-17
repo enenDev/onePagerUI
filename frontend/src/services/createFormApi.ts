@@ -5,6 +5,7 @@ import type {
 } from "@/components/form/pillars";
 import createFormMetadataMock from "@/services/mocks/createFormMetadata.json";
 import nationalOnePagerMock from "@/services/mocks/nationalOnePager.json";
+import type { FilterMetadata } from "@/types/onePager";
 
 export type FilterOption = {
   label: string;
@@ -21,11 +22,8 @@ export type MarketScopedOptions = {
 
 const delay = (ms = 250) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export type CreateFormMetadata = {
-  markets: FilterOption[];
-  /** All dependent dropdown options, keyed by market value. */
-  optionsByMarket: Record<string, MarketScopedOptions>;
-  /** Shared across all pillars (initiative modal). */
+/** Initiative-modal extras only. Strategy dropdowns come from FilterMetadata. */
+export type CreateFormExtras = {
   accountableDepartments: FilterOption[];
   /**
    * KPI options per pillar_number (1–5). Different lists per pillar; mock has 14 total.
@@ -34,52 +32,73 @@ export type CreateFormMetadata = {
   kpisByPillarNumber: Record<number, FilterOption[]>;
 };
 
-function emptyMarketOptions(): MarketScopedOptions {
-  return { categories: [], campaigns: [], channels: [], retailers: [] };
-}
+/**
+ * Form catalog: Market / Retailer / Channel / Category / Campaign are composed
+ * from homepage `FilterMetadata` (`landing.metadata`). Departments / KPIs come
+ * from getCreateFormMetadata.
+ */
+export type CreateFormMetadata = {
+  markets: FilterOption[];
+  /** All dependent dropdown options, keyed by market value. */
+  optionsByMarket: Record<string, MarketScopedOptions>;
+} & CreateFormExtras;
 
-function loadCreateFormCatalog(): CreateFormMetadata {
+function loadCreateFormExtras(): CreateFormExtras {
   const raw = structuredClone(createFormMetadataMock);
   const kpisByPillarNumber: Record<number, FilterOption[]> = {};
   for (const [key, options] of Object.entries(raw.kpisByPillarNumber)) {
     kpisByPillarNumber[Number(key)] = options as FilterOption[];
   }
   return {
-    markets: raw.markets as FilterOption[],
-    optionsByMarket: raw.optionsByMarket as Record<string, MarketScopedOptions>,
     accountableDepartments: raw.accountableDepartments as FilterOption[],
     kpisByPillarNumber,
   };
 }
 
 /**
- * Mutable copy of mocks/createFormMetadata.json — Add Campaign appends here (mock DB).
- * TODO: Remove in-memory catalog mutation when campaigns come from backend.
- * Real flow should load campaigns via getCreateFormMetadata and persist new
- * campaigns with POST add-campaign (see `addCampaign` TODO below).
+ * Map homepage filter keys (singular) onto the create-form catalog shape (plural)
+ * so strategy forms keep reading `markets` / `categories` / etc.
  */
-let createFormCatalog: CreateFormMetadata | null = null;
+export function composeCreateFormCatalog(
+  filterMetadata: FilterMetadata | null,
+  extras: CreateFormExtras | null,
+): CreateFormMetadata | null {
+  if (!filterMetadata || !extras) return null;
 
-function getCreateFormCatalog(): CreateFormMetadata {
-  if (!createFormCatalog) {
-    createFormCatalog = loadCreateFormCatalog();
+  const optionsByMarket: Record<string, MarketScopedOptions> = {};
+  for (const [market, scoped] of Object.entries(
+    filterMetadata.optionsByMarket,
+  )) {
+    optionsByMarket[market] = {
+      categories: scoped.category,
+      campaigns: scoped.campaign,
+      channels: scoped.channel,
+      retailers: scoped.retailer,
+    };
   }
-  return createFormCatalog;
+
+  return {
+    markets: filterMetadata.market,
+    optionsByMarket,
+    accountableDepartments: extras.accountableDepartments,
+    kpisByPillarNumber: extras.kpisByPillarNumber,
+  };
 }
 
 /**
- * One-shot create-form catalog: strategy dropdowns + initiative dropdowns.
- * Pillar names stay hardcoded in the app (consistent across screens).
+ * Initiative dropdowns only (accountable department + KPIs per pillar).
+ * Pillar names stay hardcoded in the app.
  *
- * TODO: Replace with real FastAPI GET (e.g. /api/create-form/metadata).
- * Temporary: dummy from `mocks/createFormMetadata.json` (independent of
- * homepage `getMetadata` / `mocks/homepageMetadata.json`).
- * Keep CreateFormMetadata shape. Client filters optionsByMarket / kpisByPillarNumber
- * — do not add per-market or per-pillar option round-trips for dropdowns.
+ * TODO: Replace with real FastAPI GET for initiative extras
+ * (e.g. /api/create-form/metadata). Temporary: dummy from
+ * `mocks/createFormMetadata.json`. Do not put Market / Retailer / Channel /
+ * Category / Campaign here — those come from getMetadata / landing.metadata.
+ * Keep CreateFormExtras shape. Client filters kpisByPillarNumber — do not add
+ * per-pillar option round-trips.
  */
-export async function getCreateFormMetadata(): Promise<CreateFormMetadata> {
+export async function getCreateFormMetadata(): Promise<CreateFormExtras> {
   await delay();
-  return structuredClone(getCreateFormCatalog());
+  return loadCreateFormExtras();
 }
 
 export type AddCampaignResult =
@@ -89,13 +108,14 @@ export type AddCampaignResult =
 /**
  * TODO: Replace with real FastAPI add-campaign endpoint.
  * - POST body: { market, campaign_name }
- * - On success, FE already appends to local campaign select + selects the new value.
- * - Remove mutation of in-memory create-form catalog (loaded from
- *   mocks/createFormMetadata.json).
+ * - On success, FE appends the returned option to `landing.metadata` (no metadata refetch)
+ *   and selects it on the form. Keep that UX when swapping the POST.
+ * - Duplicate check uses the shared catalog already in Redux (passed in as existingCampaigns).
  */
 export async function addCampaign(
   market: string,
   campaignName: string,
+  existingCampaigns: FilterOption[] = [],
 ): Promise<AddCampaignResult> {
   await delay(400);
 
@@ -107,12 +127,7 @@ export async function addCampaign(
     return { ok: false, error: "Campaign name is required." };
   }
 
-  const catalog = getCreateFormCatalog();
-  const scoped =
-    catalog.optionsByMarket[market] ??
-    (catalog.optionsByMarket[market] = emptyMarketOptions());
-  const list = scoped.campaigns;
-  const exists = list.some(
+  const exists = existingCampaigns.some(
     (item) => item.value.toLowerCase() === trimmed.toLowerCase(),
   );
 
@@ -123,9 +138,7 @@ export async function addCampaign(
     };
   }
 
-  const campaign = { label: trimmed, value: trimmed };
-  list.push(campaign);
-  return { ok: true, campaign };
+  return { ok: true, campaign: { label: trimmed, value: trimmed } };
 }
 
 /**

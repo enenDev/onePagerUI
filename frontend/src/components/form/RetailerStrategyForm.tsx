@@ -23,20 +23,16 @@ type RetailerStrategyFormProps = {
   lockScope?: boolean;
 };
 
-function withCurrentOption(
-  options: { label: string; value: string }[],
-  value: string,
-) {
-  if (!value || options.some((option) => option.value === value)) return options;
-  return [...options, { label: value, value }];
-}
-
 /**
  * Retailer strategy layout matches product mockup:
  * Market | Category
  * Channel | Target Retailer
  * Campaign (full width)
  * Title | Cover (full width)
+ *
+ * Dropdown options for Market / Category / Channel / Target Retailer / Campaign
+ * come from shared homepage metadata (`landing.metadata`). Selected values live
+ * in form state / API payload — do not inject missing values into option lists.
  */
 export function RetailerStrategyForm({
   values,
@@ -45,23 +41,14 @@ export function RetailerStrategyForm({
   catalogLoading,
   lockScope = false,
 }: RetailerStrategyFormProps) {
-  const markets = withCurrentOption(catalog?.markets ?? [], values.market);
+  const markets = catalog?.markets ?? [];
   const optionsByMarket = catalog?.optionsByMarket ?? {};
   const marketSelected = Boolean(values.market);
   const scoped = values.market ? optionsByMarket[values.market] : undefined;
   const retailerOptions = scoped?.retailers ?? [];
-  const categoryOptions = withCurrentOption(
-    scoped?.categories ?? [],
-    values.category,
-  );
-  const campaignOptions = withCurrentOption(
-    scoped?.campaigns ?? [],
-    values.campaign,
-  );
-  const channelOptions = withCurrentOption(
-    scoped?.channels ?? [],
-    values.channel,
-  );
+  const categoryOptions = scoped?.categories ?? [];
+  const campaignOptions = scoped?.campaigns ?? [];
+  const channelOptions = scoped?.channels ?? [];
   const dependentDisabled = !marketSelected || catalogLoading;
   const scopeDisabled = lockScope || catalogLoading;
   const dependentScopeDisabled = lockScope || dependentDisabled;

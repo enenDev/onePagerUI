@@ -6,6 +6,7 @@ import { FilterBar } from "@/components/landing/FilterBar";
 import { OnePagerCard } from "@/components/landing/OnePagerCard";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import {
+  clearFilters,
   fetchMetadata,
   fetchOnePagers,
   setScopeTab,
@@ -27,6 +28,10 @@ export const Home = () => {
   const [createOpen, setCreateOpen] = useState(false);
 
   useEffect(() => {
+    // List always reloads unfiltered; reset dropdown UI to match.
+    // Redux filters persist across create/edit, so coming back would
+    // otherwise show old selections on an empty-filter result set.
+    dispatch(clearFilters());
     void dispatch(fetchMetadata());
     void dispatch(fetchOnePagers(createEmptyFilters()));
   }, [dispatch]);

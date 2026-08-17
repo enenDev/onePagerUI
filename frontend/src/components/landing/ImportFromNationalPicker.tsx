@@ -10,11 +10,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getMetadata } from "@/services/metadataApi";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { fetchMetadata } from "@/redux/landingSlice";
 import { submitOnePagerSearch } from "@/services/onePagerApi";
 import {
   createEmptyFilters,
-  type FilterOption,
   type OnePagerListItem,
   type OnePagerStatus,
 } from "@/types/onePager";
@@ -70,13 +70,21 @@ function matchesImportFilters(item: OnePagerListItem, filters: ImportFilters) {
 export function ImportFromNationalPicker({
   onSubmit,
 }: ImportFromNationalPickerProps) {
+  const dispatch = useAppDispatch();
+  const filterMetadata = useAppSelector((state) => state.landing.metadata);
   const [items, setItems] = useState<OnePagerListItem[]>([]);
-  const [marketOptions, setMarketOptions] = useState<FilterOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<ImportFilters>(EMPTY_FILTERS);
   const [filterResetKey, setFilterResetKey] = useState(0);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const marketOptions = filterMetadata?.market ?? [];
+
+  useEffect(() => {
+    if (filterMetadata) return;
+    void dispatch(fetchMetadata());
+  }, [dispatch, filterMetadata]);
 
   useEffect(() => {
     let cancelled = false;
@@ -84,14 +92,12 @@ export function ImportFromNationalPicker({
     void (async () => {
       // TODO: This list is the mock landing search (submitOnePagerSearch →
       // mocks/landingOnePagers.json). Next: swap to FastAPI national list, e.g.
-      // GET /api/one-pagers/search?pager_type=national excluding drafts, plus
-      // GET /api/metadata for Market / Category / Campaign / Channel options.
+      // GET /api/one-pagers/search?pager_type=national excluding drafts.
+      // Market options reuse landing.metadata (getMetadata). Category / Campaign /
+      // Channel on this picker stay derived from the loaded list.
       // Keep OnePagerListItem + pager_id / pager_type stable.
       try {
-        const [results, metadata] = await Promise.all([
-          submitOnePagerSearch(createEmptyFilters()),
-          getMetadata(),
-        ]);
+        const results = await submitOnePagerSearch(createEmptyFilters());
         if (cancelled) return;
         setItems(
           results.filter(
@@ -99,7 +105,6 @@ export function ImportFromNationalPicker({
               item.pager_type === "national" && item.status !== "DRAFT",
           ),
         );
-        setMarketOptions(metadata.market);
         setError(null);
       } catch {
         if (cancelled) return;

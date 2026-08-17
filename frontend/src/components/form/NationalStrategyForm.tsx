@@ -13,6 +13,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useAppDispatch } from "@/redux/hooks";
+import { appendCampaignOption } from "@/redux/landingSlice";
 import type { CreateFormMetadata } from "@/services/createFormApi";
 
 type NationalStrategyFormProps = {
@@ -20,7 +22,6 @@ type NationalStrategyFormProps = {
   onChange: (next: NationalFormValues) => void;
   catalog: CreateFormMetadata | null;
   catalogLoading: boolean;
-  onCatalogChange: (next: CreateFormMetadata) => void;
 };
 
 export function NationalStrategyForm({
@@ -28,8 +29,8 @@ export function NationalStrategyForm({
   onChange,
   catalog,
   catalogLoading,
-  onCatalogChange,
 }: NationalStrategyFormProps) {
+  const dispatch = useAppDispatch();
   const [addCampaignOpen, setAddCampaignOpen] = useState(false);
 
   const markets = catalog?.markets ?? [];
@@ -239,35 +240,18 @@ export function NationalStrategyForm({
       <AddCampaignModal
         open={addCampaignOpen}
         market={values.market}
+        existingCampaigns={campaignOptions}
         onOpenChange={setAddCampaignOpen}
-        onAdded={(campaignValue) => {
-          const market = values.market;
-          if (catalog && market) {
-            const current = catalog.optionsByMarket[market] ?? {
-              categories: [],
-              campaigns: [],
-              channels: [],
-              retailers: [],
-            };
-            if (
-              !current.campaigns.some((item) => item.value === campaignValue)
-            ) {
-              onCatalogChange({
-                ...catalog,
-                optionsByMarket: {
-                  ...catalog.optionsByMarket,
-                  [market]: {
-                    ...current,
-                    campaigns: [
-                      ...current.campaigns,
-                      { label: campaignValue, value: campaignValue },
-                    ],
-                  },
-                },
-              });
-            }
+        onAdded={(campaign) => {
+          if (values.market) {
+            dispatch(
+              appendCampaignOption({
+                market: values.market,
+                campaign,
+              }),
+            );
           }
-          patch({ campaign: campaignValue });
+          patch({ campaign: campaign.value });
         }}
       />
     </>

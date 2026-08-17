@@ -6,6 +6,7 @@ import {
   createEmptyFilters,
   type FilterKey,
   type FilterMetadata,
+  type FilterOption,
   type FilterPayload,
   type OnePagerListItem,
   type ScopeTab,
@@ -104,6 +105,32 @@ const landingSlice = createSlice({
     setScopeTab(state, action: PayloadAction<ScopeTab>) {
       state.scopeTab = action.payload;
     },
+    /**
+     * After POST add-campaign succeeds: append to the shared catalog in-place.
+     * Do not refetch getMetadata — the new option is already in the POST result.
+     */
+    appendCampaignOption(
+      state,
+      action: PayloadAction<{ market: string; campaign: FilterOption }>,
+    ) {
+      if (!state.metadata) return;
+      const { market, campaign } = action.payload;
+      const scoped = state.metadata.optionsByMarket[market];
+      if (!scoped) {
+        state.metadata.optionsByMarket[market] = {
+          retailer: [],
+          channel: [],
+          category: [],
+          campaign: [campaign],
+        };
+        return;
+      }
+      const exists = scoped.campaign.some(
+        (item) => item.value.toLowerCase() === campaign.value.toLowerCase(),
+      );
+      if (exists) return;
+      scoped.campaign.push(campaign);
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -136,7 +163,12 @@ const landingSlice = createSlice({
   },
 });
 
-export const { toggleFilterValue, clearFilters, setStatusTab, setScopeTab } =
-  landingSlice.actions;
+export const {
+  toggleFilterValue,
+  clearFilters,
+  setStatusTab,
+  setScopeTab,
+  appendCampaignOption,
+} = landingSlice.actions;
 
 export default landingSlice.reducer;
