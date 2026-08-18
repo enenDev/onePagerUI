@@ -42,7 +42,8 @@ const MainLayout = () => {
   const isFullBleedPage =
     location.pathname.startsWith("/create") ||
     location.pathname.startsWith("/edit") ||
-    location.pathname.startsWith("/view");
+    location.pathname.startsWith("/view") ||
+    location.pathname.startsWith("/track");
 
   const handleBack = () => {
     if (backHandler) {

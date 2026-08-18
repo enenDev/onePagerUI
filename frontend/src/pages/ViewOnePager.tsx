@@ -34,6 +34,7 @@ function composeViewTitle(record: OnePagerByIdRecord) {
  * Keep rendering NationalPreviewDocument from the record payload (retailer
  * shows Target Retailer when present). Do not route through create/preview.
  * Back → /home. More Options → Edit still uses /edit/:id (owner-only).
+ * More Options → Track uses /track/:id for PUBLISHED only.
  * Delete → confirm modal + deleteOnePager(pager_id) → Redux remove → /home.
  */
 export function ViewOnePager() {
@@ -132,6 +133,11 @@ export function ViewOnePager() {
             canEdit={isOwner}
             canDelete={isOwner}
             onEdit={() => navigate(`/edit/${record.id}`)}
+            onTrack={
+              record.list_status === "PUBLISHED"
+                ? () => navigate(`/track/${record.id}`)
+                : undefined
+            }
             onDelete={() => {
               setDeleteError(null);
               setDeleteOpen(true);

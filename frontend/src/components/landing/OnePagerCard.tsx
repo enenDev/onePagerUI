@@ -101,6 +101,9 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
                   if (!canEdit) return;
                   navigate(`/edit/${item.pager_id}`);
                 }}
+                onTrack={() => {
+                  navigate(`/track/${item.pager_id}`);
+                }}
                 onDelete={() => {
                   if (!canDelete) return;
                   setDeleteError(null);
@@ -176,6 +179,7 @@ function CardMenuItem({
   canDelete,
   showSeparator,
   onEdit,
+  onTrack,
   onDelete,
 }: {
   action: CardMenuAction;
@@ -183,6 +187,7 @@ function CardMenuItem({
   canDelete: boolean;
   showSeparator: boolean;
   onEdit: () => void;
+  onTrack: () => void;
   onDelete: () => void;
 }) {
   const itemClassName = "cursor-pointer rounded-none px-3 py-2";
@@ -192,15 +197,7 @@ function CardMenuItem({
   switch (action) {
     case "track":
       menuItem = (
-        <DropdownMenuItem
-          className={itemClassName}
-          onClick={() => {
-            // TODO: Track is UI-only. Temporary: no navigation / API.
-            // Next: open Track / scoring screen for this one-pager
-            // (e.g. /track/:pager_id or GET/POST track endpoints).
-            // Keep: menu label + Target icon, card ⋯ entry point.
-          }}
-        >
+        <DropdownMenuItem className={itemClassName} onClick={onTrack}>
           <Target className="size-4" />
           Track
         </DropdownMenuItem>

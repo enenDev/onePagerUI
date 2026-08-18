@@ -114,7 +114,7 @@ export function formatPreviewDateRange(start: string, end: string) {
 }
 
 export function formatPublishedAt(date: Date) {
-  const day = date.getDate();
+  const day = String(date.getDate()).padStart(2, "0");
   const month = MONTHS[date.getMonth()];
   const year = date.getFullYear();
   const hours = String(date.getHours()).padStart(2, "0");

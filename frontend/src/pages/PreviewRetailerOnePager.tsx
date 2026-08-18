@@ -166,6 +166,14 @@ export function PreviewRetailerOnePager() {
           moreOptionsEnabled={published}
           canEdit={isOwner}
           canDelete={isOwner}
+          onTrack={
+            published
+              ? () => {
+                  const id = recordId ?? state.recordId;
+                  if (id) navigate(`/track/${id}`);
+                }
+              : undefined
+          }
           onDelete={() => {
             setDeleteError(null);
             setDeleteOpen(true);
