@@ -3,6 +3,7 @@ import { Outlet, useLocation, useNavigate, useMatches } from "react-router-dom";
 
 import { AppHeader } from "@/components/layout/AppHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { Button } from "@/components/ui/button";
 
 type RouteHandle = {
   headerVariant?: "list" | "simple";
@@ -43,32 +44,52 @@ const MainLayout = () => {
     location.pathname.startsWith("/edit") ||
     location.pathname.startsWith("/view");
 
+  const handleBack = () => {
+    if (backHandler) {
+      backHandler();
+      return;
+    }
+    navigate("/home");
+  };
+
   return (
     <div className="app-shell flex min-h-svh w-full flex-col">
-      <AppHeader
-        variant={headerVariant}
-        title={title}
-        onBack={
-          isFormPage
-            ? () => {
-                if (backHandler) {
-                  backHandler();
-                  return;
-                }
-                navigate("/home");
-              }
-            : undefined
-        }
-      />
+      <AppHeader />
+      {isFormPage && title ? (
+        <div className="border-b border-border bg-white">
+          <PageContainer className="flex h-12 items-center gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              onClick={handleBack}
+              className="cursor-pointer text-foreground hover:bg-accent"
+              aria-label="Go back"
+            >
+              <span className="text-lg leading-none">&lt;</span>
+            </Button>
+            <h1
+              title={title}
+              className="truncate text-sm font-semibold text-foreground md:text-base"
+            >
+              {title}
+            </h1>
+          </PageContainer>
+        </div>
+      ) : null}
       <main className="flex flex-1 flex-col">
         {isFullBleedPage ? (
           <Outlet
-            context={{ setBackHandler, setHeaderTitle } satisfies FormLayoutContext}
+            context={
+              { setBackHandler, setHeaderTitle } satisfies FormLayoutContext
+            }
           />
         ) : (
           <PageContainer className="py-6">
             <Outlet
-              context={{ setBackHandler, setHeaderTitle } satisfies FormLayoutContext}
+              context={
+                { setBackHandler, setHeaderTitle } satisfies FormLayoutContext
+              }
             />
           </PageContainer>
         )}

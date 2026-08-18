@@ -3,7 +3,6 @@ import { LogOut, Mail } from "lucide-react";
 
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,22 +13,16 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { CURRENT_USER_EMAIL, CURRENT_USER_INITIALS } from "@/types/onePager";
 
-type AppHeaderProps = {
-  variant?: "list" | "simple";
-  title?: string;
-  onBack?: () => void;
-};
-
 function HeaderDivider() {
   return (
     <span
       aria-hidden="true"
-      className="mx-1 h-7 w-px shrink-0 bg-[#3988d0]/90"
+      className="mx-1 h-7 w-px shrink-0 bg-white/90"
     />
   );
 }
 
-export function AppHeader({ variant = "list", title, onBack }: AppHeaderProps) {
+export function AppHeader() {
   return (
     <header className="sticky top-0 z-40 w-full bg-primary">
       <PageContainer className="relative flex h-14 items-center justify-between gap-4">
@@ -52,31 +45,6 @@ export function AppHeader({ variant = "list", title, onBack }: AppHeaderProps) {
               CATEGORY ONE-PAGER-APP
             </span>
           </Link>
-
-          {variant === "simple" && (
-            <div className="ml-2 flex min-w-0 items-center gap-2 border-l border-white/40 pl-3">
-              {onBack && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={onBack}
-                  className="cursor-pointer text-primary-foreground hover:bg-white/15 hover:text-primary-foreground"
-                  aria-label="Go back"
-                >
-                  <span className="text-lg leading-none">&lt;</span>
-                </Button>
-              )}
-              {title && (
-                <h1
-                  title={title}
-                  className="truncate text-sm font-semibold text-primary-foreground md:text-base"
-                >
-                  {title}
-                </h1>
-              )}
-            </div>
-          )}
         </div>
 
         <DropdownMenu>

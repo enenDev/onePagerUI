@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+  <!-- TODO: Replace public/logo-secondary.svg with the real second brand mark. -->
+  <rect x="8" y="8" width="48" height="48" rx="10" fill="#ffffff" fill-opacity="0.18"/>
+  <path
+    d="M18 40V24h8.2c4.4 0 7.2 2.4 7.2 6.2 0 3.8-2.8 6.2-7.2 6.2H23.6V40H18Zm5.6-8.4h2.4c1.9 0 3-1 3-2.6s-1.1-2.6-3-2.6h-2.4v5.2ZM36.2 40V24h9.4v4.4h-4.8v2.2h4.4v4h-4.4V40h-4.6Z"
+    fill="#ffffff"
+  />
+</svg>
