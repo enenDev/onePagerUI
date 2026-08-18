@@ -143,6 +143,44 @@ Axios is installed. Use `VITE_API_BASE_URL`. FastAPI has no real endpoints yet.
 
 ---
 
+## 12.0 For tracking feature
+
+Based on the current frontend, Track uses 3 mock functions in 2 files. Do not change TrackOnePager.tsx — it already calls these functions. Swap only the function bodies.
+
+How many APIs
+
+| When                      | Function            | File                                   | Real API (example)                                |
+| ------------------------- | ------------------- | -------------------------------------- | ------------------------------------------------- |
+| Track page **open**       | `getOnePagerById`   | `frontend/src/services/onePagerApi.ts` | `GET /api/one-pagers/:id` (one-pager content)     |
+| Track page **open**       | `getTrackStatuses`  | `frontend/src/services/trackApi.ts`    | `GET /api/one-pagers/:id/track` (RAG status dots) |
+| Each **status-dot click** | `updateTrackStatus` | `frontend/src/services/trackApi.ts`    | `PATCH /api/one-pagers/:id/track`                 |
+
+On click of track option: 2 GETs. On each click: 1 PATCH.
+
+Where to change
+
+1. onePagerApi.ts → getOnePagerById
+   Replace the mock JSON/delay with the real GET.
+   Keep the return shape: OnePagerByIdRecord (payload, list_status, published_at, created_by, pager_type).
+   View and Edit also use this function, so swapping it here wires those screens too.
+
+2. trackApi.ts → getTrackStatuses
+   Remove the in-memory trackByPager Map; call the real GET.
+   Keep the return shape: { pillars, initiatives }. Missing keys mean Clear.
+
+3. trackApi.ts → updateTrackStatus
+   Replace the Map write with the real PATCH.
+   Keep the request: { pagerId, kind, pillarNumber, initiativeNumber?, status }.
+   kind: "pillar" — no initiativeNumber.
+   kind: "initiative" — both pillarNumber and initiativeNumber.
+   Keep the response: { ok: true } or { ok: false, error }.
+
+Leave initiativeTrackKey in place — the UI uses it to map initiative dots.
+
+## Do not change
+
+TrackOnePager.tsx, PillarBoard, and TrackStatusDot. They already call the functions above. After the bodies are swapped, the UI should work as-is as long as the response shapes match.
+
 ## 12. `getTrackStatuses`
 
 - **File:** `frontend/src/services/trackApi.ts` — lines **43–49**
