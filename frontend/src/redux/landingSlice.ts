@@ -1,7 +1,10 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 import { getMetadata, unionMarketScopedOptions } from "@/services/metadataApi";
-import { submitOnePagerSearch } from "@/services/onePagerApi";
+import {
+  deleteOnePager as deleteOnePagerRequest,
+  submitOnePagerSearch,
+} from "@/services/onePagerApi";
 import {
   createEmptyFilters,
   type FilterKey,
@@ -50,6 +53,22 @@ export const fetchMetadata = createAsyncThunk(
 export const fetchOnePagers = createAsyncThunk(
   "landing/fetchOnePagers",
   async (filters: FilterPayload) => submitOnePagerSearch(filters),
+);
+
+/**
+ * Mock delete → remove from landing.items on success.
+ * TODO: Swap deleteOnePagerRequest for real DELETE; keep pager_id arg and
+ * fulfilled removal from landing.items (or refetch list if product prefers).
+ */
+export const deleteOnePager = createAsyncThunk(
+  "landing/deleteOnePager",
+  async (pagerId: string) => {
+    const result = await deleteOnePagerRequest(pagerId);
+    if (!result.ok) {
+      throw new Error(result.error);
+    }
+    return result.pager_id;
+  },
 );
 
 /** When markets change: clear dependents if empty; else drop values not in the union. */
@@ -159,6 +178,15 @@ const landingSlice = createSlice({
       .addCase(fetchOnePagers.rejected, (state, action) => {
         state.listLoading = false;
         state.error = action.error.message ?? "Failed to load one-pagers";
+      })
+      .addCase(deleteOnePager.fulfilled, (state, action) => {
+        state.items = state.items.filter(
+          (item) => item.pager_id !== action.payload,
+        );
+        state.error = null;
+      })
+      .addCase(deleteOnePager.rejected, (state, action) => {
+        state.error = action.error.message ?? "Failed to delete one-pager";
       });
   },
 });

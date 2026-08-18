@@ -10,6 +10,7 @@ import { Pencil, Send } from "lucide-react";
 import type { RetailerFormValues } from "@/components/form/retailerForm";
 import { FormToast } from "@/components/form/FormToast";
 import type { PillarDraft, ScoringMode } from "@/components/form/pillars";
+import { DeleteOnePagerModal } from "@/components/landing/DeleteOnePagerModal";
 import { NationalPreviewDocument } from "@/components/preview/NationalPreviewDocument";
 import { PublishIncompletePillarsModal } from "@/components/preview/PublishIncompletePillarsModal";
 import {
@@ -19,6 +20,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { PageContainer } from "@/components/layout/PageContainer";
 import type { FormLayoutContext } from "@/layouts/MainLayout";
+import { useAppDispatch } from "@/redux/hooks";
+import { deleteOnePager } from "@/redux/landingSlice";
 import {
   publishRetailerOnePager,
   type RetailerOnePagerCreatePayload,
@@ -47,12 +50,14 @@ export function PreviewRetailerOnePager() {
   // Confirm Publish calls POST publish. Keep payload field names + on-page toast UX.
   const location = useLocation();
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const { setBackHandler, setHeaderTitle } =
     useOutletContext<FormLayoutContext>();
   const state = isPreviewState(location.state) ? location.state : null;
   const owner = CURRENT_USER_ID;
   const payload = state?.payload ?? null;
   const composedTitle = payload ? composeRetailerPreviewTitle(payload) : "";
+  const isOwner = isCurrentUserOwner(owner);
 
   const [publishing, setPublishing] = useState(false);
   const [published, setPublished] = useState(false);
@@ -66,6 +71,9 @@ export function PreviewRetailerOnePager() {
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [publishConfirmOpen, setPublishConfirmOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const goBackToEdit = useCallback(() => {
     // After publish, Edit is the same GET-by-id flow as landing ⋯ Edit.
@@ -126,6 +134,27 @@ export function PreviewRetailerOnePager() {
     setToastOpen(true);
   };
 
+  const handleConfirmDelete = async () => {
+    const id = recordId ?? state.recordId;
+    if (!id) {
+      setDeleteError("Missing one-pager id.");
+      return;
+    }
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      await dispatch(deleteOnePager(id)).unwrap();
+      setDeleteOpen(false);
+      navigate("/home");
+    } catch (err) {
+      setDeleteError(
+        err instanceof Error ? err.message : "Failed to delete one-pager",
+      );
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <div className="flex min-h-[calc(100svh-3.5rem)] w-full flex-col">
       <PageContainer className="flex flex-1 flex-col py-6">
@@ -135,7 +164,12 @@ export function PreviewRetailerOnePager() {
           publishedAt={publishedAt}
           onEdit={goBackToEdit}
           moreOptionsEnabled={published}
-          canEdit={isCurrentUserOwner(owner)}
+          canEdit={isOwner}
+          canDelete={isOwner}
+          onDelete={() => {
+            setDeleteError(null);
+            setDeleteOpen(true);
+          }}
         />
         {error ? <p className="mt-4 text-sm text-destructive">{error}</p> : null}
       </PageContainer>
@@ -183,6 +217,17 @@ export function PreviewRetailerOnePager() {
           setPublishConfirmOpen(false);
           void handlePublish();
         }}
+      />
+
+      <DeleteOnePagerModal
+        open={deleteOpen}
+        title={composedTitle}
+        onOpenChange={setDeleteOpen}
+        onConfirm={() => {
+          void handleConfirmDelete();
+        }}
+        deleting={deleting}
+        error={deleteError}
       />
 
       <FormToast

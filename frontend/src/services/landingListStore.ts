@@ -93,3 +93,15 @@ export function upsertLandingCardFromPayload({
     landingList.unshift(next);
   }
 }
+
+/**
+ * Remove a card from the in-memory landing list after mock DELETE succeeds.
+ * TODO: Remove when FastAPI DELETE owns persistence; Home will refetch or
+ * apply the same remove-by-id against landing.items from the response.
+ */
+export function removeLandingCard(pager_id: string) {
+  const index = landingList.findIndex((item) => item.pager_id === pager_id);
+  if (index < 0) return false;
+  landingList.splice(index, 1);
+  return true;
+}

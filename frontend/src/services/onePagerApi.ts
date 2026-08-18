@@ -4,7 +4,7 @@ import type {
   NationalOnePagerCreatePayload,
   OnePagerRecordStatus,
 } from "@/services/createFormApi";
-import { landingList } from "@/services/landingListStore";
+import { landingList, removeLandingCard } from "@/services/landingListStore";
 import type { RetailerOnePagerCreatePayload } from "@/services/retailerCreateFormApi";
 import {
   toOnePagerSearchPayload,
@@ -166,4 +166,32 @@ export async function getOnePagerById(
   ) as NationalOnePagerByIdRecord;
   record.id = id;
   return record;
+}
+
+export type DeleteOnePagerResult =
+  | { ok: true; pager_id: string }
+  | { ok: false; error: string };
+
+/**
+ * Mock DELETE one-pager by id.
+ *
+ * TODO: Replace with real FastAPI DELETE /api/one-pagers/:id (or soft-delete).
+ * Temporary: remove from in-memory landingList by pager_id.
+ * Keep request shape: pager_id only. Keep success → FE removes from
+ * landing.items (Redux) without requiring a full list refetch.
+ * On 404 / failure, return { ok: false, error } and leave Redux unchanged.
+ */
+export async function deleteOnePager(
+  pagerId: string,
+): Promise<DeleteOnePagerResult> {
+  await delay(400);
+  const trimmed = pagerId.trim();
+  if (!trimmed) {
+    return { ok: false, error: "Missing one-pager id." };
+  }
+
+  removeLandingCard(trimmed);
+  // Even if the id was only in Redux (not the seed list), treat as success so
+  // the card can still be dropped from landing.items after publish/upsert.
+  return { ok: true, pager_id: trimmed };
 }

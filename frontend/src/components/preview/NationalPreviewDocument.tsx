@@ -71,10 +71,14 @@ type NationalPreviewDocumentProps = {
   owner: string;
   publishedAt: string;
   onEdit: () => void;
+  /** Opens delete confirm; only called when canDelete is true. */
+  onDelete?: () => void;
   /** Track/Export/Archive/Edit/Delete — off in create Preview, on after publish. */
   moreOptionsEnabled?: boolean;
   /** Edit stays visible for non-owners but is disabled. */
   canEdit?: boolean;
+  /** Delete stays visible for non-owners but is disabled. */
+  canDelete?: boolean;
   /** Landing / GET list status. Create-publish preview stays Active. */
   status?: OnePagerStatus;
 };
@@ -176,8 +180,10 @@ export function NationalPreviewDocument({
   owner,
   publishedAt,
   onEdit,
+  onDelete,
   moreOptionsEnabled = false,
   canEdit = true,
+  canDelete = true,
   status = "ACTIVE",
 }: NationalPreviewDocumentProps) {
   const statusBadge = STATUS_BADGE[status];
@@ -252,10 +258,21 @@ export function NationalPreviewDocument({
                   Edit
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="m-0" />
-                {/* TODO: Wire Delete to FastAPI delete + homepage refresh. Keep destructive styling. */}
+                {/* TODO: Real FastAPI DELETE is dispatched by parents via onDelete.
+                    Keep destructive styling + owner-disabled behavior. */}
                 <DropdownMenuItem
                   variant="destructive"
+                  disabled={!canDelete}
+                  title={
+                    canDelete
+                      ? undefined
+                      : "Only the owner can delete this one-pager"
+                  }
                   className="cursor-pointer rounded-none px-3 py-2"
+                  onClick={() => {
+                    if (!canDelete) return;
+                    onDelete?.();
+                  }}
                 >
                   <Trash2 className="size-4" />
                   Delete

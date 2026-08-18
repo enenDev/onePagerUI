@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import {
   Archive,
   MoreVertical,
@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
+import { DeleteOnePagerModal } from "@/components/landing/DeleteOnePagerModal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +20,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAppDispatch } from "@/redux/hooks";
+import { deleteOnePager } from "@/redux/landingSlice";
 import {
   isCurrentUserOwner,
   type OnePagerListItem,
@@ -43,11 +46,32 @@ function menuActionsForStatus(status: OnePagerStatus): CardMenuAction[] {
 
 export function OnePagerCard({ item }: OnePagerCardProps) {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const scoringLabel =
     item.scoring_mode === "WEIGHTED" ? "Weighted" : "Unweighted";
   const canEdit = isCurrentUserOwner(item.created_by);
+  const canDelete = canEdit;
   const viewPath = `/view/${item.pager_id}`;
   const actions = menuActionsForStatus(item.status);
+
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const handleConfirmDelete = async () => {
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      await dispatch(deleteOnePager(item.pager_id)).unwrap();
+      setDeleteOpen(false);
+    } catch (err) {
+      setDeleteError(
+        err instanceof Error ? err.message : "Failed to delete one-pager",
+      );
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   return (
     <article className="relative overflow-hidden rounded-xl border border-border bg-card-surface shadow-sm transition-shadow hover:shadow-md">
@@ -70,10 +94,16 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
                 key={action}
                 action={action}
                 canEdit={canEdit}
+                canDelete={canDelete}
                 showSeparator={index < actions.length - 1}
                 onEdit={() => {
                   if (!canEdit) return;
                   navigate(`/edit/${item.pager_id}`);
+                }}
+                onDelete={() => {
+                  if (!canDelete) return;
+                  setDeleteError(null);
+                  setDeleteOpen(true);
                 }}
               />
             ))}
@@ -124,6 +154,17 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
           </div>
         </div>
       </Link>
+
+      <DeleteOnePagerModal
+        open={deleteOpen}
+        title={item.title}
+        onOpenChange={setDeleteOpen}
+        onConfirm={() => {
+          void handleConfirmDelete();
+        }}
+        deleting={deleting}
+        error={deleteError}
+      />
     </article>
   );
 }
@@ -131,13 +172,17 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
 function CardMenuItem({
   action,
   canEdit,
+  canDelete,
   showSeparator,
   onEdit,
+  onDelete,
 }: {
   action: CardMenuAction;
   canEdit: boolean;
+  canDelete: boolean;
   showSeparator: boolean;
   onEdit: () => void;
+  onDelete: () => void;
 }) {
   const itemClassName = "cursor-pointer rounded-none px-3 py-2";
 
@@ -228,13 +273,14 @@ function CardMenuItem({
       menuItem = (
         <DropdownMenuItem
           variant="destructive"
+          disabled={!canDelete}
+          title={
+            canDelete
+              ? undefined
+              : "Only the owner can delete this one-pager"
+          }
           className={itemClassName}
-          onClick={() => {
-            // TODO: Delete is UI-only. Temporary: no confirm dialog / API.
-            // Next: confirm modal + DELETE /api/one-pagers/:id (or soft-delete),
-            // then remove from landing.items / refetch.
-            // Keep: destructive styling, Trash2 icon, Delete label.
-          }}
+          onClick={onDelete}
         >
           <Trash2 className="size-4" />
           Delete

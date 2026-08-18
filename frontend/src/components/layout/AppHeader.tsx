@@ -12,13 +12,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { CURRENT_USER_EMAIL, CURRENT_USER_INITIALS } from "@/types/onePager";
+import perfectStoreLogo from "@/assets/Perfect_Store_Hero_Logo.svg";
+import unileverBrandLogo from "@/assets/Unilever_Brand_Logo.svg";
 
 function HeaderDivider() {
   return (
-    <span
-      aria-hidden="true"
-      className="mx-1 h-7 w-px shrink-0 bg-white/90"
-    />
+    <span aria-hidden="true" className="mx-1 h-7 w-px shrink-0 bg-white/90" />
   );
 }
 
@@ -32,11 +31,15 @@ export function AppHeader() {
             className="flex shrink-0 cursor-pointer items-center gap-2 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-white/60"
             aria-label="CATEGORY ONE-PAGER-APP home"
           >
-            <img src="/logo.svg" alt="" className="size-8 object-contain" />
+            <img
+              src={perfectStoreLogo}
+              alt=""
+              className="size-8 object-contain"
+            />
             <HeaderDivider />
             {/* TODO: Swap /logo-secondary.svg for the real second brand logo asset. */}
             <img
-              src="/logo-secondary.svg"
+              src={unileverBrandLogo}
               alt=""
               className="size-8 object-contain"
             />
