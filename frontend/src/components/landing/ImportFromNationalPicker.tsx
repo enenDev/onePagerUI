@@ -47,14 +47,16 @@ function uniqueSorted(
 }
 
 function statusLabel(status: OnePagerStatus) {
-  if (status === "ACTIVE") return "Active";
-  if (status === "ARCHIVE") return "Archive";
+  if (status === "PUBLISHED") return "Active";
+  if (status === "ARCHIVED") return "Archive";
+  if (status === "DELETED") return "Deleted";
   return "Draft";
 }
 
 function statusBadgeClass(status: OnePagerStatus) {
-  if (status === "ACTIVE") return "bg-emerald-100 text-emerald-800";
-  if (status === "ARCHIVE") return "bg-orange-100 text-orange-800";
+  if (status === "PUBLISHED") return "bg-emerald-100 text-emerald-800";
+  if (status === "ARCHIVED") return "bg-orange-100 text-orange-800";
+  if (status === "DELETED") return "bg-rose-100 text-rose-800";
   return "bg-slate-100 text-slate-700";
 }
 

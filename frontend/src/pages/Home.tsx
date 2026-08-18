@@ -20,9 +20,9 @@ import {
 import { cn } from "@/lib/utils";
 
 const STATUS_MAP = {
-  active: "ACTIVE",
+  active: "PUBLISHED",
   drafts: "DRAFT",
-  archive: "ARCHIVE",
+  archive: "ARCHIVED",
 } as const;
 
 const STATUS_TABS: { id: StatusTab; label: string }[] = [

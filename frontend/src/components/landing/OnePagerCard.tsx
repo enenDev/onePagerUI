@@ -35,12 +35,13 @@ type OnePagerCardProps = {
 type CardMenuAction = "track" | "export" | "archive" | "restore" | "edit" | "delete";
 
 function menuActionsForStatus(status: OnePagerStatus): CardMenuAction[] {
-  if (status === "ACTIVE") {
+  if (status === "PUBLISHED") {
     return ["track", "export", "archive", "edit", "delete"];
   }
   if (status === "DRAFT") {
     return ["edit", "delete"];
   }
+  // ARCHIVED (and DELETED if ever listed): export / restore / delete
   return ["export", "restore", "delete"];
 }
 
@@ -227,10 +228,10 @@ function CardMenuItem({
           className={itemClassName}
           onClick={() => {
             // TODO: Archive is UI-only. Temporary: no status mutation.
-            // Next: PATCH/POST to set status ARCHIVE (e.g.
+            // Next: PATCH/POST to set status ARCHIVED (e.g.
             // POST /api/one-pagers/:id/archive), then refresh landing list /
             // optimistic update item.status.
-            // Keep: menu label + Archive icon; only on ACTIVE cards.
+            // Keep: menu label + Archive icon; only on PUBLISHED cards.
           }}
         >
           <Archive className="size-4" />
@@ -244,9 +245,9 @@ function CardMenuItem({
           className={itemClassName}
           onClick={() => {
             // TODO: Restore is UI-only. Temporary: no status mutation.
-            // Next: PATCH/POST to restore ARCHIVE → ACTIVE (e.g.
+            // Next: PATCH/POST to restore ARCHIVED → PUBLISHED (e.g.
             // POST /api/one-pagers/:id/restore), then refresh landing list.
-            // Keep: menu label + RotateCcw icon; only on ARCHIVE cards.
+            // Keep: menu label + RotateCcw icon; only on ARCHIVED cards.
           }}
         >
           <RotateCcw className="size-4" />

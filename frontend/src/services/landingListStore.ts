@@ -41,7 +41,7 @@ function formatPublishedAt(date: Date) {
 function recordStatusToListStatus(
   status: "draft" | "published",
 ): OnePagerStatus {
-  return status === "draft" ? "DRAFT" : "ACTIVE";
+  return status === "draft" ? "DRAFT" : "PUBLISHED";
 }
 
 type UpsertLandingCardArgs = {

@@ -29,7 +29,7 @@ const STATUS_BADGE: Record<
   OnePagerStatus,
   { label: string; className: string }
 > = {
-  ACTIVE: {
+  PUBLISHED: {
     label: "Active",
     className:
       "bg-preview-active text-preview-priority-fg hover:bg-preview-active",
@@ -38,9 +38,13 @@ const STATUS_BADGE: Record<
     label: "Draft",
     className: "bg-slate-200 text-slate-800 hover:bg-slate-200",
   },
-  ARCHIVE: {
+  ARCHIVED: {
     label: "Archive",
     className: "bg-orange-100 text-orange-800 hover:bg-orange-100",
+  },
+  DELETED: {
+    label: "Deleted",
+    className: "bg-rose-100 text-rose-800 hover:bg-rose-100",
   },
 };
 
@@ -184,7 +188,7 @@ export function NationalPreviewDocument({
   moreOptionsEnabled = false,
   canEdit = true,
   canDelete = true,
-  status = "ACTIVE",
+  status = "PUBLISHED",
 }: NationalPreviewDocumentProps) {
   const statusBadge = STATUS_BADGE[status];
   return (

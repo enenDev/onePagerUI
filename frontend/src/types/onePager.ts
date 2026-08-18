@@ -1,4 +1,4 @@
-export type OnePagerStatus = "ACTIVE" | "DRAFT" | "ARCHIVE";
+export type OnePagerStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED" | "DELETED";
 export type OnePagerType = "national" | "retailer";
 export type ScoringMode = "WEIGHTED" | "UNWEIGHTED";
 export type StatusTab = "active" | "drafts" | "archive";

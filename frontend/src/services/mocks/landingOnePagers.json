@@ -11,7 +11,7 @@
     "business_outcome_statement": "Drive 12% category sales uplift and secure primary share-of-shelf leadership across premium hair ranges via cross-channel superior branding.",
     "cover_image_url": "https://picsum.photos/seed/pager-001/800/320",
     "scoring_mode": "UNWEIGHTED",
-    "status": "ACTIVE",
+    "status": "PUBLISHED",
     "created_by": "user-001",
     "published_at": "15 Jun 2026, 20:00",
     "pillars": []
@@ -28,7 +28,7 @@
     "business_outcome_statement": "Drive 12% category sales uplift and secure primary share-of-shelf leadership across premium hair ranges via cross-channel superior branding.",
     "cover_image_url": "https://picsum.photos/seed/pager-002/800/320",
     "scoring_mode": "WEIGHTED",
-    "status": "ACTIVE",
+    "status": "PUBLISHED",
     "created_by": "user-002",
     "published_at": "15 Jun 2026, 20:00",
     "pillars": []
@@ -79,7 +79,7 @@
     "business_outcome_statement": "Lead with updated hero images and clear product role messaging across premium hair ranges.",
     "cover_image_url": "https://picsum.photos/seed/pager-005/800/320",
     "scoring_mode": "WEIGHTED",
-    "status": "ARCHIVE",
+    "status": "ARCHIVED",
     "created_by": "user-001",
     "published_at": "20 May 2026, 11:00",
     "pillars": []
@@ -96,7 +96,7 @@
     "business_outcome_statement": "Secure share of display and reinforce efficacy-led messaging for summer protection.",
     "cover_image_url": null,
     "scoring_mode": "UNWEIGHTED",
-    "status": "ARCHIVE",
+    "status": "ARCHIVED",
     "created_by": "user-002",
     "published_at": "05 May 2026, 16:45",
     "pillars": []
