@@ -5,6 +5,7 @@ import type {
 } from "@/components/form/pillars";
 import createFormMetadataMock from "@/services/mocks/createFormMetadata.json";
 import nationalOnePagerMock from "@/services/mocks/nationalOnePager.json";
+import { upsertLandingCardFromPayload } from "@/services/landingListStore";
 import type { FilterMetadata } from "@/types/onePager";
 
 export type FilterOption = {
@@ -293,6 +294,15 @@ function upsertNationalRecord(
     id: nextId,
     status,
     payload: structuredClone(payload),
+  });
+
+  // TODO: Remove FE landing upsert when FastAPI list returns saved/published
+  // rows with permanent cover_image_url. Keep card cover_image_url field name.
+  upsertLandingCardFromPayload({
+    pager_id: nextId,
+    pager_type: "national",
+    record_status: status,
+    payload,
   });
 
   return { ok: true, id: nextId, status };

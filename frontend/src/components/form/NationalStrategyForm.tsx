@@ -5,6 +5,7 @@ import { AddCampaignModal } from "@/components/form/AddCampaignModal";
 import type { NationalFormValues } from "@/components/form/nationalForm";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { MarketRequiredTooltip } from "@/components/ui/market-required-tooltip";
 import {
   Select,
   SelectContent,
@@ -41,6 +42,8 @@ export function NationalStrategyForm({
   const campaignOptions = scoped?.campaigns ?? [];
   const channelOptions = scoped?.channels ?? [];
   const dependentDisabled = !marketSelected || catalogLoading;
+  // Tooltip only when Market is empty — not while catalog is still loading.
+  const showMarketRequiredTooltip = !marketSelected && !catalogLoading;
 
   const handleMarketChange = (market: string) => {
     onChange({
@@ -91,27 +94,29 @@ export function NationalStrategyForm({
             </Field>
 
             <Field label="Category" required>
-              <Select
-                key={`category-${dependentSelectKey}`}
-                value={values.category || undefined}
-                onValueChange={(value) => patch({ category: value ?? "" })}
-                disabled={dependentDisabled}
-              >
-                <SelectTrigger className="h-9 w-full cursor-pointer bg-white disabled:cursor-not-allowed">
-                  <SelectValue placeholder="Select Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categoryOptions.map((option) => (
-                    <SelectItem
-                      key={option.value}
-                      value={option.value}
-                      className="cursor-pointer"
-                    >
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <MarketRequiredTooltip show={showMarketRequiredTooltip}>
+                <Select
+                  key={`category-${dependentSelectKey}`}
+                  value={values.category || undefined}
+                  onValueChange={(value) => patch({ category: value ?? "" })}
+                  disabled={dependentDisabled}
+                >
+                  <SelectTrigger className="h-9 w-full cursor-pointer bg-white disabled:cursor-not-allowed">
+                    <SelectValue placeholder="Select Category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categoryOptions.map((option) => (
+                      <SelectItem
+                        key={option.value}
+                        value={option.value}
+                        className="cursor-pointer"
+                      >
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </MarketRequiredTooltip>
             </Field>
 
             <div className="space-y-2 sm:col-span-1">
@@ -126,51 +131,55 @@ export function NationalStrategyForm({
                   + Add New
                 </button>
               </div>
-              <Select
-                key={`campaign-${dependentSelectKey}`}
-                value={values.campaign || undefined}
-                onValueChange={(value) => patch({ campaign: value ?? "" })}
-                disabled={dependentDisabled}
-              >
-                <SelectTrigger className="h-9 w-full cursor-pointer bg-white disabled:cursor-not-allowed">
-                  <SelectValue placeholder="Select Campaign" />
-                </SelectTrigger>
-                <SelectContent>
-                  {campaignOptions.map((option) => (
-                    <SelectItem
-                      key={option.value}
-                      value={option.value}
-                      className="cursor-pointer"
-                    >
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <MarketRequiredTooltip show={showMarketRequiredTooltip}>
+                <Select
+                  key={`campaign-${dependentSelectKey}`}
+                  value={values.campaign || undefined}
+                  onValueChange={(value) => patch({ campaign: value ?? "" })}
+                  disabled={dependentDisabled}
+                >
+                  <SelectTrigger className="h-9 w-full cursor-pointer bg-white disabled:cursor-not-allowed">
+                    <SelectValue placeholder="Select Campaign" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {campaignOptions.map((option) => (
+                      <SelectItem
+                        key={option.value}
+                        value={option.value}
+                        className="cursor-pointer"
+                      >
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </MarketRequiredTooltip>
             </div>
 
             <Field label="Channel" required>
-              <Select
-                key={`channel-${dependentSelectKey}`}
-                value={values.channel || undefined}
-                onValueChange={(value) => patch({ channel: value ?? "" })}
-                disabled={dependentDisabled}
-              >
-                <SelectTrigger className="h-9 w-full cursor-pointer bg-white disabled:cursor-not-allowed">
-                  <SelectValue placeholder="Select Channel" />
-                </SelectTrigger>
-                <SelectContent>
-                  {channelOptions.map((option) => (
-                    <SelectItem
-                      key={option.value}
-                      value={option.value}
-                      className="cursor-pointer"
-                    >
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <MarketRequiredTooltip show={showMarketRequiredTooltip}>
+                <Select
+                  key={`channel-${dependentSelectKey}`}
+                  value={values.channel || undefined}
+                  onValueChange={(value) => patch({ channel: value ?? "" })}
+                  disabled={dependentDisabled}
+                >
+                  <SelectTrigger className="h-9 w-full cursor-pointer bg-white disabled:cursor-not-allowed">
+                    <SelectValue placeholder="Select Channel" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {channelOptions.map((option) => (
+                      <SelectItem
+                        key={option.value}
+                        value={option.value}
+                        className="cursor-pointer"
+                      >
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </MarketRequiredTooltip>
             </Field>
 
             <div className="space-y-2 sm:col-span-2">

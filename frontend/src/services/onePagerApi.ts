@@ -1,10 +1,10 @@
-import landingOnePagersMock from "@/services/mocks/landingOnePagers.json";
 import nationalOnePagerMock from "@/services/mocks/nationalOnePager.json";
 import retailerOnePagerMock from "@/services/mocks/retailerOnePager.json";
 import type {
   NationalOnePagerCreatePayload,
   OnePagerRecordStatus,
 } from "@/services/createFormApi";
+import { landingList } from "@/services/landingListStore";
 import type { RetailerOnePagerCreatePayload } from "@/services/retailerCreateFormApi";
 import {
   toOnePagerSearchPayload,
@@ -15,8 +15,6 @@ import {
 } from "@/types/onePager";
 
 const delay = (ms = 300) => new Promise((resolve) => setTimeout(resolve, ms));
-
-const landingOnePagers = landingOnePagersMock as OnePagerListItem[];
 
 function matchesFilter(item: OnePagerListItem, filters: FilterPayload) {
   // Multi-select: empty array = no constraint; non-empty = OR match on that key.
@@ -49,16 +47,17 @@ function matchesFilter(item: OnePagerListItem, filters: FilterPayload) {
 
 /**
  * TODO: Replace with real FastAPI list/search endpoint.
- * Temporary: normalize to array-only payload, then filter
- * `mocks/landingOnePagers.json` in-memory (used by Submit + Clear all).
+ * Temporary: normalize to array-only payload, then filter the in-memory
+ * landingList (seeded from mocks/landingOnePagers.json; save/publish upserts
+ * cover_image_url into the same list). Used by Submit + Clear all + import picker.
  * Next: POST /api/one-pagers/search with JSON body from toOnePagerSearchPayload —
  * always `{ market: string[], retailer: string[], channel: string[],
  * category: string[], campaign: string[] }` (never scalar strings).
+ * Response cards should include cover_image_url (permanent URL).
  * Prefer server-side Active/Drafts/Archive + All/My if product agrees; today those
  * tabs are filtered on the FE from this full mock list.
  * Keep stable: FilterPayload / toOnePagerSearchPayload array shape,
- * OnePagerListItem[] response.
- * Remove dependency on `mocks/landingOnePagers.json` once API returns real cards.
+ * OnePagerListItem[] response (incl. cover_image_url).
  */
 export async function submitOnePagerSearch(
   filters: FilterPayload,
@@ -66,7 +65,7 @@ export async function submitOnePagerSearch(
   // Backend contract: each dropdown is an array only.
   const payload = toOnePagerSearchPayload(filters);
   await delay();
-  return landingOnePagers.filter((item) => matchesFilter(item, payload));
+  return landingList.filter((item) => matchesFilter(item, payload));
 }
 
 type OnePagerByIdBase = {
@@ -128,7 +127,7 @@ export function isRetailerEditState(
 }
 
 function resolvePagerType(id: string): OnePagerType {
-  const listing = landingOnePagers.find((item) => item.pager_id === id);
+  const listing = landingList.find((item) => item.pager_id === id);
   if (listing) return listing.pager_type;
   if (id.startsWith("retailer-")) return "retailer";
   return "national";

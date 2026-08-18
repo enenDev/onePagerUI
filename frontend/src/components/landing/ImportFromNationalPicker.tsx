@@ -11,8 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-import { fetchMetadata } from "@/redux/landingSlice";
-import { submitOnePagerSearch } from "@/services/onePagerApi";
+import { fetchMetadata, fetchOnePagers } from "@/redux/landingSlice";
 import {
   createEmptyFilters,
   type OnePagerListItem,
@@ -72,9 +71,9 @@ export function ImportFromNationalPicker({
 }: ImportFromNationalPickerProps) {
   const dispatch = useAppDispatch();
   const filterMetadata = useAppSelector((state) => state.landing.metadata);
-  const [items, setItems] = useState<OnePagerListItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const items = useAppSelector((state) => state.landing.items);
+  const listLoading = useAppSelector((state) => state.landing.listLoading);
+  const listError = useAppSelector((state) => state.landing.error);
   const [filters, setFilters] = useState<ImportFilters>(EMPTY_FILTERS);
   const [filterResetKey, setFilterResetKey] = useState(0);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -87,55 +86,49 @@ export function ImportFromNationalPicker({
   }, [dispatch, filterMetadata]);
 
   useEffect(() => {
-    let cancelled = false;
+    // TODO: Import list loads via fetchOnePagers(createEmptyFilters()) →
+    // submitOnePagerSearch mock (same thunk as Home). This overwrites
+    // landing.items with the unfiltered mock list while the popup is open.
+    // Next: FastAPI national list for import, e.g.
+    // GET /api/one-pagers/search?pager_type=national excluding drafts —
+    // ideally a dedicated import endpoint or scoped fetch so Home filters /
+    // landing.items are not clobbered. Popup market/category/campaign/channel
+    // filters stay client-side on the already-loaded list (do not re-fetch).
+    // Market options reuse landing.metadata (getMetadata). Category / Campaign /
+    // Channel options stay derived from the loaded national (non-draft) list.
+    // Keep OnePagerListItem + pager_id / pager_type / status shape stable.
+    void dispatch(fetchOnePagers(createEmptyFilters()));
+  }, [dispatch]);
 
-    void (async () => {
-      // TODO: This list is the mock landing search (submitOnePagerSearch →
-      // mocks/landingOnePagers.json). Next: swap to FastAPI national list, e.g.
-      // GET /api/one-pagers/search?pager_type=national excluding drafts.
-      // Market options reuse landing.metadata (getMetadata). Category / Campaign /
-      // Channel on this picker stay derived from the loaded list.
-      // Keep OnePagerListItem + pager_id / pager_type stable.
-      try {
-        const results = await submitOnePagerSearch(createEmptyFilters());
-        if (cancelled) return;
-        setItems(
-          results.filter(
-            (item) =>
-              item.pager_type === "national" && item.status !== "DRAFT",
-          ),
-        );
-        setError(null);
-      } catch {
-        if (cancelled) return;
-        setError("Could not load national one-pagers.");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const nationalItems = useMemo(
+    () =>
+      items.filter(
+        (item) => item.pager_type === "national" && item.status !== "DRAFT",
+      ),
+    [items],
+  );
 
   const categoryOptions = useMemo(
-    () => uniqueSorted(items, "category"),
-    [items],
+    () => uniqueSorted(nationalItems, "category"),
+    [nationalItems],
   );
   const campaignOptions = useMemo(
-    () => uniqueSorted(items, "campaign_focus"),
-    [items],
+    () => uniqueSorted(nationalItems, "campaign_focus"),
+    [nationalItems],
   );
-  const channelOptions = useMemo(() => uniqueSorted(items, "channel"), [items]);
+  const channelOptions = useMemo(
+    () => uniqueSorted(nationalItems, "channel"),
+    [nationalItems],
+  );
 
   const visibleItems = useMemo(
-    () => items.filter((item) => matchesImportFilters(item, filters)),
-    [items, filters],
+    () =>
+      nationalItems.filter((item) => matchesImportFilters(item, filters)),
+    [nationalItems, filters],
   );
 
   const selectedItem =
-    items.find((item) => item.pager_id === selectedId) ?? null;
+    nationalItems.find((item) => item.pager_id === selectedId) ?? null;
   const selectedVisible = visibleItems.some(
     (item) => item.pager_id === selectedId,
   );
@@ -143,6 +136,10 @@ export function ImportFromNationalPicker({
   const patchFilter = (key: keyof ImportFilters, value: string) => {
     setFilters((current) => ({ ...current, [key]: value }));
   };
+
+  const errorMessage = listError
+    ? "Could not load national one-pagers."
+    : null;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4">
@@ -199,12 +196,12 @@ export function ImportFromNationalPicker({
         </Label>
 
         <div className="min-h-0 flex-1 overflow-y-auto rounded-lg border border-border">
-          {loading ? (
+          {listLoading ? (
             <p className="px-3 py-6 text-sm text-muted-foreground">
               Loading national one-pagers…
             </p>
-          ) : error ? (
-            <p className="px-3 py-6 text-sm text-destructive">{error}</p>
+          ) : errorMessage ? (
+            <p className="px-3 py-6 text-sm text-destructive">{errorMessage}</p>
           ) : visibleItems.length === 0 ? (
             <p className="px-3 py-6 text-sm text-muted-foreground">
               No national one-pagers match these filters.

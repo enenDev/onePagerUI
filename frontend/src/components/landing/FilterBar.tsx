@@ -7,6 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { MarketRequiredTooltip } from "@/components/ui/market-required-tooltip";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import {
   clearFilters,
@@ -127,6 +128,9 @@ export function FilterBar({ onCreateNew }: FilterBarProps) {
   const marketSelected = filters.market.length > 0;
   const dependentsDisabled =
     metadataLoading || !metadata || !marketSelected;
+  // Tooltip only when Market is empty — not while metadata is still loading.
+  const showMarketRequiredTooltip =
+    !marketSelected && !metadataLoading && Boolean(metadata);
 
   const handleSubmit = () => {
     // TODO: Replace submit with real FastAPI search.
@@ -178,15 +182,21 @@ export function FilterBar({ onCreateNew }: FilterBarProps) {
 
             return (
               <div key={field.key} className="min-w-0 flex-1">
-                <MultiSelectFilter
-                  label={field.label}
-                  options={options}
-                  selected={selected}
-                  disabled={disabled}
-                  onToggle={(value) =>
-                    dispatch(toggleFilterValue({ key: field.key, value }))
+                <MarketRequiredTooltip
+                  show={
+                    field.key !== "market" && showMarketRequiredTooltip
                   }
-                />
+                >
+                  <MultiSelectFilter
+                    label={field.label}
+                    options={options}
+                    selected={selected}
+                    disabled={disabled}
+                    onToggle={(value) =>
+                      dispatch(toggleFilterValue({ key: field.key, value }))
+                    }
+                  />
+                </MarketRequiredTooltip>
               </div>
             );
           })}

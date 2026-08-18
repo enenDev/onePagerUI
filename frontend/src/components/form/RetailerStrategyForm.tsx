@@ -4,6 +4,7 @@ import { CloudUpload } from "lucide-react";
 import type { RetailerFormValues } from "@/components/form/retailerForm";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { MarketRequiredTooltip } from "@/components/ui/market-required-tooltip";
 import {
   Select,
   SelectContent,
@@ -52,6 +53,10 @@ export function RetailerStrategyForm({
   const dependentDisabled = !marketSelected || catalogLoading;
   const scopeDisabled = lockScope || catalogLoading;
   const dependentScopeDisabled = lockScope || dependentDisabled;
+  // Tooltip only when Market is empty — not while loading, and not when
+  // fields are locked from Import From National (different disable reason).
+  const showMarketRequiredTooltip =
+    !marketSelected && !catalogLoading && !lockScope;
 
   const handleMarketChange = (market: string) => {
     onChange({
@@ -102,100 +107,108 @@ export function RetailerStrategyForm({
           </Field>
 
           <Field label="Category" required>
-            <Select
-              key={`category-${dependentSelectKey}`}
-              value={values.category || undefined}
-              onValueChange={(value) => patch({ category: value ?? "" })}
-              disabled={dependentScopeDisabled}
-            >
-              <SelectTrigger className="h-9 w-full cursor-pointer bg-white disabled:cursor-not-allowed">
-                <SelectValue placeholder="Select Category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categoryOptions.map((option) => (
-                  <SelectItem
-                    key={option.value}
-                    value={option.value}
-                    className="cursor-pointer"
-                  >
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <MarketRequiredTooltip show={showMarketRequiredTooltip}>
+              <Select
+                key={`category-${dependentSelectKey}`}
+                value={values.category || undefined}
+                onValueChange={(value) => patch({ category: value ?? "" })}
+                disabled={dependentScopeDisabled}
+              >
+                <SelectTrigger className="h-9 w-full cursor-pointer bg-white disabled:cursor-not-allowed">
+                  <SelectValue placeholder="Select Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categoryOptions.map((option) => (
+                    <SelectItem
+                      key={option.value}
+                      value={option.value}
+                      className="cursor-pointer"
+                    >
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </MarketRequiredTooltip>
           </Field>
 
           <Field label="Channel" required>
-            <Select
-              key={`channel-${dependentSelectKey}`}
-              value={values.channel || undefined}
-              onValueChange={(value) => patch({ channel: value ?? "" })}
-              disabled={dependentScopeDisabled}
-            >
-              <SelectTrigger className="h-9 w-full cursor-pointer bg-white disabled:cursor-not-allowed">
-                <SelectValue placeholder="Select Channel" />
-              </SelectTrigger>
-              <SelectContent>
-                {channelOptions.map((option) => (
-                  <SelectItem
-                    key={option.value}
-                    value={option.value}
-                    className="cursor-pointer"
-                  >
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <MarketRequiredTooltip show={showMarketRequiredTooltip}>
+              <Select
+                key={`channel-${dependentSelectKey}`}
+                value={values.channel || undefined}
+                onValueChange={(value) => patch({ channel: value ?? "" })}
+                disabled={dependentScopeDisabled}
+              >
+                <SelectTrigger className="h-9 w-full cursor-pointer bg-white disabled:cursor-not-allowed">
+                  <SelectValue placeholder="Select Channel" />
+                </SelectTrigger>
+                <SelectContent>
+                  {channelOptions.map((option) => (
+                    <SelectItem
+                      key={option.value}
+                      value={option.value}
+                      className="cursor-pointer"
+                    >
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </MarketRequiredTooltip>
           </Field>
 
           <Field label="Target Retailer" required>
-            <Select
-              key={`retailer-${dependentSelectKey}`}
-              value={values.targetRetailer || undefined}
-              onValueChange={(value) => patch({ targetRetailer: value ?? "" })}
-              disabled={dependentDisabled}
-            >
-              <SelectTrigger className="h-9 w-full cursor-pointer bg-white disabled:cursor-not-allowed">
-                <SelectValue placeholder="Select Retailer" />
-              </SelectTrigger>
-              <SelectContent>
-                {retailerOptions.map((option) => (
-                  <SelectItem
-                    key={option.value}
-                    value={option.value}
-                    className="cursor-pointer"
-                  >
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <MarketRequiredTooltip show={showMarketRequiredTooltip}>
+              <Select
+                key={`retailer-${dependentSelectKey}`}
+                value={values.targetRetailer || undefined}
+                onValueChange={(value) => patch({ targetRetailer: value ?? "" })}
+                disabled={dependentDisabled}
+              >
+                <SelectTrigger className="h-9 w-full cursor-pointer bg-white disabled:cursor-not-allowed">
+                  <SelectValue placeholder="Select Retailer" />
+                </SelectTrigger>
+                <SelectContent>
+                  {retailerOptions.map((option) => (
+                    <SelectItem
+                      key={option.value}
+                      value={option.value}
+                      className="cursor-pointer"
+                    >
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </MarketRequiredTooltip>
           </Field>
 
           <div className="space-y-2 sm:col-span-2">
             <Label>Campaign</Label>
-            <Select
-              key={`campaign-${dependentSelectKey}`}
-              value={values.campaign || undefined}
-              onValueChange={(value) => patch({ campaign: value ?? "" })}
-              disabled={dependentScopeDisabled}
-            >
-              <SelectTrigger className="h-9 w-full cursor-pointer bg-white disabled:cursor-not-allowed">
-                <SelectValue placeholder="Select Campaign" />
-              </SelectTrigger>
-              <SelectContent>
-                {campaignOptions.map((option) => (
-                  <SelectItem
-                    key={option.value}
-                    value={option.value}
-                    className="cursor-pointer"
-                  >
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <MarketRequiredTooltip show={showMarketRequiredTooltip}>
+              <Select
+                key={`campaign-${dependentSelectKey}`}
+                value={values.campaign || undefined}
+                onValueChange={(value) => patch({ campaign: value ?? "" })}
+                disabled={dependentScopeDisabled}
+              >
+                <SelectTrigger className="h-9 w-full cursor-pointer bg-white disabled:cursor-not-allowed">
+                  <SelectValue placeholder="Select Campaign" />
+                </SelectTrigger>
+                <SelectContent>
+                  {campaignOptions.map((option) => (
+                    <SelectItem
+                      key={option.value}
+                      value={option.value}
+                      className="cursor-pointer"
+                    >
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </MarketRequiredTooltip>
           </div>
 
           <div className="space-y-2 sm:col-span-2">

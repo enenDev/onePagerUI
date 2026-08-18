@@ -70,6 +70,11 @@ export interface OnePagerListItem {
   channel: string;
   title: string;
   business_outcome_statement: string;
+  /**
+   * Cover from create/edit (`cover_image.blob_url`). Null when none.
+   * TODO: Real list API should return a permanent CDN URL, not blob:.
+   */
+  cover_image_url: string | null;
   scoring_mode: ScoringMode;
   status: OnePagerStatus;
   created_by: string;

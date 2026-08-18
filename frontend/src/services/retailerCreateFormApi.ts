@@ -11,6 +11,7 @@ import type {
   NationalPillarPayload,
   OnePagerRecordStatus,
 } from "@/services/createFormApi";
+import { upsertLandingCardFromPayload } from "@/services/landingListStore";
 
 export type { FilterOption, MarketScopedOptions };
 
@@ -124,6 +125,15 @@ function upsertRetailerRecord(
     id: nextId,
     status,
     payload: structuredClone(payload),
+  });
+
+  // TODO: Remove FE landing upsert when FastAPI list returns saved/published
+  // rows with permanent cover_image_url. Keep card cover_image_url field name.
+  upsertLandingCardFromPayload({
+    pager_id: nextId,
+    pager_type: "retailer",
+    record_status: status,
+    payload,
   });
 
   return { ok: true, id: nextId, status };
