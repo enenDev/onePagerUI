@@ -2,6 +2,11 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Not @theme inline — that skips emitting --font-sans on :root, so Preflight stays on Segoe UI. */
+@theme {
+  --font-sans: "Unilever Desire", "Segoe UI", system-ui, sans-serif;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -56,8 +61,8 @@
 }
 
 :root {
-  /* Brand — swap exact hex later when confirmed */
-  --primary: #2563eb;
+  /* Brand — header / primary actions use Sky #0066CC */
+  --primary: #0066cc;
   --primary-foreground: #ffffff;
   --brand-soft: #dbeafe;
   --brand-soft-hover: #bfdbfe;
@@ -78,7 +83,7 @@
   --destructive: #dc2626;
   --border: #e5e7eb;
   --input: #e5e7eb;
-  --ring: #2563eb;
+  --ring: #0066cc;
   --radius: 0.625rem;
 
   --avatar-bg: #ddd6fe;
@@ -132,12 +137,14 @@
     width: 100%;
     /* Prevent layout shift when overlays lock body scroll */
     scrollbar-gutter: stable;
+    font-family: "Unilever Desire", "Segoe UI", system-ui, sans-serif;
   }
 
   body,
   #root {
     height: 100%;
     width: 100%;
+    font-family: "Unilever Desire", "Segoe UI", system-ui, sans-serif;
   }
 
   body {
@@ -145,11 +152,6 @@
     @apply text-foreground antialiased;
     background: var(--app-gradient);
     background-attachment: fixed;
-    font-family:
-      "Segoe UI",
-      system-ui,
-      -apple-system,
-      sans-serif;
   }
 
   #root {

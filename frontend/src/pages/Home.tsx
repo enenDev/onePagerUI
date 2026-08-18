@@ -10,8 +10,13 @@ import {
   fetchMetadata,
   fetchOnePagers,
   setScopeTab,
+  setStatusTab,
 } from "@/redux/landingSlice";
-import { CURRENT_USER_ID, createEmptyFilters } from "@/types/onePager";
+import {
+  CURRENT_USER_ID,
+  createEmptyFilters,
+  type StatusTab,
+} from "@/types/onePager";
 import { cn } from "@/lib/utils";
 
 const STATUS_MAP = {
@@ -19,6 +24,12 @@ const STATUS_MAP = {
   drafts: "DRAFT",
   archive: "ARCHIVE",
 } as const;
+
+const STATUS_TABS: { id: StatusTab; label: string }[] = [
+  { id: "active", label: "Active" },
+  { id: "drafts", label: "Drafts" },
+  { id: "archive", label: "Archive" },
+];
 
 export const Home = () => {
   const dispatch = useAppDispatch();
@@ -65,6 +76,26 @@ export const Home = () => {
 
   return (
     <div className="flex w-full flex-col gap-6">
+      <div className="flex justify-center">
+        <div className="flex items-center rounded-full bg-brand-soft p-1">
+          {STATUS_TABS.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => dispatch(setStatusTab(tab.id))}
+              className={cn(
+                "cursor-pointer rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
+                statusTab === tab.id
+                  ? "bg-primary text-primary-foreground"
+                  : "text-primary hover:bg-white/50",
+              )}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <FilterBar onCreateNew={() => setCreateOpen(true)} />
 
       {listLoading ? (

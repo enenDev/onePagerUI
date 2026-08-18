@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { LogOut, Mail } from "lucide-react";
 
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -12,20 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-import { setStatusTab } from "@/redux/landingSlice";
-import {
-  CURRENT_USER_EMAIL,
-  CURRENT_USER_INITIALS,
-  type StatusTab,
-} from "@/types/onePager";
-import { cn } from "@/lib/utils";
-
-const STATUS_TABS: { id: StatusTab; label: string }[] = [
-  { id: "active", label: "Active" },
-  { id: "drafts", label: "Drafts" },
-  { id: "archive", label: "Archive" },
-];
+import { CURRENT_USER_EMAIL, CURRENT_USER_INITIALS } from "@/types/onePager";
 
 type AppHeaderProps = {
   variant?: "list" | "simple";
@@ -33,42 +20,48 @@ type AppHeaderProps = {
   onBack?: () => void;
 };
 
-export function AppHeader({
-  variant = "list",
-  title,
-  onBack,
-}: AppHeaderProps) {
-  const dispatch = useAppDispatch();
-  const statusTab = useAppSelector((state) => state.landing.statusTab);
-  const location = useLocation();
-  const showStatusTabs = variant === "list" && location.pathname === "/home";
-
+function HeaderDivider() {
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-border bg-white">
+    <span
+      aria-hidden="true"
+      className="mx-1 h-7 w-px shrink-0 bg-[#3988d0]/90"
+    />
+  );
+}
+
+export function AppHeader({ variant = "list", title, onBack }: AppHeaderProps) {
+  return (
+    <header className="sticky top-0 z-40 w-full bg-primary">
       <PageContainer className="relative flex h-14 items-center justify-between gap-4">
-        <div className="flex min-w-0 items-center gap-3">
+        <div className="flex min-w-0 items-center gap-2">
           <Link
             to="/home"
-            className="flex shrink-0 cursor-pointer items-center gap-2 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            aria-label="One Pager home"
+            className="flex shrink-0 cursor-pointer items-center gap-2 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+            aria-label="CATEGORY ONE-PAGER-APP home"
           >
             <img src="/logo.svg" alt="" className="size-8 object-contain" />
-            {variant === "list" && (
-              <span className="text-base font-semibold text-foreground">
-                One Pager
-              </span>
-            )}
+            <HeaderDivider />
+            {/* TODO: Swap /logo-secondary.svg for the real second brand logo asset. */}
+            <img
+              src="/logo-secondary.svg"
+              alt=""
+              className="size-8 object-contain"
+            />
+            <HeaderDivider />
+            <span className="truncate text-sm font-semibold tracking-wide text-primary-foreground md:text-base">
+              CATEGORY ONE-PAGER-APP
+            </span>
           </Link>
 
           {variant === "simple" && (
-            <div className="flex min-w-0 items-center gap-2">
+            <div className="ml-2 flex min-w-0 items-center gap-2 border-l border-white/40 pl-3">
               {onBack && (
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon-sm"
                   onClick={onBack}
-                  className="cursor-pointer"
+                  className="cursor-pointer text-primary-foreground hover:bg-white/15 hover:text-primary-foreground"
                   aria-label="Go back"
                 >
                   <span className="text-lg leading-none">&lt;</span>
@@ -77,7 +70,7 @@ export function AppHeader({
               {title && (
                 <h1
                   title={title}
-                  className="truncate text-sm font-semibold text-foreground md:text-base"
+                  className="truncate text-sm font-semibold text-primary-foreground md:text-base"
                 >
                   {title}
                 </h1>
@@ -86,31 +79,11 @@ export function AppHeader({
           )}
         </div>
 
-        {showStatusTabs && (
-          <div className="absolute left-1/2 flex -translate-x-1/2 items-center rounded-full bg-brand-soft p-1">
-            {STATUS_TABS.map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => dispatch(setStatusTab(tab.id))}
-                className={cn(
-                  "cursor-pointer rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
-                  statusTab === tab.id
-                    ? "bg-primary text-primary-foreground"
-                    : "text-primary hover:bg-white/50",
-                )}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        )}
-
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
               type="button"
-              className="cursor-pointer rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="cursor-pointer rounded-full outline-none focus-visible:ring-2 focus-visible:ring-white/60"
               aria-label="User menu"
             >
               <Avatar className="size-9">
