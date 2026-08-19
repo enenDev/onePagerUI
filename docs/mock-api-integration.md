@@ -248,3 +248,25 @@ Hardcoded in `frontend/src/types/onePager.ts`:
 - `CURRENT_USER_INITIALS = "NN"` — header avatar
 
 Swap these for the real session / JWT. Keep `isCurrentUserOwner(created_by)` comparing to the logged-in **user id**.
+
+---
+
+## Form character limits (PPT fit)
+
+Limits live in `frontend/src/components/form/fieldLimits.ts` (`FIELD_LIMITS`). The form uses `maxLength` plus a `12/80` counter.
+
+They match one widescreen PPT slide: a pillar column is about **40 characters per line**. Dropdowns (Market, Channel, Category, KPI, Department) and dates are not limited.
+
+| Field                   | Limit | Why                                                                                                |
+| ----------------------- | ----- | -------------------------------------------------------------------------------------------------- |
+| Title                   | 80    | Landing / payload title. PPT header is still composed from Market / Channel / Category / Campaign. |
+| Business Outcome        | 120   | Header subtitle, about 2 lines.                                                                    |
+| Campaign name (Add New) | 30    | Header pill + a segment of the composed title.                                                     |
+| Pillar description      | 80    | About 2 lines under the pillar name.                                                               |
+| Initiative description  | 80    | About 2 lines.                                                                                     |
+| Success Target          | 10    | Short value (`95`, `500`).                                                                         |
+| Unit                    | 10    | `%`, `Outlets`, `ACV%`. Allows `%`, not only digits.                                               |
+| Guidelines              | 80    | About 2 lines.                                                                                     |
+| Checklist notes         | 60    | Caption under the photo strip.                                                                     |
+
+Keep these lengths when validating on FastAPI, or the PPT will clip. Change the numbers in `FIELD_LIMITS` if the export layout boxes change.
