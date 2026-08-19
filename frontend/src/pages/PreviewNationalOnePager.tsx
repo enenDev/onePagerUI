@@ -26,6 +26,7 @@ import {
   publishNationalOnePager,
   type NationalOnePagerCreatePayload,
 } from "@/services/createFormApi";
+import { exportOnePagerPpt } from "@/services/exportOnePagerPpt";
 import { CURRENT_USER_ID } from "@/types/onePager";
 
 export type NationalPreviewLocationState = {
@@ -164,6 +165,16 @@ export function PreviewNationalOnePager() {
               ? () => {
                   const id = recordId ?? state.recordId;
                   if (id) navigate(`/track/${id}`);
+                }
+              : undefined
+          }
+          onExport={
+            published
+              ? () => {
+                  void exportOnePagerPpt({
+                    pagerType: "national",
+                    payload,
+                  });
                 }
               : undefined
           }

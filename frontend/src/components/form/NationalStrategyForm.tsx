@@ -2,6 +2,8 @@
 import { CloudUpload } from "lucide-react";
 
 import { AddCampaignModal } from "@/components/form/AddCampaignModal";
+import { CharCount } from "@/components/form/CharCount";
+import { FIELD_LIMITS } from "@/components/form/fieldLimits";
 import type { NationalFormValues } from "@/components/form/nationalForm";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -183,12 +185,16 @@ export function NationalStrategyForm({
             </Field>
 
             <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="national-title">
-                Title <span className="text-destructive">*</span>
-              </Label>
+              <div className="flex items-center justify-between gap-2">
+                <Label htmlFor="national-title">
+                  Title <span className="text-destructive">*</span>
+                </Label>
+                <CharCount value={values.title} max={FIELD_LIMITS.title} />
+              </div>
               <Input
                 id="national-title"
                 value={values.title}
+                maxLength={FIELD_LIMITS.title}
                 onChange={(event) => patch({ title: event.target.value })}
                 placeholder="Enter Title"
                 className="bg-white"
@@ -234,14 +240,21 @@ export function NationalStrategyForm({
         </section>
 
         <section className="rounded-xl border border-border bg-white p-4 shadow-sm md:p-5">
-          <h2 className="mb-4 text-base font-semibold text-foreground">
-            Business Outcome Statement
-          </h2>
+          <div className="mb-4 flex items-center justify-between gap-2">
+            <h2 className="text-base font-semibold text-foreground">
+              Business Outcome Statement
+            </h2>
+            <CharCount
+              value={values.businessOutcome}
+              max={FIELD_LIMITS.businessOutcome}
+            />
+          </div>
           <Textarea
             value={values.businessOutcome}
+            maxLength={FIELD_LIMITS.businessOutcome}
             onChange={(event) => patch({ businessOutcome: event.target.value })}
             placeholder="State the core commercial target and outcome expected from this execution plan."
-            className="min-h-[280px] resize-y bg-white"
+            className="min-h-24 resize-y bg-white"
           />
         </section>
       </div>

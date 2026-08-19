@@ -233,7 +233,7 @@ No function exists. Cover and initiative images are local `File`s. Preview URLs 
 
 No mock function. Attach a handler when the API exists.
 
-- **Export** — card ⋯ / preview More Options → `GET /api/one-pagers/:id/export` (anyone)
+- **Export** — client-side PPT (`exportOnePagerPpt` in `frontend/src/services/exportOnePagerPpt.ts`). Home ⋯ and View/Preview More Options. Uses GET-by-id payload + `image_urls`. Optional later: `GET /api/one-pagers/:id/export` if the server should generate the file.
 - **Archive** — published cards → `POST /api/one-pagers/:id/archive` (**owner only**; menu is disabled for non-owners on Home and View)
 - **Restore** — archived cards → `POST /api/one-pagers/:id/restore` (**owner only**; Home card ⋯)
 

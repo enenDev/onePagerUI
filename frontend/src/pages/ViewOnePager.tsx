@@ -13,6 +13,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import type { FormLayoutContext } from "@/layouts/MainLayout";
 import { useAppDispatch } from "@/redux/hooks";
 import { deleteOnePager } from "@/redux/landingSlice";
+import { exportOnePagerPpt } from "@/services/exportOnePagerPpt";
 import {
   getOnePagerById,
   type OnePagerByIdRecord,
@@ -36,6 +37,8 @@ function composeViewTitle(record: OnePagerByIdRecord) {
  * shows Target Retailer when present). Do not route through create/preview.
  * Back → /home. More Options → Edit still uses /edit/:id (owner-only).
  * More Options → Track uses /track/:id for PUBLISHED only.
+ * More Options → Export downloads a one-slide PPT from this GET record
+ * (not a server export file). Omit Export on DRAFT.
  * Delete → confirm modal + deleteOnePager(pager_id) → Redux remove → /home.
  */
 export function ViewOnePager() {
@@ -138,6 +141,16 @@ export function ViewOnePager() {
               record.list_status === "PUBLISHED"
                 ? () => navigate(`/track/${record.id}`)
                 : undefined
+            }
+            onExport={
+              record.list_status === "DRAFT"
+                ? undefined
+                : () => {
+                    void exportOnePagerPpt({
+                      pagerType: record.pager_type,
+                      payload: record.payload,
+                    });
+                  }
             }
             onDelete={() => {
               setDeleteError(null);

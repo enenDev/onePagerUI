@@ -49,9 +49,9 @@ function PreviewSection({
   children: string;
 }) {
   return (
-    <div className="space-y-1">
+    <div className="min-w-0 space-y-1">
       <p className="text-xs font-semibold text-primary">{label}</p>
-      <p className="text-sm leading-snug text-foreground/90">
+      <p className="text-sm leading-snug break-all text-foreground/90 [overflow-wrap:anywhere]">
         {children || "—"}
       </p>
     </div>
@@ -72,7 +72,7 @@ function InitiativeBlock({
   const images = initiative.images.filter((image) => image.blob_url);
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex min-w-0 flex-col gap-3">
       <div className="flex max-w-full flex-wrap items-center gap-1.5">
         {statusDot}
         <span
@@ -142,7 +142,7 @@ export function PillarBoard({ pillars, track }: PillarBoardProps) {
             <article
               key={pillar.pillar_number}
               className={cn(
-                "flex flex-col gap-4 rounded-preview-card p-4 shadow-preview-card",
+                "flex min-w-0 flex-col gap-4 overflow-hidden rounded-preview-card p-4 shadow-preview-card",
                 theme.card,
               )}
             >
@@ -166,7 +166,10 @@ export function PillarBoard({ pillars, track }: PillarBoardProps) {
               </div>
 
               <h3
-                className={cn("text-[14px] font-bold leading-snug", theme.title)}
+                className={cn(
+                  "min-w-0 text-[14px] font-bold leading-snug break-words",
+                  theme.title,
+                )}
               >
                 {pillar.pillar_name}
               </h3>
@@ -186,6 +189,7 @@ export function PillarBoard({ pillars, track }: PillarBoardProps) {
                       <div
                         key={`${pillar.pillar_number}-${initiative.initiative_number}`}
                         className={cn(
+                          "min-w-0",
                           index > 0 ? "border-t border-preview-divider pt-4" : "",
                         )}
                       >

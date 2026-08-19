@@ -22,6 +22,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import type { FormLayoutContext } from "@/layouts/MainLayout";
 import { useAppDispatch } from "@/redux/hooks";
 import { deleteOnePager } from "@/redux/landingSlice";
+import { exportOnePagerPpt } from "@/services/exportOnePagerPpt";
 import {
   publishRetailerOnePager,
   type RetailerOnePagerCreatePayload,
@@ -168,6 +169,16 @@ export function PreviewRetailerOnePager() {
               ? () => {
                   const id = recordId ?? state.recordId;
                   if (id) navigate(`/track/${id}`);
+                }
+              : undefined
+          }
+          onExport={
+            published
+              ? () => {
+                  void exportOnePagerPpt({
+                    pagerType: "retailer",
+                    payload,
+                  });
                 }
               : undefined
           }

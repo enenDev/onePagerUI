@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <!-- Placeholder: replace with the More Stores Better Stores icon. Keep this filename. -->
+  <circle cx="32" cy="32" r="30" fill="#00C79D"/>
+  <path d="M16 30 32 16l16 14v18H40V36H24v12H16V30Z" fill="#fff"/>
+</svg>

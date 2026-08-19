@@ -62,6 +62,8 @@ type NationalPreviewDocumentProps = {
   onEdit?: () => void;
   /** Opens /track/:id. Omit on drafts, archive, and pre-publish preview. */
   onTrack?: () => void;
+  /** Downloads the one-slide PPT. Omit on drafts and pre-publish preview. */
+  onExport?: () => void;
   /** Opens delete confirm; only called when canDelete is true. */
   onDelete?: () => void;
   /** Track/Export/Archive/Edit/Delete — off in create Preview, on after publish. */
@@ -95,6 +97,7 @@ export function NationalPreviewDocument({
   publishedAt,
   onEdit,
   onTrack,
+  onExport,
   onDelete,
   moreOptionsEnabled = false,
   hideMoreOptions = false,
@@ -160,12 +163,18 @@ export function NationalPreviewDocument({
                     <DropdownMenuSeparator className="m-0" />
                   </>
                 ) : null}
-                {/* TODO: Wire Export to file/PDF generation. Keep this menu item. */}
-                <DropdownMenuItem className="cursor-pointer rounded-none px-3 py-2">
-                  <Share2 className="size-4" />
-                  Export
-                </DropdownMenuItem>
-                <DropdownMenuSeparator className="m-0" />
+                {onExport ? (
+                  <>
+                    <DropdownMenuItem
+                      className="cursor-pointer rounded-none px-3 py-2"
+                      onClick={onExport}
+                    >
+                      <Share2 className="size-4" />
+                      Export
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="m-0" />
+                  </>
+                ) : null}
                 {/* TODO: Wire Archive to FastAPI status change. Keep menu item + confirmation if product adds one. Owner-only. */}
                 <DropdownMenuItem
                   disabled={!canEdit}

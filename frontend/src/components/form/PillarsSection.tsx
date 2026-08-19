@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 
 import { AddInitiativeModal } from "@/components/form/AddInitiativeModal";
+import { CharCount } from "@/components/form/CharCount";
+import { FIELD_LIMITS } from "@/components/form/fieldLimits";
 import {
   MAX_INITIATIVES_PER_PILLAR,
   nextPriorityLevel,
@@ -387,9 +389,16 @@ export function PillarsSection({
               {isOpen && (
                 <div className="space-y-4 border-t border-border px-4 py-4">
                   <div className="space-y-2">
-                    <Label>Pillar Description</Label>
+                    <div className="flex items-center justify-between gap-2">
+                      <Label>Pillar Description</Label>
+                      <CharCount
+                        value={pillar.pillar_description}
+                        max={FIELD_LIMITS.pillarDescription}
+                      />
+                    </div>
                     <Textarea
                       value={pillar.pillar_description}
+                      maxLength={FIELD_LIMITS.pillarDescription}
                       onChange={(event) =>
                         updatePillar(pillar.pillar_number, {
                           pillar_description: event.target.value,

@@ -10,6 +10,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { CharCount } from "@/components/form/CharCount";
+import { FIELD_LIMITS } from "@/components/form/fieldLimits";
 import { addCampaign, type FilterOption } from "@/services/createFormApi";
 
 type AddCampaignModalProps = {
@@ -71,12 +73,16 @@ export function AddCampaignModal({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="campaign-name">
-            Campaign Name <span className="text-destructive">*</span>
-          </Label>
+          <div className="flex items-center justify-between gap-2">
+            <Label htmlFor="campaign-name">
+              Campaign Name <span className="text-destructive">*</span>
+            </Label>
+            <CharCount value={name} max={FIELD_LIMITS.campaignName} />
+          </div>
           <Input
             id="campaign-name"
             value={name}
+            maxLength={FIELD_LIMITS.campaignName}
             onChange={(event) => setName(event.target.value)}
             placeholder="Enter campaign name to add"
             className="bg-white"

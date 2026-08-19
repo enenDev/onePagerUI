@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <!-- Placeholder: replace with the Always Available icon. Keep this filename. -->
+  <circle cx="32" cy="32" r="30" fill="#EF9E22"/>
+  <circle cx="32" cy="32" r="14" stroke="#fff" stroke-width="4" fill="none"/>
+  <path d="M32 22v12l8 4" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+</svg>

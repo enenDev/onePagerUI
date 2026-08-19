@@ -1,4 +1,5 @@
 import type { RetailerFormValues } from "@/components/form/retailerForm";
+import { clipToLimit, FIELD_LIMITS } from "@/components/form/fieldLimits";
 import {
   createDefaultPillars,
   MAX_INITIATIVES_PER_PILLAR,
@@ -24,8 +25,14 @@ export function buildRetailerFormSample(): {
     category: "Hair Care",
     campaign: "Scalp & Shine",
     channel: "Supermarket",
-    title: "Retailer-Walmart-Hair Care-Scalp & Shine-US",
-    businessOutcome: sampleOnePager.business_outcome_statement,
+    title: clipToLimit(
+      "Retailer-Walmart-Hair Care-Scalp & Shine-US",
+      FIELD_LIMITS.title,
+    ),
+    businessOutcome: clipToLimit(
+      sampleOnePager.business_outcome_statement,
+      FIELD_LIMITS.businessOutcome,
+    ),
     coverImageName: "",
     coverImageUrl: "",
     coverImageFile: null,
@@ -43,20 +50,35 @@ export function buildRetailerFormSample(): {
         priority_level: nextPriorityLevel(initiativeIndex) ?? "P3",
         accountable_function_department:
           initiative.accountable_function_department,
-        initiative_description: initiative.initiative_description,
+        initiative_description: clipToLimit(
+          initiative.initiative_description,
+          FIELD_LIMITS.initiativeDescription,
+        ),
         kpi_metric: initiative.kpi_metric,
-        success_target: initiative.success_target,
-        unit: initiative.unit,
+        success_target: clipToLimit(
+          initiative.success_target,
+          FIELD_LIMITS.successTarget,
+        ),
+        unit: clipToLimit(initiative.unit, FIELD_LIMITS.unit),
         week_start: initiative.week_start,
         week_end: initiative.week_end,
-        guidelines: initiative.guidelines,
-        checklist_compliance_notes: initiative.checklist_compliance_notes,
+        guidelines: clipToLimit(
+          initiative.guidelines,
+          FIELD_LIMITS.guidelines,
+        ),
+        checklist_compliance_notes: clipToLimit(
+          initiative.checklist_compliance_notes,
+          FIELD_LIMITS.checklistNotes,
+        ),
         images: [],
       }));
 
     return {
       ...pillar,
-      pillar_description: sample?.pillar_description ?? "",
+      pillar_description: clipToLimit(
+        sample?.pillar_description ?? "",
+        FIELD_LIMITS.pillarDescription,
+      ),
       pillar_weight: sample?.pillar_weight ?? 20,
       initiatives,
     };

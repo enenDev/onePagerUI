@@ -18,11 +18,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  MAX_INITIATIVE_IMAGES,
-  type InitiativeDraft,
-  type InitiativeImage,
-} from "@/components/form/pillars";
+import { MAX_INITIATIVE_IMAGES, type InitiativeDraft, type InitiativeImage } from "@/components/form/pillars";
+import { CharCount } from "@/components/form/CharCount";
+import { FIELD_LIMITS } from "@/components/form/fieldLimits";
 import type { FilterOption } from "@/services/createFormApi";
 
 function isImageFile(file: File) {
@@ -192,8 +190,9 @@ export function AddInitiativeModal({
   };
 
   const handleUnitChange = (value: string) => {
-    if (value === "" || /^\d*\.?\d*$/.test(value)) {
-      patch({ unit: value });
+    const next = value.slice(0, FIELD_LIMITS.unit);
+    if (next === "" || /^[A-Za-z0-9%.\/ ]+$/.test(next)) {
+      patch({ unit: next });
     }
   };
 
@@ -393,11 +392,18 @@ export function AddInitiativeModal({
         </div>
 
         <div className="space-y-2">
-          <Label>
-            Initiative Description <span className="text-destructive">*</span>
-          </Label>
+          <div className="flex items-center justify-between gap-2">
+            <Label>
+              Initiative Description <span className="text-destructive">*</span>
+            </Label>
+            <CharCount
+              value={form.initiative_description}
+              max={FIELD_LIMITS.initiativeDescription}
+            />
+          </div>
           <Textarea
             value={form.initiative_description}
+            maxLength={FIELD_LIMITS.initiativeDescription}
             onChange={(event) =>
               patch({ initiative_description: event.target.value })
             }
@@ -432,11 +438,18 @@ export function AddInitiativeModal({
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>
-              Success Target <span className="text-destructive">*</span>
-            </Label>
+            <div className="flex items-center justify-between gap-2">
+              <Label>
+                Success Target <span className="text-destructive">*</span>
+              </Label>
+              <CharCount
+                value={form.success_target}
+                max={FIELD_LIMITS.successTarget}
+              />
+            </div>
             <Input
               value={form.success_target}
+              maxLength={FIELD_LIMITS.successTarget}
               onChange={(event) =>
                 patch({ success_target: event.target.value })
               }
@@ -445,12 +458,15 @@ export function AddInitiativeModal({
             />
           </div>
           <div className="space-y-2">
-            <Label>Unit</Label>
+            <div className="flex items-center justify-between gap-2">
+              <Label>Unit</Label>
+              <CharCount value={form.unit} max={FIELD_LIMITS.unit} />
+            </div>
             <Input
               value={form.unit}
+              maxLength={FIELD_LIMITS.unit}
               onChange={(event) => handleUnitChange(event.target.value)}
               placeholder="%"
-              inputMode="decimal"
               className="bg-white"
             />
           </div>
@@ -490,11 +506,15 @@ export function AddInitiativeModal({
         </div>
 
         <div className="space-y-2">
-          <Label>
-            Guidelines <span className="text-destructive">*</span>
-          </Label>
+          <div className="flex items-center justify-between gap-2">
+            <Label>
+              Guidelines <span className="text-destructive">*</span>
+            </Label>
+            <CharCount value={form.guidelines} max={FIELD_LIMITS.guidelines} />
+          </div>
           <Textarea
             value={form.guidelines}
+            maxLength={FIELD_LIMITS.guidelines}
             onChange={(event) => patch({ guidelines: event.target.value })}
             placeholder="Enter instructions regarding execution of initiative/visual guidelines"
             className="min-h-20 bg-white"
@@ -547,9 +567,16 @@ export function AddInitiativeModal({
           </div>
 
           <div className="space-y-2">
-            <Label>Checklist Compliance Notes</Label>
+            <div className="flex items-center justify-between gap-2">
+              <Label>Checklist Compliance Notes</Label>
+              <CharCount
+                value={form.checklist_compliance_notes}
+                max={FIELD_LIMITS.checklistNotes}
+              />
+            </div>
             <Textarea
               value={form.checklist_compliance_notes}
+              maxLength={FIELD_LIMITS.checklistNotes}
               onChange={(event) =>
                 patch({ checklist_compliance_notes: event.target.value })
               }

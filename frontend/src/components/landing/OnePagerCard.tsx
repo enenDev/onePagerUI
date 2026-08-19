@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAppDispatch } from "@/redux/hooks";
 import { deleteOnePager } from "@/redux/landingSlice";
+import { exportOnePagerById } from "@/services/exportOnePagerPpt";
 import {
   isCurrentUserOwner,
   type OnePagerListItem,
@@ -57,6 +58,19 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
+
+  const handleExport = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      await exportOnePagerById(item.pager_id);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const handleConfirmDelete = async () => {
     if (!isOwner) return;
@@ -103,6 +117,10 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
                 onTrack={() => {
                   navigate(`/track/${item.pager_id}`);
                 }}
+                onExport={() => {
+                  void handleExport();
+                }}
+                exporting={exporting}
                 onDelete={() => {
                   if (!isOwner) return;
                   setDeleteError(null);
@@ -178,6 +196,8 @@ function CardMenuItem({
   showSeparator,
   onEdit,
   onTrack,
+  onExport,
+  exporting,
   onDelete,
 }: {
   action: CardMenuAction;
@@ -185,6 +205,8 @@ function CardMenuItem({
   showSeparator: boolean;
   onEdit: () => void;
   onTrack: () => void;
+  onExport: () => void;
+  exporting: boolean;
   onDelete: () => void;
 }) {
   const itemClassName = "cursor-pointer rounded-none px-3 py-2";
@@ -204,15 +226,11 @@ function CardMenuItem({
       menuItem = (
         <DropdownMenuItem
           className={itemClassName}
-          onClick={() => {
-            // TODO: Export is UI-only. Temporary: no download / API.
-            // Next: FastAPI export (PDF/PPT) e.g. GET /api/one-pagers/:id/export
-            // and trigger browser download / share flow.
-            // Keep: menu label + Share2 icon, card ⋯ entry point.
-          }}
+          disabled={exporting}
+          onClick={onExport}
         >
           <Share2 className="size-4" />
-          Export
+          {exporting ? "Exporting…" : "Export"}
         </DropdownMenuItem>
       );
       break;
