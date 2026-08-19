@@ -12,11 +12,7 @@ import {
   setScopeTab,
   setStatusTab,
 } from "@/redux/landingSlice";
-import {
-  CURRENT_USER_ID,
-  createEmptyFilters,
-  type StatusTab,
-} from "@/types/onePager";
+import { createEmptyFilters, type StatusTab } from "@/types/onePager";
 import { cn } from "@/lib/utils";
 
 const STATUS_MAP = {
@@ -36,6 +32,7 @@ export const Home = () => {
   const { items, statusTab, scopeTab, listLoading, error } = useAppSelector(
     (state) => state.landing,
   );
+  const currentUser = useAppSelector((state) => state.user.currentUser);
   const [createOpen, setCreateOpen] = useState(false);
 
   useEffect(() => {
@@ -53,11 +50,11 @@ export const Home = () => {
     );
 
     if (scopeTab === "my") {
-      return byStatus.filter((item) => item.created_by === CURRENT_USER_ID);
+      return byStatus.filter((item) => item.created_by === currentUser.id);
     }
 
     return byStatus;
-  }, [items, scopeTab, statusTab]);
+  }, [currentUser.id, items, scopeTab, statusTab]);
 
   const allCount = useMemo(
     () => items.filter((item) => item.status === STATUS_MAP[statusTab]).length,
@@ -69,9 +66,9 @@ export const Home = () => {
       items.filter(
         (item) =>
           item.status === STATUS_MAP[statusTab] &&
-          item.created_by === CURRENT_USER_ID,
+          item.created_by === currentUser.id,
       ).length,
-    [items, statusTab],
+    [currentUser.id, items, statusTab],
   );
 
   return (

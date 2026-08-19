@@ -5,11 +5,12 @@ import { Loading } from "@/components/common/Loading";
 import { Button } from "@/components/ui/button";
 import { PageContainer } from "@/components/layout/PageContainer";
 import type { FormLayoutContext } from "@/layouts/MainLayout";
+import { useAppSelector } from "@/redux/hooks";
+import { isCurrentUserOwner } from "@/redux/userSlice";
 import {
   getOnePagerById,
   type EditOnePagerLocationState,
 } from "@/services/onePagerApi";
-import { isCurrentUserOwner } from "@/types/onePager";
 
 /**
  * Edit entry: one GET-by-id, then open the matching create form.
@@ -22,6 +23,7 @@ import { isCurrentUserOwner } from "@/types/onePager";
 export function EditOnePager() {
   const { pagerId } = useParams<{ pagerId: string }>();
   const navigate = useNavigate();
+  const currentUser = useAppSelector((state) => state.user.currentUser);
   const { setBackHandler, setHeaderTitle } =
     useOutletContext<FormLayoutContext>();
   const [error, setError] = useState<string | null>(null);
@@ -48,7 +50,7 @@ export function EditOnePager() {
         setError("Could not load the one-pager.");
         return;
       }
-      if (!isCurrentUserOwner(record.created_by)) {
+      if (!isCurrentUserOwner(record.created_by, currentUser.id)) {
         setError("Only the owner can edit this one-pager.");
         return;
       }
@@ -64,7 +66,7 @@ export function EditOnePager() {
     return () => {
       cancelled = true;
     };
-  }, [navigate, pagerId]);
+  }, [currentUser.id, navigate, pagerId]);
 
   return (
     <PageContainer className="flex flex-1 flex-col py-6">

@@ -11,14 +11,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { PageContainer } from "@/components/layout/PageContainer";
 import type { FormLayoutContext } from "@/layouts/MainLayout";
-import { useAppDispatch } from "@/redux/hooks";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { deleteOnePager } from "@/redux/landingSlice";
+import { isCurrentUserOwner } from "@/redux/userSlice";
 import { exportOnePagerPpt } from "@/services/exportOnePagerPpt";
 import {
   getOnePagerById,
   type OnePagerByIdRecord,
 } from "@/services/onePagerApi";
-import { isCurrentUserOwner } from "@/types/onePager";
 
 function composeViewTitle(record: OnePagerByIdRecord) {
   if (record.pager_type === "retailer") {
@@ -45,6 +45,7 @@ export function ViewOnePager() {
   const { pagerId } = useParams<{ pagerId: string }>();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const currentUser = useAppSelector((state) => state.user.currentUser);
   const { setBackHandler, setHeaderTitle } =
     useOutletContext<FormLayoutContext>();
   const [record, setRecord] = useState<OnePagerByIdRecord | null>(null);
@@ -91,7 +92,9 @@ export function ViewOnePager() {
   }, [pagerId]);
 
   const viewTitle = record ? composeViewTitle(record) : "";
-  const isOwner = record ? isCurrentUserOwner(record.created_by) : false;
+  const isOwner = record
+    ? isCurrentUserOwner(record.created_by, currentUser.id)
+    : false;
 
   const handleConfirmDelete = async () => {
     if (!record || !isOwner) return;

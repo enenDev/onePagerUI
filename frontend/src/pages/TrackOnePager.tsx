@@ -10,6 +10,8 @@ import {
 } from "@/components/preview/nationalPreview";
 import { Button } from "@/components/ui/button";
 import type { FormLayoutContext } from "@/layouts/MainLayout";
+import { useAppSelector } from "@/redux/hooks";
+import { isCurrentUserOwner } from "@/redux/userSlice";
 import {
   getOnePagerById,
   type OnePagerByIdRecord,
@@ -21,7 +23,6 @@ import {
   type OnePagerTrackState,
   type TrackRagStatus,
 } from "@/services/trackApi";
-import { isCurrentUserOwner } from "@/types/onePager";
 
 function composeTitle(record: OnePagerByIdRecord) {
   if (record.pager_type === "retailer") {
@@ -41,6 +42,7 @@ function composeTitle(record: OnePagerByIdRecord) {
 export function TrackOnePager() {
   const { pagerId } = useParams<{ pagerId: string }>();
   const navigate = useNavigate();
+  const currentUser = useAppSelector((state) => state.user.currentUser);
   const { setBackHandler, setHeaderTitle } =
     useOutletContext<FormLayoutContext>();
   const [record, setRecord] = useState<OnePagerByIdRecord | null>(null);
@@ -92,7 +94,9 @@ export function TrackOnePager() {
     };
   }, [pagerId]);
 
-  const canUpdate = record ? isCurrentUserOwner(record.created_by) : false;
+  const canUpdate = record
+    ? isCurrentUserOwner(record.created_by, currentUser.id)
+    : false;
 
   const handlePillarChange = async (
     pillarNumber: number,
@@ -114,6 +118,7 @@ export function TrackOnePager() {
       pillarId: pillar.pillar_id,
       initiativeId: "",
       status,
+      updated_by: currentUser.email,
     });
     if (!result.ok) setStatuses(previous);
   };
@@ -145,6 +150,7 @@ export function TrackOnePager() {
       pillarId: pillar.pillar_id,
       initiativeId: initiative.initiative_id,
       status,
+      updated_by: currentUser.email,
     });
     if (!result.ok) setStatuses(previous);
   };

@@ -20,14 +20,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { PageContainer } from "@/components/layout/PageContainer";
 import type { FormLayoutContext } from "@/layouts/MainLayout";
-import { useAppDispatch } from "@/redux/hooks";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { deleteOnePager } from "@/redux/landingSlice";
 import {
   publishNationalOnePager,
   type NationalOnePagerCreatePayload,
 } from "@/services/createFormApi";
 import { exportOnePagerPpt } from "@/services/exportOnePagerPpt";
-import { CURRENT_USER_ID } from "@/types/onePager";
 
 export type NationalPreviewLocationState = {
   values: NationalFormValues;
@@ -51,10 +50,10 @@ export function PreviewNationalOnePager() {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const owner = useAppSelector((state) => state.user.currentUser.id);
   const { setBackHandler, setHeaderTitle } =
     useOutletContext<FormLayoutContext>();
   const state = isPreviewState(location.state) ? location.state : null;
-  const owner = CURRENT_USER_ID;
   const payload = state?.payload ?? null;
   const composedTitle = payload ? composeNationalPreviewTitle(payload) : "";
 

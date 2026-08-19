@@ -1,9 +1,11 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Outlet, useLocation, useNavigate, useMatches } from "react-router-dom";
 
 import { AppHeader } from "@/components/layout/AppHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Button } from "@/components/ui/button";
+import { useAppDispatch } from "@/redux/hooks";
+import { fetchCurrentUser } from "@/redux/userSlice";
 
 type RouteHandle = {
   headerVariant?: "list" | "simple";
@@ -16,6 +18,7 @@ export type FormLayoutContext = {
 };
 
 const MainLayout = () => {
+  const dispatch = useAppDispatch();
   const location = useLocation();
   const navigate = useNavigate();
   const matches = useMatches();
@@ -23,6 +26,10 @@ const MainLayout = () => {
     null,
   );
   const [headerTitle, setHeaderTitleState] = useState<string | null>(null);
+
+  useEffect(() => {
+    void dispatch(fetchCurrentUser());
+  }, [dispatch]);
 
   const setBackHandler = useCallback((handler: (() => void) | null) => {
     setBackHandlerState(() => handler);

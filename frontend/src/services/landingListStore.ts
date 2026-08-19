@@ -1,11 +1,11 @@
 import type { NationalOnePagerCreatePayload } from "@/services/createFormApi";
 import type { RetailerOnePagerCreatePayload } from "@/services/retailerCreateFormApi";
 import landingOnePagersMock from "@/services/mocks/landingOnePagers.json";
-import {
-  CURRENT_USER_ID,
-  type OnePagerListItem,
-  type OnePagerStatus,
-  type OnePagerType,
+import { userSlice } from "@/redux/userSlice";
+import type {
+  OnePagerListItem,
+  OnePagerStatus,
+  OnePagerType,
 } from "@/types/onePager";
 
 /**
@@ -81,7 +81,8 @@ export function upsertLandingCardFromPayload({
     cover_image_url,
     scoring_mode: payload.scoring_mode,
     status: recordStatusToListStatus(record_status),
-    created_by: CURRENT_USER_ID,
+    // Same mock id as user.currentUser until FastAPI list returns created_by.
+    created_by: userSlice.getInitialState().currentUser.id,
     published_at: formatPublishedAt(new Date()),
     pillars: [],
   };

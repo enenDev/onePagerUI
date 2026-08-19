@@ -20,14 +20,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useAppDispatch } from "@/redux/hooks";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { deleteOnePager } from "@/redux/landingSlice";
+import { isCurrentUserOwner } from "@/redux/userSlice";
 import { exportOnePagerById } from "@/services/exportOnePagerPpt";
-import {
-  isCurrentUserOwner,
-  type OnePagerListItem,
-  type OnePagerStatus,
-} from "@/types/onePager";
+import type { OnePagerListItem, OnePagerStatus } from "@/types/onePager";
 
 type OnePagerCardProps = {
   item: OnePagerListItem;
@@ -49,9 +46,10 @@ function menuActionsForStatus(status: OnePagerStatus): CardMenuAction[] {
 export function OnePagerCard({ item }: OnePagerCardProps) {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const currentUser = useAppSelector((state) => state.user.currentUser);
   const scoringLabel =
     item.scoring_mode === "WEIGHTED" ? "Weighted" : "Unweighted";
-  const isOwner = isCurrentUserOwner(item.created_by);
+  const isOwner = isCurrentUserOwner(item.created_by, currentUser.id);
   const viewPath = `/view/${item.pager_id}`;
   const actions = menuActionsForStatus(item.status);
 

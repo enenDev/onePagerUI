@@ -65,13 +65,14 @@ export function trackStateFromPillars(
  * { table: "pager", pager_id, pillar_id, initiative_id, track, updated_by }.
  * Map input.status: Clear → track null; else "red" | "amber" | "green".
  * initiative_id is "" for pillar-only updates.
- * updated_by is CURRENT_USER_EMAIL until real auth.
+ * updated_by comes from the logged-in user email (user.currentUser.email).
  */
 export async function updateTrackStatus(input: {
   pagerId: string;
   pillarId: string;
   initiativeId: string;
   status: TrackRagStatus;
+  updated_by: string;
 }): Promise<{ ok: true } | { ok: false; error: string }> {
   await delay();
 

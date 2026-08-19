@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { CURRENT_USER_EMAIL, CURRENT_USER_INITIALS } from "@/types/onePager";
+import { useAppSelector } from "@/redux/hooks";
 import perfectStoreLogo from "@/assets/Perfect_Store_Hero_Logo.svg";
 import unileverBrandLogo from "@/assets/Unilever_Brand_Logo.svg";
 
@@ -22,6 +22,8 @@ function HeaderDivider() {
 }
 
 export function AppHeader() {
+  const { email, initials } = useAppSelector((state) => state.user.currentUser);
+
   return (
     <header className="sticky top-0 z-40 w-full overflow-hidden bg-primary">
       <PageContainer className="relative flex h-14 items-center justify-between gap-4">
@@ -59,7 +61,7 @@ export function AppHeader() {
             >
               <Avatar className="size-9">
                 <AvatarFallback className="bg-avatar-bg text-sm font-semibold text-avatar-fg">
-                  {CURRENT_USER_INITIALS}
+                  {initials}
                 </AvatarFallback>
               </Avatar>
             </button>
@@ -71,7 +73,7 @@ export function AppHeader() {
             <DropdownMenuSeparator />
             <DropdownMenuItem disabled className="gap-2 opacity-100">
               <Mail className="size-4 text-muted-foreground" />
-              <span className="truncate">{CURRENT_USER_EMAIL}</span>
+              <span className="truncate">{email}</span>
             </DropdownMenuItem>
             <DropdownMenuItem className="cursor-pointer gap-2">
               <LogOut className="size-4" />

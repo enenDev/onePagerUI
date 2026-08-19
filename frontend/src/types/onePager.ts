@@ -82,26 +82,6 @@ export interface OnePagerListItem {
   pillars: unknown[];
 }
 
-/**
- * TODO: Replace this hardcoded logged-in user with real auth.
- * Temporary: no login API — FE pretends the current user is always user-001.
- * Used for: header avatar/email, Home "My" tab, owner checks (Edit / Delete /
- * Track dots), Track PATCH `updated_by` (CURRENT_USER_EMAIL), and created_by
- * on save/publish landing cards.
- * Next: read id / email / initials from the auth session or JWT (e.g. after
- * GET /api/me or login). Keep isCurrentUserOwner(createdBy) comparing the
- * pager's created_by to the logged-in user id. Keep CURRENT_USER_* names or
- * swap call sites to a useCurrentUser() hook without changing owner UX
- * (visible-but-disabled Edit/Delete/Track for non-owners).
- */
-export const CURRENT_USER_ID = "user-001";
-export const CURRENT_USER_EMAIL = "nitesh@example.com";
-export const CURRENT_USER_INITIALS = "NN";
-
-export function isCurrentUserOwner(createdBy: string) {
-  return createdBy === CURRENT_USER_ID;
-}
-
 export const emptyFilters: FilterPayload = {
   market: [],
   retailer: [],

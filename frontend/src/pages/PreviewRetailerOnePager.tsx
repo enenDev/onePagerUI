@@ -20,14 +20,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { PageContainer } from "@/components/layout/PageContainer";
 import type { FormLayoutContext } from "@/layouts/MainLayout";
-import { useAppDispatch } from "@/redux/hooks";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { deleteOnePager } from "@/redux/landingSlice";
 import { exportOnePagerPpt } from "@/services/exportOnePagerPpt";
 import {
   publishRetailerOnePager,
   type RetailerOnePagerCreatePayload,
 } from "@/services/retailerCreateFormApi";
-import { CURRENT_USER_ID } from "@/types/onePager";
 
 export type RetailerPreviewLocationState = {
   values: RetailerFormValues;
@@ -52,10 +51,10 @@ export function PreviewRetailerOnePager() {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const owner = useAppSelector((state) => state.user.currentUser.id);
   const { setBackHandler, setHeaderTitle } =
     useOutletContext<FormLayoutContext>();
   const state = isPreviewState(location.state) ? location.state : null;
-  const owner = CURRENT_USER_ID;
   const payload = state?.payload ?? null;
   const composedTitle = payload ? composeRetailerPreviewTitle(payload) : "";
 
