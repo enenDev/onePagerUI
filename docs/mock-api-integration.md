@@ -8,7 +8,25 @@ Axios is installed. Use `VITE_API_BASE_URL`. FastAPI has no real endpoints yet.
 
 ---
 
-## 1. `getMetadata`
+## 1. `getCurrentUser`
+
+- **File:** `frontend/src/services/userApi.ts` — lines **12–16**
+- **Thunk:** `frontend/src/redux/userSlice.ts` — `fetchCurrentUser` (calls `getCurrentUser`)
+- **Store:** `state.user.currentUser` (`frontend/src/redux/store.ts`)
+- **Boot:** `MainLayout` dispatches `fetchCurrentUser` once on mount
+- **Replace:** the `delay()` + `userSlice.getInitialState().currentUser`. Do not add a second copy of id / email / initials in `userApi.ts`.
+- **With:** `GET /api/me` (or the auth session after login)
+- **Serves:** header avatar/email, Home “My” tab, owner checks (Edit / Delete / Archive / Track dots), Track PATCH `updated_by`, preview owner label
+- **Data today:** mock user lives **only** in `userSlice` `initialState` (`id: "user-001"`, `email: "nitesh@example.com"`, `initials: "NN"`). No `CURRENT_USER_*` constants. Header works before fetch returns because of that seed.
+- **Keep:** `{ id, email, initials }`. `id` is `created_by` / owner checks. `email` is header + Track `updated_by`. `initials` are the header avatar.
+- **Depends on:** none — load this on app boot
+- **Owner helper:** `isCurrentUserOwner(createdBy, userId)` in `userSlice.ts` — compare pager `created_by` to `state.user.currentUser.id`. Keep visible-but-disabled Edit/Delete/Track for non-owners.
+
+Mock save/publish still stamps Home-card `created_by` from `userSlice.getInitialState().currentUser.id` in `landingListStore.ts`. Delete that upsert when the list API returns `created_by` (section 5).
+
+---
+
+## 2. `getMetadata`
 
 - **File:** `frontend/src/services/metadataApi.ts` — lines **43–46**
 - **Replace:** the `delay()` + JSON clone. Stop importing `homepageMetadata.json`.
@@ -16,13 +34,13 @@ Axios is installed. Use `VITE_API_BASE_URL`. FastAPI has no real endpoints yet.
 - **Serves:** Home filters and create/edit dropdowns (Market, Retailer, Channel, Category, Campaign)
 - **Data today:** `frontend/src/services/mocks/homepageMetadata.json`
 - **Keep:** `{ market, optionsByMarket }`
-- **Depends on:** none — load this first
+- **Depends on:** none — load this first for catalogs
 
 Edit dropdowns only show a value if it exists in this catalog. GET-by-id `market` / `channel` / `category` / `campaign_focus` / `retailer` must match these option values, or the Selects look empty.
 
 ---
 
-## 2. `getCreateFormMetadata`
+## 3. `getCreateFormMetadata`
 
 - **File:** `frontend/src/services/createFormApi.ts` — lines **100–103**
 - **Replace:** the function body and helper `loadCreateFormExtras` (lines **47–57**). Stop importing `createFormMetadata.json`.
@@ -34,7 +52,7 @@ Edit dropdowns only show a value if it exists in this catalog. GET-by-id `market
 
 ---
 
-## 3. `addCampaign`
+## 4. `addCampaign`
 
 - **File:** `frontend/src/services/createFormApi.ts` — lines **116–143**
 - **Replace:** the fake delay + local duplicate check
@@ -46,29 +64,29 @@ Edit dropdowns only show a value if it exists in this catalog. GET-by-id `market
 
 ---
 
-## 4. `submitOnePagerSearch`
+## 5. `submitOnePagerSearch`
 
 - **File:** `frontend/src/services/onePagerApi.ts` — lines **65–72**
 - **Replace:** `landingList.filter(...)`. After this is live, delete `landingListStore.ts`.
 - **With:** `POST /api/one-pagers/search`
 - **Body:** `{ market: string[], retailer: string[], channel: string[], category: string[], campaign: string[] }` — empty array = no filter
 - **Serves:** Home cards, Submit, Clear all, Import From National picker
-- **Data today:** in-memory `landingList` in `landingListStore.ts` (lines **16–18**), seeded from `mocks/landingOnePagers.json`
-- **Keep:** `OnePagerListItem[]` with a real `cover_image_url` (not `blob:`)
-- **Depends on:** `getMetadata` for dropdowns. Active/Drafts/Archive tabs are still filtered on the frontend.
+- **Data today:** in-memory `landingList` in `landingListStore.ts` (lines **16–18**), seeded from `mocks/landingOnePagers.json`. Mock save/publish upserts a card with `created_by` from `userSlice` initial `id`.
+- **Keep:** `OnePagerListItem[]` with a real `cover_image_url` (not `blob:`) and server `created_by`
+- **Depends on:** `getMetadata` for dropdowns. `getCurrentUser` for Home “My” (`item.created_by === currentUser.id`). Active/Drafts/Archive tabs are still filtered on the frontend.
 
 ---
 
-## 5. `getOnePagerById`
+## 6. `getOnePagerById`
 
 - **File:** `frontend/src/services/onePagerApi.ts` — lines **151–160**
 - **Mapper:** `frontend/src/services/mapGetOnePagerResponse.ts` — `mapGetOnePagerResponse`
 - **Replace:** cloning mock JSON + stamping `pager_id` / `pager_type`. Stop importing `getOnePager.json`.
 - **With:** `GET /api/one-pagers/:id` returning `GetOnePagerApiResponse` (flat body, no nested `payload`)
 - **Serves:** Edit (`/edit/:id`), View (`/view/:id`), Track (`/track/:id`) — **same GET for all three**
-- **Data today:** any id → `mocks/getOnePager.json`. Mock stamps URL `pager_id` and `pager_type` (`National` vs `Retailer` from the landing list). `created_by` in that JSON is `"user-001"` so local owner UX works.
+- **Data today:** any id → `mocks/getOnePager.json`. Mock stamps URL `pager_id` and `pager_type` (`National` vs `Retailer` from the landing list). `created_by` in that JSON is `"user-001"` so it matches `userSlice` initial `id`.
 - **Keep:** mapper output `{ id, status, created_by, list_status, published_at, pager_type, payload }`. Do not rewrite View / Edit / Track pages.
-- **Depends on:** real save/publish data. Import From National does **not** use this — it uses `getNationalOnePager`.
+- **Depends on:** real save/publish data. Import From National does **not** use this — it uses `getNationalOnePager`. Owner UX compares `created_by` to `state.user.currentUser.id`.
 
 Mapper rules (keep when swapping the GET):
 
@@ -84,7 +102,7 @@ There is **no** separate GET for Track RAG. Dots come from this response via `tr
 
 ---
 
-## 6. `deleteOnePager`
+## 7. `deleteOnePager`
 
 - **File:** `frontend/src/services/onePagerApi.ts` — lines **175–188**
 - **Replace:** `removeLandingCard(trimmed)`
@@ -96,20 +114,20 @@ There is **no** separate GET for Track RAG. Dots come from this response via `tr
 
 ---
 
-## 7. `saveNationalDraft`
+## 8. `saveNationalDraft`
 
 - **File:** `frontend/src/services/createFormApi.ts` — lines **329–335**
 - **Replace:** `delay` + `upsertNationalRecord`. Delete `nationalRecords` Map (line **286**) when done.
 - **With:** `POST /api/national-one-pagers/draft`
 - **Body:** `NationalOnePagerCreatePayload` + optional `id` if updating a draft
 - **Serves:** National Save Draft (toast + go Home)
-- **Data today:** browser `Map`. Lost on refresh. Also writes a Home card via `landingListStore`.
+- **Data today:** browser `Map`. Lost on refresh. Also writes a Home card via `landingListStore` (`created_by` = slice initial user id).
 - **Keep:** `{ ok: true, id, status: "draft" }` or `{ ok: false, error }`
-- **Depends on:** **image upload first**
+- **Depends on:** **image upload first**. Backend should set `created_by` from the session.
 
 ---
 
-## 8. `publishNationalOnePager`
+## 9. `publishNationalOnePager`
 
 - **File:** `frontend/src/services/createFormApi.ts` — lines **348–354**
 - **Replace:** same in-memory upsert as draft
@@ -121,7 +139,7 @@ There is **no** separate GET for Track RAG. Dots come from this response via `tr
 
 ---
 
-## 9. `getNationalOnePager`
+## 10. `getNationalOnePager`
 
 - **File:** `frontend/src/services/createFormApi.ts` — lines **370–379**
 - **Replace:** cloning `nationalOnePager.json`
@@ -133,7 +151,7 @@ There is **no** separate GET for Track RAG. Dots come from this response via `tr
 
 ---
 
-## 10. `saveRetailerDraft`
+## 11. `saveRetailerDraft`
 
 - **File:** `frontend/src/services/retailerCreateFormApi.ts` — lines **149–155**
 - **Replace:** `delay` + `upsertRetailerRecord`. Delete `retailerRecords` Map (line **109**) when done.
@@ -142,11 +160,11 @@ There is **no** separate GET for Track RAG. Dots come from this response via `tr
 - **Serves:** Retailer Save Draft
 - **Data today:** browser `Map`. Lost on refresh.
 - **Keep:** `{ ok: true, id, status: "draft" }`
-- **Depends on:** **image upload first**. Import path also needs `getNationalOnePager`.
+- **Depends on:** **image upload first**. Import path also needs `getNationalOnePager`. Backend should set `created_by` from the session.
 
 ---
 
-## 11. `publishRetailerOnePager`
+## 12. `publishRetailerOnePager`
 
 - **File:** `frontend/src/services/retailerCreateFormApi.ts` — lines **163–169**
 - **Replace:** same in-memory upsert as retailer draft
@@ -158,7 +176,7 @@ There is **no** separate GET for Track RAG. Dots come from this response via `tr
 
 ---
 
-## 12. Tracking
+## 13. Tracking
 
 Track uses **2** functions. There is no `getTrackStatuses` and no in-memory RAG Map.
 
@@ -169,27 +187,27 @@ Track uses **2** functions. There is no `getTrackStatuses` and no in-memory RAG 
 
 On open: **1 GET**. On each click: **1 PATCH**.
 
-Anyone can open `/track/:id` (published only). Only the owner can change dots. Server should still 403 non-owners on PATCH.
+Anyone can open `/track/:id` (published only). Only the owner can change dots (`created_by === state.user.currentUser.id`). Server should still 403 non-owners on PATCH.
 
 ### Where to change
 
-1. **`onePagerApi.ts` → `getOnePagerById`** (section 5)  
+1. **`onePagerApi.ts` → `getOnePagerById`** (section 6)  
    Swap the mock GET. Keep `mapGetOnePagerResponse`. Track reads `pillar_track` / `initiative_track` via `trackStateFromPillars`.
 
-2. **`trackApi.ts` → `updateTrackStatus`** (section 13)  
+2. **`trackApi.ts` → `updateTrackStatus`** (section 14)  
    Replace `delay` + `{ ok: true }` with the real PATCH. Build `UpdateTrackPayload` from the function args.
 
 Leave `initiativeTrackKey` and `trackStateFromPillars` in place — the UI uses them to map dots.
 
 ### Do not change
 
-`TrackOnePager.tsx`, `PillarBoard`, and `TrackStatusDot`. The page already looks up `pillar_id` / `initiative_id` from the mapped GET record and passes them into `updateTrackStatus`. View/Preview do not pass `track`, so they show no dots.
+`TrackOnePager.tsx`, `PillarBoard`, and `TrackStatusDot`. The page already looks up `pillar_id` / `initiative_id` from the mapped GET record and passes them into `updateTrackStatus` with `updated_by: currentUser.email`. View/Preview do not pass `track`, so they show no dots.
 
 ---
 
-## 13. `updateTrackStatus`
+## 14. `updateTrackStatus`
 
-- **File:** `frontend/src/services/trackApi.ts` — lines **70–83**
+- **File:** `frontend/src/services/trackApi.ts` — lines **70–84**
 - **Type:** `UpdateTrackPayload` in the same file (lines **14–21**)
 - **Replace:** `delay` then `{ ok: true }`
 - **With:** `PATCH /api/one-pagers/:id/track` (or the agreed track endpoint)
@@ -210,22 +228,22 @@ Leave `initiativeTrackKey` and `trackStateFromPillars` in place — the UI uses 
 - Pillar-only: send `pager_id` + `pillar_id`; **`initiative_id` is `""`** (still send the field).
 - Initiative: send all three IDs from GET.
 - `track`: `"red"` | `"amber"` | `"green"`. **Clear → `null`** (same as GET). Do not send `""`.
-- `updated_by`: logged-in email (`CURRENT_USER_EMAIL` until real auth).
+- `updated_by`: logged-in email from `state.user.currentUser.email` (`TrackOnePager` already passes it). Comes from `getCurrentUser` / `GET /api/me`.
 - **Serves:** owner clicking a RAG dot. UI already disables non-owners; server should still 403.
 - **Data today:** delay, no persistence. Refresh reloads RAG from GET mock (`null` = Clear).
 - **Keep:** `{ ok: true }` or `{ ok: false, error }`
-- **Depends on:** `getOnePagerById` (IDs + current dots). FE call shape: `{ pagerId, pillarId, initiativeId, status }` where `status` is `clear | red | amber | green`. Map `clear` → `track: null` in the PATCH body.
+- **Depends on:** `getOnePagerById` (IDs + current dots) and `getCurrentUser` (email). FE call shape: `{ pagerId, pillarId, initiativeId, status, updated_by }` where `status` is `clear | red | amber | green`. Map `clear` → `track: null` in the PATCH body.
 
 ---
 
-## 14. Image upload — not mocked yet
+## 15. Image upload — not mocked yet
 
 No function exists. Cover and initiative images are local `File`s. Preview URLs are `blob:` and die on refresh.
 
 - **Add:** e.g. `uploadImage(file)` → permanent URL
 - **When:** before save/publish (or on file pick)
 - **Put the URL in:** `cover_image.blob_url` and initiative `images[].blob_url`
-- **Blocks:** APIs 7, 8, 10, 11, and Home card covers
+- **Blocks:** APIs 8, 9, 11, 12, and Home card covers
 
 ---
 
@@ -236,18 +254,7 @@ No mock function. Attach a handler when the API exists.
 - **Export** — client-side PPT (`exportOnePagerPpt` in `frontend/src/services/exportOnePagerPpt.ts`). Home ⋯ and View/Preview More Options. Uses GET-by-id payload + `image_urls`. Optional later: `GET /api/one-pagers/:id/export` if the server should generate the file.
 - **Archive** — published cards → `POST /api/one-pagers/:id/archive` (**owner only**; menu is disabled for non-owners on Home and View)
 - **Restore** — archived cards → `POST /api/one-pagers/:id/restore` (**owner only**; Home card ⋯)
-
----
-
-## Current user (mock auth)
-
-Hardcoded in `frontend/src/types/onePager.ts`:
-
-- `CURRENT_USER_ID = "user-001"` — owner checks (`isCurrentUserOwner`), Home “My” tab, `created_by` on save/publish
-- `CURRENT_USER_EMAIL = "nitesh@example.com"` — header + Track PATCH `updated_by`
-- `CURRENT_USER_INITIALS = "NN"` — header avatar
-
-Swap these for the real session / JWT. Keep `isCurrentUserOwner(created_by)` comparing to the logged-in **user id**.
+- **Logout** — header menu item is UI only. No mock function.
 
 ---
 
