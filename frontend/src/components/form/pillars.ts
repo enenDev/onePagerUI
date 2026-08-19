@@ -56,6 +56,24 @@ export function everyPillarHasInitiative(pillars: PillarDraft[]): boolean {
   return pillars.every((pillar) => pillar.initiatives.length >= 1);
 }
 
+export function sumPillarWeights(pillars: PillarDraft[]): number {
+  return pillars.reduce((sum, pillar) => sum + pillar.pillar_weight, 0);
+}
+
+/**
+ * Preview & Publish only. UNWEIGHTED ignores stored weights.
+ * Save Draft stays available when this returns a reason.
+ */
+export function getWeightedPillarWeightBlocker(
+  scoringMode: ScoringMode,
+  pillars: PillarDraft[],
+): string | null {
+  if (scoringMode !== "WEIGHTED") return null;
+  const total = sumPillarWeights(pillars);
+  if (total === 100) return null;
+  return `Pillar weights must sum to 100 (currently ${total}).`;
+}
+
 export function pillarsMissingInitiatives(pillars: PillarDraft[]): string[] {
   return pillars
     .filter((pillar) => pillar.initiatives.length === 0)

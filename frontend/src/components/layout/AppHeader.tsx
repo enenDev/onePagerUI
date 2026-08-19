@@ -23,31 +23,31 @@ function HeaderDivider() {
 
 export function AppHeader() {
   return (
-    <header className="sticky top-0 z-40 w-full bg-primary">
+    <header className="sticky top-0 z-40 w-full overflow-hidden bg-primary">
       <PageContainer className="relative flex h-14 items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-2">
           <Link
             to="/home"
-            className="flex shrink-0 cursor-pointer items-center gap-2 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-white/60"
-            aria-label="CATEGORY ONE-PAGER-APP home"
+            className="flex h-14 shrink-0 cursor-pointer items-center gap-2 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+            aria-label="Go to home"
           >
             <img
               src={perfectStoreLogo}
               alt=""
-              className="size-28 object-contain"
+              className="h-7 w-auto object-contain"
             />
             <HeaderDivider />
             {/* TODO: Swap /logo-secondary.svg for the real second brand logo asset. */}
             <img
               src={unileverBrandLogo}
               alt=""
-              className="size-16 object-contain"
+              className="h-7 w-auto object-contain"
             />
-            <HeaderDivider />
-            <span className="truncate text-sm font-semibold tracking-wide text-primary-foreground md:text-base">
-              CATEGORY ONE-PAGER-APP
-            </span>
           </Link>
+          <HeaderDivider />
+          <span className="truncate text-sm font-semibold tracking-wide text-primary-foreground md:text-base">
+            CATEGORY ONE-PAGER-APP
+          </span>
         </div>
 
         <DropdownMenu>

@@ -1,4 +1,8 @@
-import { type PillarDraft } from "@/components/form/pillars";
+import {
+  getWeightedPillarWeightBlocker,
+  type PillarDraft,
+  type ScoringMode,
+} from "@/components/form/pillars";
 
 /**
  * Retailer create/edit strategy fields.
@@ -41,7 +45,8 @@ export const emptyRetailerFormValues: RetailerFormValues = {
 /** Required strategy fields. Campaign/cover/outcome are optional. Initiatives are recommended, not required. */
 export function getRetailerSubmitBlockers(
   values: RetailerFormValues,
-  _pillars: PillarDraft[],
+  pillars: PillarDraft[],
+  scoringMode: ScoringMode,
 ): string | null {
   if (!values.market.trim()) return "Select a Market.";
   if (!values.targetRetailer.trim()) return "Select a Target Retailer.";
@@ -49,5 +54,5 @@ export function getRetailerSubmitBlockers(
   if (!values.channel.trim()) return "Select a Channel.";
   if (!values.title.trim()) return "Enter a Title.";
 
-  return null;
+  return getWeightedPillarWeightBlocker(scoringMode, pillars);
 }

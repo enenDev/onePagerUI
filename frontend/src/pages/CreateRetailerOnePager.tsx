@@ -245,7 +245,11 @@ export function CreateRetailerOnePager() {
       ? isFormDirty(values, scoringMode, pillars)
       : payloadFingerprint !== savedFingerprint;
 
-  const submitBlockedReason = getRetailerSubmitBlockers(values, pillars);
+  const submitBlockedReason = getRetailerSubmitBlockers(
+    values,
+    pillars,
+    scoringMode,
+  );
   const canSubmit = submitBlockedReason === null;
 
   const showToast = (message: string) => {

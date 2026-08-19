@@ -181,7 +181,11 @@ export function CreateNationalOnePager() {
       ? isFormDirty(values, scoringMode, pillars)
       : payloadFingerprint !== savedFingerprint;
 
-  const submitBlockedReason = getNationalSubmitBlockers(values, pillars);
+  const submitBlockedReason = getNationalSubmitBlockers(
+    values,
+    pillars,
+    scoringMode,
+  );
   const canSubmit = submitBlockedReason === null;
 
   const showToast = (message: string) => {
