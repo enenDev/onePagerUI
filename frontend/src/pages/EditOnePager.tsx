@@ -14,8 +14,9 @@ import { isCurrentUserOwner } from "@/types/onePager";
 /**
  * Edit entry: one GET-by-id, then open the matching create form.
  *
- * TODO: Swap only getOnePagerById to GET /api/one-pagers/:id.
- * Keep branching on pager_type → /create/national vs /create/retailer.
+ * TODO: Swap only getOnePagerById to GET /api/one-pagers/:id
+ * (GetOnePagerApiResponse). Keep mapGetOnePagerResponse + pager_type branch
+ * → /create/national vs /create/retailer.
  * Pass EditOnePagerLocationState.editRecord into the form (hydrate, no 2nd GET).
  */
 export function EditOnePager() {

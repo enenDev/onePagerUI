@@ -26,7 +26,7 @@ import {
   publishNationalOnePager,
   type NationalOnePagerCreatePayload,
 } from "@/services/createFormApi";
-import { CURRENT_USER_ID, isCurrentUserOwner } from "@/types/onePager";
+import { CURRENT_USER_ID } from "@/types/onePager";
 
 export type NationalPreviewLocationState = {
   values: NationalFormValues;
@@ -56,7 +56,6 @@ export function PreviewNationalOnePager() {
   const owner = CURRENT_USER_ID;
   const payload = state?.payload ?? null;
   const composedTitle = payload ? composeNationalPreviewTitle(payload) : "";
-  const isOwner = isCurrentUserOwner(owner);
 
   const [publishing, setPublishing] = useState(false);
   const [published, setPublished] = useState(false);
@@ -160,8 +159,6 @@ export function PreviewNationalOnePager() {
           publishedAt={publishedAt}
           onEdit={goBackToEdit}
           moreOptionsEnabled={published}
-          canEdit={isOwner}
-          canDelete={isOwner}
           onTrack={
             published
               ? () => {

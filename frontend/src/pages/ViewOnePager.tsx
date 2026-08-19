@@ -30,7 +30,8 @@ function composeViewTitle(record: OnePagerByIdRecord) {
  * Landing card click: GET-by-id, then the published/document view.
  * Active / Draft / Archive all open this page (no sticky Publish bar).
  *
- * TODO: Swap only getOnePagerById to GET /api/one-pagers/:id.
+ * TODO: Swap only getOnePagerById to GET /api/one-pagers/:id
+ * (GetOnePagerApiResponse). Keep mapGetOnePagerResponse + OnePagerByIdRecord.
  * Keep rendering NationalPreviewDocument from the record payload (retailer
  * shows Target Retailer when present). Do not route through create/preview.
  * Back → /home. More Options → Edit still uses /edit/:id (owner-only).
@@ -90,7 +91,7 @@ export function ViewOnePager() {
   const isOwner = record ? isCurrentUserOwner(record.created_by) : false;
 
   const handleConfirmDelete = async () => {
-    if (!record) return;
+    if (!record || !isOwner) return;
     setDeleting(true);
     setDeleteError(null);
     try {

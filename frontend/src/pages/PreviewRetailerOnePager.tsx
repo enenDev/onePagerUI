@@ -26,7 +26,7 @@ import {
   publishRetailerOnePager,
   type RetailerOnePagerCreatePayload,
 } from "@/services/retailerCreateFormApi";
-import { CURRENT_USER_ID, isCurrentUserOwner } from "@/types/onePager";
+import { CURRENT_USER_ID } from "@/types/onePager";
 
 export type RetailerPreviewLocationState = {
   values: RetailerFormValues;
@@ -57,7 +57,6 @@ export function PreviewRetailerOnePager() {
   const owner = CURRENT_USER_ID;
   const payload = state?.payload ?? null;
   const composedTitle = payload ? composeRetailerPreviewTitle(payload) : "";
-  const isOwner = isCurrentUserOwner(owner);
 
   const [publishing, setPublishing] = useState(false);
   const [published, setPublished] = useState(false);
@@ -164,8 +163,6 @@ export function PreviewRetailerOnePager() {
           publishedAt={publishedAt}
           onEdit={goBackToEdit}
           moreOptionsEnabled={published}
-          canEdit={isOwner}
-          canDelete={isOwner}
           onTrack={
             published
               ? () => {

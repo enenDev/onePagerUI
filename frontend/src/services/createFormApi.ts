@@ -175,6 +175,10 @@ export type NationalInitiativePayload = {
   guidelines: string;
   checklist_compliance_notes: string;
   images: NationalImagePayload[];
+  /** GET-by-id RAG. `null` = Clear. View/Edit ignore this. */
+  initiative_track?: "red" | "amber" | "green" | null;
+  /** GET-by-id UUID — required for Track PATCH. View/Edit ignore this. */
+  initiative_id?: string;
 };
 
 export type NationalPillarPayload = {
@@ -183,6 +187,10 @@ export type NationalPillarPayload = {
   pillar_description: string;
   pillar_weight: number;
   initiatives: NationalInitiativePayload[];
+  /** GET-by-id RAG. `null` = Clear. View/Edit ignore this. */
+  pillar_track?: "red" | "amber" | "green" | null;
+  /** GET-by-id UUID — required for Track PATCH. View/Edit ignore this. */
+  pillar_id?: string;
 };
 
 export type NationalOnePagerCreatePayload = {

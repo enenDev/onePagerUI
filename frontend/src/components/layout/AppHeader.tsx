@@ -34,14 +34,14 @@ export function AppHeader() {
             <img
               src={perfectStoreLogo}
               alt=""
-              className="size-8 object-contain"
+              className="size-28 object-contain"
             />
             <HeaderDivider />
             {/* TODO: Swap /logo-secondary.svg for the real second brand logo asset. */}
             <img
               src={unileverBrandLogo}
               alt=""
-              className="size-8 object-contain"
+              className="size-16 object-contain"
             />
             <HeaderDivider />
             <span className="truncate text-sm font-semibold tracking-wide text-primary-foreground md:text-base">

@@ -15,8 +15,8 @@ import {
   type OnePagerByIdRecord,
 } from "@/services/onePagerApi";
 import {
-  getTrackStatuses,
   initiativeTrackKey,
+  trackStateFromPillars,
   updateTrackStatus,
   type OnePagerTrackState,
   type TrackRagStatus,
@@ -31,14 +31,12 @@ function composeTitle(record: OnePagerByIdRecord) {
 }
 
 /**
- * Published-only Track board. Same document header as View (no More Options),
- * plus RAG dots on the pillar grid. Anyone can open; only the owner can update.
+ * Published-only Track board. Same GET-by-id as View/Edit; dots come from
+ * pillar_track / initiative_track. PATCH uses pager_id + pillar_id +
+ * initiative_id ("" for pillar-only) from that GET.
  *
- * TODO: This page already calls the right functions — do not rewrite handlers
- * or routes. Swap only the mock bodies:
- * - getOnePagerById in onePagerApi.ts (content)
- * - getTrackStatuses / updateTrackStatus in trackApi.ts (dots)
- * Keep /track/:pagerId, owner-only writes, independent pillar vs initiative status.
+ * TODO: Swap getOnePagerById / updateTrackStatus bodies only.
+ * Keep this page looking up pillar_id / initiative_id from the mapped record.
  */
 export function TrackOnePager() {
   const { pagerId } = useParams<{ pagerId: string }>();
@@ -85,10 +83,8 @@ export function TrackOnePager() {
         setError("Only published one-pagers can be tracked.");
         return;
       }
-      const nextStatuses = await getTrackStatuses(pagerId);
-      if (cancelled) return;
       setRecord(next);
-      setStatuses(nextStatuses);
+      setStatuses(trackStateFromPillars(next.payload.pillars));
     })();
 
     return () => {
@@ -102,16 +98,21 @@ export function TrackOnePager() {
     pillarNumber: number,
     status: TrackRagStatus,
   ) => {
-    if (!pagerId || !canUpdate) return;
+    if (!record || !canUpdate) return;
+    const pillar = record.payload.pillars.find(
+      (item) => item.pillar_number === pillarNumber,
+    );
+    if (!pillar?.pillar_id) return;
+
     const previous = statuses;
     setStatuses({
       ...statuses,
       pillars: { ...statuses.pillars, [pillarNumber]: status },
     });
     const result = await updateTrackStatus({
-      pagerId,
-      kind: "pillar",
-      pillarNumber,
+      pagerId: record.id,
+      pillarId: pillar.pillar_id,
+      initiativeId: "",
       status,
     });
     if (!result.ok) setStatuses(previous);
@@ -122,7 +123,15 @@ export function TrackOnePager() {
     initiativeNumber: number,
     status: TrackRagStatus,
   ) => {
-    if (!pagerId || !canUpdate) return;
+    if (!record || !canUpdate) return;
+    const pillar = record.payload.pillars.find(
+      (item) => item.pillar_number === pillarNumber,
+    );
+    const initiative = pillar?.initiatives.find(
+      (item) => item.initiative_number === initiativeNumber,
+    );
+    if (!pillar?.pillar_id || !initiative?.initiative_id) return;
+
     const previous = statuses;
     setStatuses({
       ...statuses,
@@ -132,10 +141,9 @@ export function TrackOnePager() {
       },
     });
     const result = await updateTrackStatus({
-      pagerId,
-      kind: "initiative",
-      pillarNumber,
-      initiativeNumber,
+      pagerId: record.id,
+      pillarId: pillar.pillar_id,
+      initiativeId: initiative.initiative_id,
       status,
     });
     if (!result.ok) setStatuses(previous);
@@ -169,16 +177,8 @@ export function TrackOnePager() {
             track={{
               canUpdate,
               statuses,
-              onPillarChange: (pillarNumber, status) => {
-                void handlePillarChange(pillarNumber, status);
-              },
-              onInitiativeChange: (pillarNumber, initiativeNumber, status) => {
-                void handleInitiativeChange(
-                  pillarNumber,
-                  initiativeNumber,
-                  status,
-                );
-              },
+              onPillarChange: handlePillarChange,
+              onInitiativeChange: handleInitiativeChange,
             }}
           />
         )}

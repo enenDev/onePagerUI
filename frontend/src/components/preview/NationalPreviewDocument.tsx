@@ -166,8 +166,16 @@ export function NationalPreviewDocument({
                   Export
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="m-0" />
-                {/* TODO: Wire Archive to FastAPI status change. Keep menu item + confirmation if product adds one. */}
-                <DropdownMenuItem className="cursor-pointer rounded-none px-3 py-2">
+                {/* TODO: Wire Archive to FastAPI status change. Keep menu item + confirmation if product adds one. Owner-only. */}
+                <DropdownMenuItem
+                  disabled={!canEdit}
+                  title={
+                    canEdit
+                      ? undefined
+                      : "Only the owner can archive this one-pager"
+                  }
+                  className="cursor-pointer rounded-none px-3 py-2"
+                >
                   <Archive className="size-4" />
                   Archive
                 </DropdownMenuItem>
@@ -180,7 +188,10 @@ export function NationalPreviewDocument({
                       : "Only the owner can edit this one-pager"
                   }
                   className="cursor-pointer rounded-none px-3 py-2"
-                  onClick={onEdit}
+                  onClick={() => {
+                    if (!canEdit) return;
+                    onEdit?.();
+                  }}
                 >
                   <Pencil className="size-4" />
                   Edit

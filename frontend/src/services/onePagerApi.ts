@@ -1,10 +1,13 @@
-import nationalOnePagerMock from "@/services/mocks/nationalOnePager.json";
-import retailerOnePagerMock from "@/services/mocks/retailerOnePager.json";
+import getOnePagerMock from "@/services/mocks/getOnePager.json";
 import type {
   NationalOnePagerCreatePayload,
   OnePagerRecordStatus,
 } from "@/services/createFormApi";
 import { landingList, removeLandingCard } from "@/services/landingListStore";
+import {
+  mapGetOnePagerResponse,
+  type GetOnePagerApiResponse,
+} from "@/services/mapGetOnePagerResponse";
 import type { RetailerOnePagerCreatePayload } from "@/services/retailerCreateFormApi";
 import {
   toOnePagerSearchPayload,
@@ -134,38 +137,26 @@ function resolvePagerType(id: string): OnePagerType {
 }
 
 /**
- * Mock GET-by-id for edit (landing ⋯ Edit / published Edit) and view (card click).
+ * GET-by-id for View, Edit, and Track. Same API body for all three.
  *
- * TODO: Replace the function body with GET /api/one-pagers/:id
- * Keep signature `getOnePagerById(id)` and OnePagerByIdRecord
- * (`pager_type` + matching payload, `list_status`, `published_at`, `created_by`).
- * View stays on `/view/:id` and renders the document. Edit still branches
- * pager_type → `/create/national` or `/create/retailer` — do not merge those forms.
- * Temporary: one complete dummy JSON per pager_type
- * (nationalOnePager.json / retailerOnePager.json). Stamp `id` from the URL.
- * Landing list is only used to choose national vs retailer for known card ids;
- * do not overlay card title/owner/status onto this response.
- * Import From National still uses getNationalOnePager (national-only).
+ * TODO: Replace the function body with GET /api/one-pagers/:id returning
+ * GetOnePagerApiResponse. Keep mapGetOnePagerResponse so View/Edit/Track
+ * still receive OnePagerByIdRecord. Stamp pager_id from the URL in the mock
+ * only. Import From National still uses getNationalOnePager (national-only).
+ * Top-level `track` is ignored. RAG is pillar_track / initiative_track.
+ * Mock strategy fields (market / channel / category / campaign_focus / retailer)
+ * must match homepageMetadata option values, or Edit dropdowns render empty
+ * (Select only shows a value that exists in the catalog).
  */
 export async function getOnePagerById(
   id: string,
 ): Promise<OnePagerByIdRecord | null> {
   await delay(300);
   const pagerType = resolvePagerType(id);
-
-  if (pagerType === "retailer") {
-    const record = structuredClone(
-      retailerOnePagerMock,
-    ) as RetailerOnePagerByIdRecord;
-    record.id = id;
-    return record;
-  }
-
-  const record = structuredClone(
-    nationalOnePagerMock,
-  ) as NationalOnePagerByIdRecord;
-  record.id = id;
-  return record;
+  const api = structuredClone(getOnePagerMock) as GetOnePagerApiResponse;
+  api.pager_id = id;
+  api.pager_type = pagerType === "retailer" ? "Retailer" : "National";
+  return mapGetOnePagerResponse(api);
 }
 
 export type DeleteOnePagerResult =

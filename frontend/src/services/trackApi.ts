@@ -1,22 +1,26 @@
-export type TrackRagStatus = "clear" | "red" | "amber" | "green";
+export type ApiTrackColor = "red" | "amber" | "green";
+export type TrackRagStatus = "clear" | ApiTrackColor;
 
 export type OnePagerTrackState = {
   pillars: Record<number, TrackRagStatus>;
   initiatives: Record<string, TrackRagStatus>;
 };
 
-const delay = (ms = 200) => new Promise((resolve) => setTimeout(resolve, ms));
-
 /**
- * TODO: Replace this in-memory Map with FastAPI track endpoints.
- * Temporary: statuses live only in the browser session, keyed by pager id.
- * Next:
- * - GET /api/one-pagers/:id/track → OnePagerTrackState
- * - PATCH /api/one-pagers/:id/track with { kind, pillar_number, initiative_number?, status }
- * Keep: TrackRagStatus (clear | red | amber | green), independent pillar vs
- * initiative values, owner-only writes on the server.
+ * PATCH update-track body. `table` is always "pager".
+ * Pillar-only: initiative_id is "". Initiative: all three ids.
+ * Clear → track: null (same as GET). Else "red" | "amber" | "green".
  */
-const trackByPager = new Map<string, OnePagerTrackState>();
+export type UpdateTrackPayload = {
+  table: "pager";
+  pager_id: string;
+  pillar_id: string;
+  initiative_id: string;
+  track: ApiTrackColor | null;
+  updated_by: string;
+};
+
+const delay = (ms = 200) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export function initiativeTrackKey(
   pillarNumber: number,
@@ -25,56 +29,55 @@ export function initiativeTrackKey(
   return `${pillarNumber}-${initiativeNumber}`;
 }
 
-function emptyState(): OnePagerTrackState {
-  return { pillars: {}, initiatives: {} };
+function apiTrackToUi(
+  value: ApiTrackColor | null | undefined,
+): TrackRagStatus {
+  return value ?? "clear";
 }
 
-function cloneState(state: OnePagerTrackState): OnePagerTrackState {
-  return {
-    pillars: { ...state.pillars },
-    initiatives: { ...state.initiatives },
-  };
+/** Read RAG dots from GET-by-id pillars. Missing / null = Clear. */
+export function trackStateFromPillars(
+  pillars: Array<{
+    pillar_number: number;
+    pillar_track?: ApiTrackColor | null;
+    initiatives: Array<{
+      initiative_number: number;
+      initiative_track?: ApiTrackColor | null;
+    }>;
+  }>,
+): OnePagerTrackState {
+  const next: OnePagerTrackState = { pillars: {}, initiatives: {} };
+  for (const pillar of pillars) {
+    next.pillars[pillar.pillar_number] = apiTrackToUi(pillar.pillar_track);
+    for (const initiative of pillar.initiatives) {
+      next.initiatives[
+        initiativeTrackKey(pillar.pillar_number, initiative.initiative_number)
+      ] = apiTrackToUi(initiative.initiative_track);
+    }
+  }
+  return next;
 }
 
 /**
- * TODO: Swap body for GET /api/one-pagers/:id/track.
- * Missing keys mean Clear. Keep OnePagerTrackState shape.
- */
-export async function getTrackStatuses(
-  pagerId: string,
-): Promise<OnePagerTrackState> {
-  await delay();
-  const stored = trackByPager.get(pagerId);
-  return stored ? cloneState(stored) : emptyState();
-}
-
-/**
- * TODO: Swap body for PATCH /api/one-pagers/:id/track.
- * Keep request fields: kind, pillar_number, optional initiative_number, status.
- * Server should 403 non-owners; FE already disables the dots.
+ * TODO: Replace the function body with the real PATCH (e.g.
+ * PATCH /api/one-pagers/:id/track). Temporary: delay then { ok: true }.
+ * Send UpdateTrackPayload:
+ * { table: "pager", pager_id, pillar_id, initiative_id, track, updated_by }.
+ * Map input.status: Clear → track null; else "red" | "amber" | "green".
+ * initiative_id is "" for pillar-only updates.
+ * updated_by is CURRENT_USER_EMAIL until real auth.
  */
 export async function updateTrackStatus(input: {
   pagerId: string;
-  kind: "pillar" | "initiative";
-  pillarNumber: number;
-  initiativeNumber?: number;
+  pillarId: string;
+  initiativeId: string;
   status: TrackRagStatus;
 }): Promise<{ ok: true } | { ok: false; error: string }> {
   await delay();
-  const current = trackByPager.get(input.pagerId) ?? emptyState();
-  const next = cloneState(current);
 
-  if (input.kind === "pillar") {
-    next.pillars[input.pillarNumber] = input.status;
-  } else {
-    if (input.initiativeNumber == null) {
-      return { ok: false, error: "Missing initiative number." };
-    }
-    next.initiatives[
-      initiativeTrackKey(input.pillarNumber, input.initiativeNumber)
-    ] = input.status;
+  if (!input.pagerId.trim() || !input.pillarId.trim()) {
+    return { ok: false, error: "Missing pager or pillar id." };
   }
 
-  trackByPager.set(input.pagerId, next);
   return { ok: true };
 }

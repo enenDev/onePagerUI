@@ -50,8 +50,7 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
   const dispatch = useAppDispatch();
   const scoringLabel =
     item.scoring_mode === "WEIGHTED" ? "Weighted" : "Unweighted";
-  const canEdit = isCurrentUserOwner(item.created_by);
-  const canDelete = canEdit;
+  const isOwner = isCurrentUserOwner(item.created_by);
   const viewPath = `/view/${item.pager_id}`;
   const actions = menuActionsForStatus(item.status);
 
@@ -60,6 +59,7 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const handleConfirmDelete = async () => {
+    if (!isOwner) return;
     setDeleting(true);
     setDeleteError(null);
     try {
@@ -94,18 +94,17 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
               <CardMenuItem
                 key={action}
                 action={action}
-                canEdit={canEdit}
-                canDelete={canDelete}
+                isOwner={isOwner}
                 showSeparator={index < actions.length - 1}
                 onEdit={() => {
-                  if (!canEdit) return;
+                  if (!isOwner) return;
                   navigate(`/edit/${item.pager_id}`);
                 }}
                 onTrack={() => {
                   navigate(`/track/${item.pager_id}`);
                 }}
                 onDelete={() => {
-                  if (!canDelete) return;
+                  if (!isOwner) return;
                   setDeleteError(null);
                   setDeleteOpen(true);
                 }}
@@ -175,16 +174,14 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
 
 function CardMenuItem({
   action,
-  canEdit,
-  canDelete,
+  isOwner,
   showSeparator,
   onEdit,
   onTrack,
   onDelete,
 }: {
   action: CardMenuAction;
-  canEdit: boolean;
-  canDelete: boolean;
+  isOwner: boolean;
   showSeparator: boolean;
   onEdit: () => void;
   onTrack: () => void;
@@ -222,13 +219,21 @@ function CardMenuItem({
     case "archive":
       menuItem = (
         <DropdownMenuItem
+          disabled={!isOwner}
+          title={
+            isOwner
+              ? undefined
+              : "Only the owner can archive this one-pager"
+          }
           className={itemClassName}
           onClick={() => {
+            if (!isOwner) return;
             // TODO: Archive is UI-only. Temporary: no status mutation.
             // Next: PATCH/POST to set status ARCHIVED (e.g.
             // POST /api/one-pagers/:id/archive), then refresh landing list /
             // optimistic update item.status.
             // Keep: menu label + Archive icon; only on PUBLISHED cards.
+            // Owner-only: keep disabled + tooltip for non-owners.
           }}
         >
           <Archive className="size-4" />
@@ -239,12 +244,20 @@ function CardMenuItem({
     case "restore":
       menuItem = (
         <DropdownMenuItem
+          disabled={!isOwner}
+          title={
+            isOwner
+              ? undefined
+              : "Only the owner can restore this one-pager"
+          }
           className={itemClassName}
           onClick={() => {
+            if (!isOwner) return;
             // TODO: Restore is UI-only. Temporary: no status mutation.
             // Next: PATCH/POST to restore ARCHIVED → PUBLISHED (e.g.
             // POST /api/one-pagers/:id/restore), then refresh landing list.
             // Keep: menu label + RotateCcw icon; only on ARCHIVED cards.
+            // Owner-only: keep disabled + tooltip for non-owners.
           }}
         >
           <RotateCcw className="size-4" />
@@ -255,9 +268,9 @@ function CardMenuItem({
     case "edit":
       menuItem = (
         <DropdownMenuItem
-          disabled={!canEdit}
+          disabled={!isOwner}
           title={
-            canEdit ? undefined : "Only the owner can edit this one-pager"
+            isOwner ? undefined : "Only the owner can edit this one-pager"
           }
           className={itemClassName}
           onClick={onEdit}
@@ -271,9 +284,9 @@ function CardMenuItem({
       menuItem = (
         <DropdownMenuItem
           variant="destructive"
-          disabled={!canDelete}
+          disabled={!isOwner}
           title={
-            canDelete
+            isOwner
               ? undefined
               : "Only the owner can delete this one-pager"
           }
