@@ -3,7 +3,7 @@ import type {
   NationalOnePagerCreatePayload,
   OnePagerRecordStatus,
 } from "@/services/createFormApi";
-import { landingList, removeLandingCard } from "@/services/landingListStore";
+import { landingList, removeLandingCard, updateLandingCardStatus } from "@/services/landingListStore";
 import {
   mapGetOnePagerResponse,
   type GetOnePagerApiResponse,
@@ -97,6 +97,11 @@ export type OnePagerByIdRecord =
 
 export type EditOnePagerLocationState = {
   editRecord: OnePagerByIdRecord;
+  /**
+   * Published → edit flows (Keep Active / Archive & Edit): hydrate form but
+   * leave recordId null so Save Draft / Publish creates a new pager.
+   */
+  createAsNew?: boolean;
 };
 
 export function isEditLocationState(
@@ -156,7 +161,17 @@ export async function getOnePagerById(
   const api = structuredClone(getOnePagerMock) as GetOnePagerApiResponse;
   api.pager_id = id;
   api.pager_type = pagerType === "retailer" ? "Retailer" : "National";
-  return mapGetOnePagerResponse(api);
+  const mapped = mapGetOnePagerResponse(api);
+  // Prefer landing-list status so Archive/Restore mock updates show on View.
+  const listing = landingList.find((item) => item.pager_id === id);
+  if (listing) {
+    return {
+      ...mapped,
+      list_status: listing.status,
+      status: listing.status === "DRAFT" ? "draft" : "published",
+    };
+  }
+  return mapped;
 }
 
 export type DeleteOnePagerResult =
@@ -185,4 +200,56 @@ export async function deleteOnePager(
   // Even if the id was only in Redux (not the seed list), treat as success so
   // the card can still be dropped from landing.items after publish/upsert.
   return { ok: true, pager_id: trimmed };
+}
+
+export type ArchiveRestoreOnePagerResult =
+  | { ok: true; pager_id: string; status: OnePagerStatus }
+  | { ok: false; error: string };
+
+/**
+ * Mock archive — published → ARCHIVED.
+ *
+ * TODO: Replace with POST /api/one-pagers/:id/archive.
+ * Temporary: updateLandingCardStatus in landingListStore.
+ * Keep { ok, pager_id, status: "ARCHIVED" }. Owner-only on FE; server 403 later.
+ */
+export async function archiveOnePager(
+  pagerId: string,
+): Promise<ArchiveRestoreOnePagerResult> {
+  await delay(400);
+  const trimmed = pagerId.trim();
+  if (!trimmed) {
+    return { ok: false, error: "Missing one-pager id." };
+  }
+
+  const updated = updateLandingCardStatus(trimmed, "ARCHIVED");
+  if (!updated) {
+    // Card may exist only in Redux (post-publish upsert). Still succeed so FE
+    // can patch landing.items.
+    return { ok: true, pager_id: trimmed, status: "ARCHIVED" };
+  }
+  return { ok: true, pager_id: trimmed, status: "ARCHIVED" };
+}
+
+/**
+ * Mock restore — archived → DRAFT (not Active).
+ *
+ * TODO: Replace with POST /api/one-pagers/:id/restore.
+ * Temporary: updateLandingCardStatus → DRAFT.
+ * Keep { ok, pager_id, status: "DRAFT" }. Owner-only on FE; server 403 later.
+ */
+export async function restoreOnePager(
+  pagerId: string,
+): Promise<ArchiveRestoreOnePagerResult> {
+  await delay(400);
+  const trimmed = pagerId.trim();
+  if (!trimmed) {
+    return { ok: false, error: "Missing one-pager id." };
+  }
+
+  const updated = updateLandingCardStatus(trimmed, "DRAFT");
+  if (!updated) {
+    return { ok: true, pager_id: trimmed, status: "DRAFT" };
+  }
+  return { ok: true, pager_id: trimmed, status: "DRAFT" };
 }

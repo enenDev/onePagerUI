@@ -180,10 +180,7 @@ export function PillarsSection({
     );
   };
 
-  const deleteInitiative = (
-    pillarNumber: number,
-    initiativeNumber: number,
-  ) => {
+  const deleteInitiative = (pillarNumber: number, initiativeNumber: number) => {
     onPillarsChange(
       pillars.map((pillar) => {
         if (pillar.pillar_number !== pillarNumber) return pillar;
@@ -199,7 +196,8 @@ export function PillarsSection({
           initiatives: remaining.map((item, index) => ({
             ...item,
             initiative_number: index + 1,
-            priority_level: `P${index + 1}` as InitiativeDraft["priority_level"],
+            priority_level:
+              `P${index + 1}` as InitiativeDraft["priority_level"],
           })),
         };
       }),
@@ -405,7 +403,7 @@ export function PillarsSection({
                         })
                       }
                       placeholder="Define goal of the pillar"
-                      className="min-h-24 bg-white"
+                      className="min-h-10 bg-white"
                     />
                   </div>
 
@@ -434,7 +432,10 @@ export function PillarsSection({
                                 <MoreVertical className="size-4" />
                               </button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="min-w-36 p-0">
+                            <DropdownMenuContent
+                              align="end"
+                              className="min-w-36 p-0"
+                            >
                               <DropdownMenuItem
                                 className="cursor-pointer rounded-none px-3 py-2"
                                 onClick={() => {

@@ -3,6 +3,7 @@ import {
   Info,
   MoreVertical,
   Pencil,
+  RotateCcw,
   Share2,
   Target,
   Trash2,
@@ -66,6 +67,10 @@ type NationalPreviewDocumentProps = {
   onExport?: () => void;
   /** Opens delete confirm; only called when canDelete is true. */
   onDelete?: () => void;
+  /** Opens archive confirm (published). Owner-gated via canEdit. */
+  onArchive?: () => void;
+  /** Opens restore confirm (archived). Owner-gated via canEdit. */
+  onRestore?: () => void;
   /** Track/Export/Archive/Edit/Delete — off in create Preview, on after publish. */
   moreOptionsEnabled?: boolean;
   /** Hide More Options entirely (Track page). Status badge + date still use moreOptionsEnabled. */
@@ -99,6 +104,8 @@ export function NationalPreviewDocument({
   onTrack,
   onExport,
   onDelete,
+  onArchive,
+  onRestore,
   moreOptionsEnabled = false,
   hideMoreOptions = false,
   canEdit = true,
@@ -112,6 +119,9 @@ export function NationalPreviewDocument({
         label: "STATUS",
         className: "bg-slate-200 text-slate-600 hover:bg-slate-200",
       };
+  const showArchive = status === "PUBLISHED" && Boolean(onArchive);
+  const showRestore = status === "ARCHIVED" && Boolean(onRestore);
+  const showEdit = status === "PUBLISHED" || status === "DRAFT";
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-start justify-between gap-6">
@@ -175,37 +185,69 @@ export function NationalPreviewDocument({
                     <DropdownMenuSeparator className="m-0" />
                   </>
                 ) : null}
-                {/* TODO: Wire Archive to FastAPI status change. Keep menu item + confirmation if product adds one. Owner-only. */}
-                <DropdownMenuItem
-                  disabled={!canEdit}
-                  title={
-                    canEdit
-                      ? undefined
-                      : "Only the owner can archive this one-pager"
-                  }
-                  className="cursor-pointer rounded-none px-3 py-2"
-                >
-                  <Archive className="size-4" />
-                  Archive
-                </DropdownMenuItem>
-                <DropdownMenuSeparator className="m-0" />
-                <DropdownMenuItem
-                  disabled={!canEdit}
-                  title={
-                    canEdit
-                      ? undefined
-                      : "Only the owner can edit this one-pager"
-                  }
-                  className="cursor-pointer rounded-none px-3 py-2"
-                  onClick={() => {
-                    if (!canEdit) return;
-                    onEdit?.();
-                  }}
-                >
-                  <Pencil className="size-4" />
-                  Edit
-                </DropdownMenuItem>
-                <DropdownMenuSeparator className="m-0" />
+                {showArchive ? (
+                  <>
+                    <DropdownMenuItem
+                      disabled={!canEdit}
+                      title={
+                        canEdit
+                          ? undefined
+                          : "Only the owner can archive this one-pager"
+                      }
+                      className="cursor-pointer rounded-none px-3 py-2"
+                      onClick={() => {
+                        if (!canEdit) return;
+                        onArchive?.();
+                      }}
+                    >
+                      <Archive className="size-4" />
+                      Archive
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="m-0" />
+                  </>
+                ) : null}
+                {showRestore ? (
+                  <>
+                    <DropdownMenuItem
+                      disabled={!canEdit}
+                      title={
+                        canEdit
+                          ? undefined
+                          : "Only the owner can restore this one-pager"
+                      }
+                      className="cursor-pointer rounded-none px-3 py-2"
+                      onClick={() => {
+                        if (!canEdit) return;
+                        onRestore?.();
+                      }}
+                    >
+                      <RotateCcw className="size-4" />
+                      Restore
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="m-0" />
+                  </>
+                ) : null}
+                {showEdit ? (
+                  <>
+                    <DropdownMenuItem
+                      disabled={!canEdit}
+                      title={
+                        canEdit
+                          ? undefined
+                          : "Only the owner can edit this one-pager"
+                      }
+                      className="cursor-pointer rounded-none px-3 py-2"
+                      onClick={() => {
+                        if (!canEdit) return;
+                        onEdit?.();
+                      }}
+                    >
+                      <Pencil className="size-4" />
+                      Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="m-0" />
+                  </>
+                ) : null}
                 {/* TODO: Real FastAPI DELETE is dispatched by parents via onDelete.
                     Keep destructive styling + owner-disabled behavior. */}
                 <DropdownMenuItem

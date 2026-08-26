@@ -106,3 +106,18 @@ export function removeLandingCard(pager_id: string) {
   landingList.splice(index, 1);
   return true;
 }
+
+/**
+ * Update a card status in the in-memory landing list (archive / restore).
+ * TODO: Remove when FastAPI archive/restore owns persistence; Home will
+ * refetch or patch landing.items from the response.
+ */
+export function updateLandingCardStatus(
+  pager_id: string,
+  status: OnePagerStatus,
+): OnePagerListItem | null {
+  const index = landingList.findIndex((item) => item.pager_id === pager_id);
+  if (index < 0) return null;
+  landingList[index] = { ...landingList[index], status };
+  return landingList[index];
+}

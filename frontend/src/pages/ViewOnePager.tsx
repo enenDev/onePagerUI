@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 
 import { Loading } from "@/components/common/Loading";
+import { ArchiveOnePagerModal } from "@/components/landing/ArchiveOnePagerModal";
 import { DeleteOnePagerModal } from "@/components/landing/DeleteOnePagerModal";
+import { EditPublishedOnePagerModal } from "@/components/landing/EditPublishedOnePagerModal";
+import { RestoreOnePagerModal } from "@/components/landing/RestoreOnePagerModal";
 import { NationalPreviewDocument } from "@/components/preview/NationalPreviewDocument";
 import {
   composeNationalPreviewTitle,
@@ -12,7 +15,11 @@ import { Button } from "@/components/ui/button";
 import { PageContainer } from "@/components/layout/PageContainer";
 import type { FormLayoutContext } from "@/layouts/MainLayout";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-import { deleteOnePager } from "@/redux/landingSlice";
+import {
+  archiveOnePager,
+  deleteOnePager,
+  restoreOnePager,
+} from "@/redux/landingSlice";
 import { isCurrentUserOwner } from "@/redux/userSlice";
 import { exportOnePagerPpt } from "@/services/exportOnePagerPpt";
 import {
@@ -35,7 +42,9 @@ function composeViewTitle(record: OnePagerByIdRecord) {
  * (GetOnePagerApiResponse). Keep mapGetOnePagerResponse + OnePagerByIdRecord.
  * Keep rendering NationalPreviewDocument from the record payload (retailer
  * shows Target Retailer when present). Do not route through create/preview.
- * Back → /home. More Options → Edit still uses /edit/:id (owner-only).
+ * Back → /home. More Options → Edit still uses /edit/:id (owner-only);
+ * published Edit opens EditPublishedOnePagerModal (createAsNew on save).
+ * Archive / Restore use mock thunks until FastAPI endpoints exist.
  * More Options → Track uses /track/:id for PUBLISHED only.
  * More Options → Export downloads a one-slide PPT from this GET record
  * (not a server export file). Omit Export on DRAFT.
@@ -53,6 +62,17 @@ export function ViewOnePager() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [archiveOpen, setArchiveOpen] = useState(false);
+  const [archiving, setArchiving] = useState(false);
+  const [archiveError, setArchiveError] = useState<string | null>(null);
+  const [restoreOpen, setRestoreOpen] = useState(false);
+  const [restoring, setRestoring] = useState(false);
+  const [restoreError, setRestoreError] = useState<string | null>(null);
+  const [editPublishedOpen, setEditPublishedOpen] = useState(false);
+  const [editPublishedBusy, setEditPublishedBusy] = useState(false);
+  const [editPublishedError, setEditPublishedError] = useState<string | null>(
+    null,
+  );
   const displayError = pagerId ? error : "Missing one-pager id.";
 
   useEffect(() => {
@@ -96,6 +116,11 @@ export function ViewOnePager() {
     ? isCurrentUserOwner(record.created_by, currentUser.id)
     : false;
 
+  const goEditCreateAsNew = () => {
+    if (!record) return;
+    navigate(`/edit/${record.id}`, { state: { createAsNew: true } });
+  };
+
   const handleConfirmDelete = async () => {
     if (!record || !isOwner) return;
     setDeleting(true);
@@ -110,6 +135,57 @@ export function ViewOnePager() {
       );
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleConfirmArchive = async () => {
+    if (!record || !isOwner) return;
+    setArchiving(true);
+    setArchiveError(null);
+    try {
+      await dispatch(archiveOnePager(record.id)).unwrap();
+      setArchiveOpen(false);
+      setRecord({ ...record, list_status: "ARCHIVED" });
+    } catch (err) {
+      setArchiveError(
+        err instanceof Error ? err.message : "Failed to archive one-pager",
+      );
+    } finally {
+      setArchiving(false);
+    }
+  };
+
+  const handleConfirmRestore = async () => {
+    if (!record || !isOwner) return;
+    setRestoring(true);
+    setRestoreError(null);
+    try {
+      await dispatch(restoreOnePager(record.id)).unwrap();
+      setRestoreOpen(false);
+      setRecord({ ...record, list_status: "DRAFT", status: "draft" });
+    } catch (err) {
+      setRestoreError(
+        err instanceof Error ? err.message : "Failed to restore one-pager",
+      );
+    } finally {
+      setRestoring(false);
+    }
+  };
+
+  const handleArchiveAndEdit = async () => {
+    if (!record || !isOwner) return;
+    setEditPublishedBusy(true);
+    setEditPublishedError(null);
+    try {
+      await dispatch(archiveOnePager(record.id)).unwrap();
+      setEditPublishedOpen(false);
+      goEditCreateAsNew();
+    } catch (err) {
+      setEditPublishedError(
+        err instanceof Error ? err.message : "Failed to archive one-pager",
+      );
+    } finally {
+      setEditPublishedBusy(false);
     }
   };
 
@@ -139,7 +215,14 @@ export function ViewOnePager() {
             moreOptionsEnabled
             canEdit={isOwner}
             canDelete={isOwner}
-            onEdit={() => navigate(`/edit/${record.id}`)}
+            onEdit={() => {
+              if (record.list_status === "PUBLISHED") {
+                setEditPublishedError(null);
+                setEditPublishedOpen(true);
+                return;
+              }
+              navigate(`/edit/${record.id}`);
+            }}
             onTrack={
               record.list_status === "PUBLISHED"
                 ? () => navigate(`/track/${record.id}`)
@@ -154,6 +237,22 @@ export function ViewOnePager() {
                       payload: record.payload,
                     });
                   }
+            }
+            onArchive={
+              record.list_status === "PUBLISHED"
+                ? () => {
+                    setArchiveError(null);
+                    setArchiveOpen(true);
+                  }
+                : undefined
+            }
+            onRestore={
+              record.list_status === "ARCHIVED"
+                ? () => {
+                    setRestoreError(null);
+                    setRestoreOpen(true);
+                  }
+                : undefined
             }
             onDelete={() => {
               setDeleteError(null);
@@ -172,6 +271,39 @@ export function ViewOnePager() {
         }}
         deleting={deleting}
         error={deleteError}
+      />
+      <ArchiveOnePagerModal
+        open={archiveOpen}
+        title={viewTitle}
+        onOpenChange={setArchiveOpen}
+        onConfirm={() => {
+          void handleConfirmArchive();
+        }}
+        archiving={archiving}
+        error={archiveError}
+      />
+      <RestoreOnePagerModal
+        open={restoreOpen}
+        title={viewTitle}
+        onOpenChange={setRestoreOpen}
+        onConfirm={() => {
+          void handleConfirmRestore();
+        }}
+        restoring={restoring}
+        error={restoreError}
+      />
+      <EditPublishedOnePagerModal
+        open={editPublishedOpen}
+        onOpenChange={setEditPublishedOpen}
+        busy={editPublishedBusy}
+        error={editPublishedError}
+        onKeepActiveAndEdit={() => {
+          setEditPublishedOpen(false);
+          goEditCreateAsNew();
+        }}
+        onArchiveAndEdit={() => {
+          void handleArchiveAndEdit();
+        }}
       />
     </div>
   );

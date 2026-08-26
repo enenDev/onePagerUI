@@ -3,6 +3,8 @@ import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/tool
 import { getMetadata, unionMarketScopedOptions } from "@/services/metadataApi";
 import {
   deleteOnePager as deleteOnePagerRequest,
+  archiveOnePager as archiveOnePagerRequest,
+  restoreOnePager as restoreOnePagerRequest,
   submitOnePagerSearch,
 } from "@/services/onePagerApi";
 import {
@@ -12,6 +14,7 @@ import {
   type FilterOption,
   type FilterPayload,
   type OnePagerListItem,
+  type OnePagerStatus,
   type ScopeTab,
   type StatusTab,
 } from "@/types/onePager";
@@ -68,6 +71,36 @@ export const deleteOnePager = createAsyncThunk(
       throw new Error(result.error);
     }
     return result.pager_id;
+  },
+);
+
+/**
+ * Mock archive → set item status ARCHIVED in landing.items.
+ * TODO: Swap for POST /api/one-pagers/:id/archive; keep status patch or refetch.
+ */
+export const archiveOnePager = createAsyncThunk(
+  "landing/archiveOnePager",
+  async (pagerId: string) => {
+    const result = await archiveOnePagerRequest(pagerId);
+    if (!result.ok) {
+      throw new Error(result.error);
+    }
+    return { pager_id: result.pager_id, status: result.status };
+  },
+);
+
+/**
+ * Mock restore → set item status DRAFT in landing.items.
+ * TODO: Swap for POST /api/one-pagers/:id/restore; keep status patch or refetch.
+ */
+export const restoreOnePager = createAsyncThunk(
+  "landing/restoreOnePager",
+  async (pagerId: string) => {
+    const result = await restoreOnePagerRequest(pagerId);
+    if (!result.ok) {
+      throw new Error(result.error);
+    }
+    return { pager_id: result.pager_id, status: result.status };
   },
 );
 
@@ -187,9 +220,32 @@ const landingSlice = createSlice({
       })
       .addCase(deleteOnePager.rejected, (state, action) => {
         state.error = action.error.message ?? "Failed to delete one-pager";
+      })
+      .addCase(archiveOnePager.fulfilled, (state, action) => {
+        patchItemStatus(state.items, action.payload.pager_id, action.payload.status);
+        state.error = null;
+      })
+      .addCase(archiveOnePager.rejected, (state, action) => {
+        state.error = action.error.message ?? "Failed to archive one-pager";
+      })
+      .addCase(restoreOnePager.fulfilled, (state, action) => {
+        patchItemStatus(state.items, action.payload.pager_id, action.payload.status);
+        state.error = null;
+      })
+      .addCase(restoreOnePager.rejected, (state, action) => {
+        state.error = action.error.message ?? "Failed to restore one-pager";
       });
   },
 });
+
+function patchItemStatus(
+  items: OnePagerListItem[],
+  pagerId: string,
+  status: OnePagerStatus,
+) {
+  const item = items.find((row) => row.pager_id === pagerId);
+  if (item) item.status = status;
+}
 
 export const {
   toggleFilterValue,

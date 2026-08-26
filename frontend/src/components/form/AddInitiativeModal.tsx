@@ -289,15 +289,19 @@ export function AddInitiativeModal({
       setError("Success Target is required.");
       return;
     }
-    if (!isValidDisplayDate(form.week_start)) {
+    if (form.week_start.trim() && !isValidDisplayDate(form.week_start)) {
       setError("Week Start must be a valid date in mm/dd/yyyy format.");
       return;
     }
-    if (!isValidDisplayDate(form.week_end)) {
+    if (form.week_end.trim() && !isValidDisplayDate(form.week_end)) {
       setError("Week End must be a valid date in mm/dd/yyyy format.");
       return;
     }
-    if (isDisplayDateBefore(form.week_end, form.week_start)) {
+    if (
+      isValidDisplayDate(form.week_start) &&
+      isValidDisplayDate(form.week_end) &&
+      isDisplayDateBefore(form.week_end, form.week_start)
+    ) {
       setError("Week End must be on or after Week Start.");
       return;
     }
@@ -445,7 +449,6 @@ export function AddInitiativeModal({
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <DateField
             label="Week Start"
-            required
             value={form.week_start}
             pickerRef={startPickerRef}
             onChange={(value) => {
@@ -463,7 +466,6 @@ export function AddInitiativeModal({
           />
           <DateField
             label="Week End"
-            required
             value={form.week_end}
             pickerRef={endPickerRef}
             minIso={

@@ -77,7 +77,9 @@ function isPreviewReturnState(
 
 export function CreateNationalOnePager() {
   // Edit: `/edit/:id` calls getOnePagerById then navigates here with editRecord.
-  // TODO: Keep hydrating from OnePagerByIdRecord.payload + recordId.
+  // TODO: Keep hydrating from OnePagerByIdRecord.payload.
+  // createAsNew (published Keep Active / Archive & Edit): hydrate only —
+  // recordId stays null so Save Draft / Publish creates a new pager id.
   // Image fields: API URLs go into coverImageUrl + initiative blobUrl; File is
   // null until the user replaces an image.
   const navigate = useNavigate();
@@ -121,7 +123,9 @@ export function CreateNationalOnePager() {
       createDefaultPillars(),
   );
   const [recordId, setRecordId] = useState<string | null>(
-    () => restored?.recordId ?? edited?.editRecord.id ?? null,
+    () =>
+      restored?.recordId ??
+      (edited?.createAsNew ? null : edited?.editRecord.id ?? null),
   );
   const [savedFingerprint, setSavedFingerprint] = useState<string | null>(
     () =>

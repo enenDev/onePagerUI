@@ -11,6 +11,8 @@ import type { NationalFormValues } from "@/components/form/nationalForm";
 import { FormToast } from "@/components/form/FormToast";
 import type { PillarDraft, ScoringMode } from "@/components/form/pillars";
 import { DeleteOnePagerModal } from "@/components/landing/DeleteOnePagerModal";
+import { ArchiveOnePagerModal } from "@/components/landing/ArchiveOnePagerModal";
+import { EditPublishedOnePagerModal } from "@/components/landing/EditPublishedOnePagerModal";
 import { NationalPreviewDocument } from "@/components/preview/NationalPreviewDocument";
 import { PublishIncompletePillarsModal } from "@/components/preview/PublishIncompletePillarsModal";
 import {
@@ -21,7 +23,7 @@ import { Button } from "@/components/ui/button";
 import { PageContainer } from "@/components/layout/PageContainer";
 import type { FormLayoutContext } from "@/layouts/MainLayout";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-import { deleteOnePager } from "@/redux/landingSlice";
+import { archiveOnePager, deleteOnePager } from "@/redux/landingSlice";
 import {
   publishNationalOnePager,
   type NationalOnePagerCreatePayload,
@@ -72,23 +74,35 @@ export function PreviewNationalOnePager() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [archiveOpen, setArchiveOpen] = useState(false);
+  const [archiving, setArchiving] = useState(false);
+  const [archiveError, setArchiveError] = useState<string | null>(null);
+  const [editPublishedOpen, setEditPublishedOpen] = useState(false);
+  const [editPublishedBusy, setEditPublishedBusy] = useState(false);
+  const [editPublishedError, setEditPublishedError] = useState<string | null>(
+    null,
+  );
+
+  const goEditCreateAsNew = useCallback(() => {
+    const id = recordId ?? state?.recordId;
+    if (!id) return;
+    navigate(`/edit/${id}`, { state: { createAsNew: true } });
+  }, [navigate, recordId, state?.recordId]);
 
   const goBackToEdit = useCallback(() => {
-    // After publish, Edit is the same GET-by-id flow as landing ⋯ Edit.
+    // After publish, Edit opens the published-edit modal (createAsNew on save).
     // Pre-publish Edit still restores in-memory form state (not a GET).
     if (published) {
-      const id = recordId ?? state?.recordId;
-      if (id) {
-        navigate(`/edit/${id}`);
-        return;
-      }
+      setEditPublishedError(null);
+      setEditPublishedOpen(true);
+      return;
     }
     if (!state) {
       navigate("/create/national");
       return;
     }
     navigate("/create/national", { state });
-  }, [navigate, published, recordId, state]);
+  }, [navigate, published, state]);
 
   useEffect(() => {
     setBackHandler(goBackToEdit);
@@ -150,6 +164,48 @@ export function PreviewNationalOnePager() {
     }
   };
 
+  const handleConfirmArchive = async () => {
+    const id = recordId ?? state.recordId;
+    if (!id) {
+      setArchiveError("Missing one-pager id.");
+      return;
+    }
+    setArchiving(true);
+    setArchiveError(null);
+    try {
+      await dispatch(archiveOnePager(id)).unwrap();
+      setArchiveOpen(false);
+      navigate("/home");
+    } catch (err) {
+      setArchiveError(
+        err instanceof Error ? err.message : "Failed to archive one-pager",
+      );
+    } finally {
+      setArchiving(false);
+    }
+  };
+
+  const handleArchiveAndEdit = async () => {
+    const id = recordId ?? state.recordId;
+    if (!id) {
+      setEditPublishedError("Missing one-pager id.");
+      return;
+    }
+    setEditPublishedBusy(true);
+    setEditPublishedError(null);
+    try {
+      await dispatch(archiveOnePager(id)).unwrap();
+      setEditPublishedOpen(false);
+      goEditCreateAsNew();
+    } catch (err) {
+      setEditPublishedError(
+        err instanceof Error ? err.message : "Failed to archive one-pager",
+      );
+    } finally {
+      setEditPublishedBusy(false);
+    }
+  };
+
   return (
     <div className="flex min-h-[calc(100svh-3.5rem)] w-full flex-col">
       <PageContainer className="flex flex-1 flex-col py-6">
@@ -157,6 +213,7 @@ export function PreviewNationalOnePager() {
           payload={payload}
           owner={owner}
           publishedAt={publishedAt}
+          status="PUBLISHED"
           onEdit={goBackToEdit}
           moreOptionsEnabled={published}
           onTrack={
@@ -174,6 +231,14 @@ export function PreviewNationalOnePager() {
                     pagerType: "national",
                     payload,
                   });
+                }
+              : undefined
+          }
+          onArchive={
+            published
+              ? () => {
+                  setArchiveError(null);
+                  setArchiveOpen(true);
                 }
               : undefined
           }
@@ -239,6 +304,31 @@ export function PreviewNationalOnePager() {
         }}
         deleting={deleting}
         error={deleteError}
+      />
+
+      <ArchiveOnePagerModal
+        open={archiveOpen}
+        title={composedTitle}
+        onOpenChange={setArchiveOpen}
+        onConfirm={() => {
+          void handleConfirmArchive();
+        }}
+        archiving={archiving}
+        error={archiveError}
+      />
+
+      <EditPublishedOnePagerModal
+        open={editPublishedOpen}
+        onOpenChange={setEditPublishedOpen}
+        busy={editPublishedBusy}
+        error={editPublishedError}
+        onKeepActiveAndEdit={() => {
+          setEditPublishedOpen(false);
+          goEditCreateAsNew();
+        }}
+        onArchiveAndEdit={() => {
+          void handleArchiveAndEdit();
+        }}
       />
 
       <FormToast

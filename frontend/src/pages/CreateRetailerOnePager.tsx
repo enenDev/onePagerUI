@@ -107,6 +107,8 @@ export function CreateRetailerOnePager() {
   // Import-from-National: picker passes pager_id; this page calls
   // getNationalOnePager(id) and hydrates from that one record.
   // TODO: Swap getOnePagerById (edit) and getNationalOnePager (import) only.
+  // createAsNew (published Keep Active / Archive & Edit): hydrate only —
+  // recordId stays null so Save Draft / Publish creates a new pager id.
   // recordId stays null on import (new retailer draft). Scope stays locked on import.
   const navigate = useNavigate();
   const location = useLocation();
@@ -160,7 +162,9 @@ export function CreateRetailerOnePager() {
       createDefaultPillars(),
   );
   const [recordId, setRecordId] = useState<string | null>(
-    () => restored?.recordId ?? edited?.editRecord.id ?? null,
+    () =>
+      restored?.recordId ??
+      (edited?.createAsNew ? null : edited?.editRecord.id ?? null),
   );
   const [savedFingerprint, setSavedFingerprint] = useState<string | null>(
     () =>

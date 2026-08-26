@@ -10,7 +10,10 @@ import {
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
+import { ArchiveOnePagerModal } from "@/components/landing/ArchiveOnePagerModal";
 import { DeleteOnePagerModal } from "@/components/landing/DeleteOnePagerModal";
+import { EditPublishedOnePagerModal } from "@/components/landing/EditPublishedOnePagerModal";
+import { RestoreOnePagerModal } from "@/components/landing/RestoreOnePagerModal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,7 +24,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-import { deleteOnePager } from "@/redux/landingSlice";
+import {
+  archiveOnePager,
+  deleteOnePager,
+  restoreOnePager,
+} from "@/redux/landingSlice";
 import { isCurrentUserOwner } from "@/redux/userSlice";
 import { exportOnePagerById } from "@/services/exportOnePagerPpt";
 import type { OnePagerListItem, OnePagerStatus } from "@/types/onePager";
@@ -30,7 +37,13 @@ type OnePagerCardProps = {
   item: OnePagerListItem;
 };
 
-type CardMenuAction = "track" | "export" | "archive" | "restore" | "edit" | "delete";
+type CardMenuAction =
+  | "track"
+  | "export"
+  | "archive"
+  | "restore"
+  | "edit"
+  | "delete";
 
 function menuActionsForStatus(status: OnePagerStatus): CardMenuAction[] {
   if (status === "PUBLISHED") {
@@ -56,7 +69,22 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [archiveOpen, setArchiveOpen] = useState(false);
+  const [archiving, setArchiving] = useState(false);
+  const [archiveError, setArchiveError] = useState<string | null>(null);
+  const [restoreOpen, setRestoreOpen] = useState(false);
+  const [restoring, setRestoring] = useState(false);
+  const [restoreError, setRestoreError] = useState<string | null>(null);
+  const [editPublishedOpen, setEditPublishedOpen] = useState(false);
+  const [editPublishedBusy, setEditPublishedBusy] = useState(false);
+  const [editPublishedError, setEditPublishedError] = useState<string | null>(
+    null,
+  );
   const [exporting, setExporting] = useState(false);
+
+  const goEditCreateAsNew = () => {
+    navigate(`/edit/${item.pager_id}`, { state: { createAsNew: true } });
+  };
 
   const handleExport = async () => {
     if (exporting) return;
@@ -86,6 +114,55 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
     }
   };
 
+  const handleConfirmArchive = async () => {
+    if (!isOwner) return;
+    setArchiving(true);
+    setArchiveError(null);
+    try {
+      await dispatch(archiveOnePager(item.pager_id)).unwrap();
+      setArchiveOpen(false);
+    } catch (err) {
+      setArchiveError(
+        err instanceof Error ? err.message : "Failed to archive one-pager",
+      );
+    } finally {
+      setArchiving(false);
+    }
+  };
+
+  const handleConfirmRestore = async () => {
+    if (!isOwner) return;
+    setRestoring(true);
+    setRestoreError(null);
+    try {
+      await dispatch(restoreOnePager(item.pager_id)).unwrap();
+      setRestoreOpen(false);
+    } catch (err) {
+      setRestoreError(
+        err instanceof Error ? err.message : "Failed to restore one-pager",
+      );
+    } finally {
+      setRestoring(false);
+    }
+  };
+
+  const handleArchiveAndEdit = async () => {
+    if (!isOwner) return;
+    setEditPublishedBusy(true);
+    setEditPublishedError(null);
+    try {
+      await dispatch(archiveOnePager(item.pager_id)).unwrap();
+      setEditPublishedOpen(false);
+      goEditCreateAsNew();
+    } catch (err) {
+      setEditPublishedError(
+        err instanceof Error ? err.message : "Failed to archive one-pager",
+      );
+    } finally {
+      setEditPublishedBusy(false);
+    }
+  };
+
   return (
     <article className="relative overflow-hidden rounded-xl border border-border bg-card-surface shadow-sm transition-shadow hover:shadow-md">
       <div className="absolute top-5 right-5 z-10">
@@ -110,6 +187,11 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
                 showSeparator={index < actions.length - 1}
                 onEdit={() => {
                   if (!isOwner) return;
+                  if (item.status === "PUBLISHED") {
+                    setEditPublishedError(null);
+                    setEditPublishedOpen(true);
+                    return;
+                  }
                   navigate(`/edit/${item.pager_id}`);
                 }}
                 onTrack={() => {
@@ -119,6 +201,16 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
                   void handleExport();
                 }}
                 exporting={exporting}
+                onArchive={() => {
+                  if (!isOwner) return;
+                  setArchiveError(null);
+                  setArchiveOpen(true);
+                }}
+                onRestore={() => {
+                  if (!isOwner) return;
+                  setRestoreError(null);
+                  setRestoreOpen(true);
+                }}
                 onDelete={() => {
                   if (!isOwner) return;
                   setDeleteError(null);
@@ -149,18 +241,26 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
         </div>
 
         <div className="space-y-3 p-4 text-left">
+          <div className="flex items-center justify-between gap-2">
+            <Badge
+              variant="secondary"
+              className="rounded-full bg-brand-soft text-accent-foreground hover:bg-brand-soft"
+            >
+              {item.pager_type === "retailer" ? "Retailer" : "National"}
+            </Badge>
+            <Badge
+              variant="secondary"
+              className="rounded-full bg-brand-soft text-accent-foreground hover:bg-brand-soft"
+            >
+              {scoringLabel}
+            </Badge>
+          </div>
           <h3 className="text-sm font-semibold text-foreground md:text-base">
             {item.title}
           </h3>
           <p className="line-clamp-3 text-sm text-muted-foreground">
             {item.business_outcome_statement}
           </p>
-          <Badge
-            variant="secondary"
-            className="rounded-full bg-brand-soft text-accent-foreground hover:bg-brand-soft"
-          >
-            {scoringLabel}
-          </Badge>
           <div className="space-y-1 text-xs text-muted-foreground">
             <p>
               <span className="font-semibold text-foreground">Published:</span>{" "}
@@ -184,6 +284,39 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
         deleting={deleting}
         error={deleteError}
       />
+      <ArchiveOnePagerModal
+        open={archiveOpen}
+        title={item.title}
+        onOpenChange={setArchiveOpen}
+        onConfirm={() => {
+          void handleConfirmArchive();
+        }}
+        archiving={archiving}
+        error={archiveError}
+      />
+      <RestoreOnePagerModal
+        open={restoreOpen}
+        title={item.title}
+        onOpenChange={setRestoreOpen}
+        onConfirm={() => {
+          void handleConfirmRestore();
+        }}
+        restoring={restoring}
+        error={restoreError}
+      />
+      <EditPublishedOnePagerModal
+        open={editPublishedOpen}
+        onOpenChange={setEditPublishedOpen}
+        busy={editPublishedBusy}
+        error={editPublishedError}
+        onKeepActiveAndEdit={() => {
+          setEditPublishedOpen(false);
+          goEditCreateAsNew();
+        }}
+        onArchiveAndEdit={() => {
+          void handleArchiveAndEdit();
+        }}
+      />
     </article>
   );
 }
@@ -196,6 +329,8 @@ function CardMenuItem({
   onTrack,
   onExport,
   exporting,
+  onArchive,
+  onRestore,
   onDelete,
 }: {
   action: CardMenuAction;
@@ -205,6 +340,8 @@ function CardMenuItem({
   onTrack: () => void;
   onExport: () => void;
   exporting: boolean;
+  onArchive: () => void;
+  onRestore: () => void;
   onDelete: () => void;
 }) {
   const itemClassName = "cursor-pointer rounded-none px-3 py-2";
@@ -244,12 +381,7 @@ function CardMenuItem({
           className={itemClassName}
           onClick={() => {
             if (!isOwner) return;
-            // TODO: Archive is UI-only. Temporary: no status mutation.
-            // Next: PATCH/POST to set status ARCHIVED (e.g.
-            // POST /api/one-pagers/:id/archive), then refresh landing list /
-            // optimistic update item.status.
-            // Keep: menu label + Archive icon; only on PUBLISHED cards.
-            // Owner-only: keep disabled + tooltip for non-owners.
+            onArchive();
           }}
         >
           <Archive className="size-4" />
@@ -269,11 +401,7 @@ function CardMenuItem({
           className={itemClassName}
           onClick={() => {
             if (!isOwner) return;
-            // TODO: Restore is UI-only. Temporary: no status mutation.
-            // Next: PATCH/POST to restore ARCHIVED → PUBLISHED (e.g.
-            // POST /api/one-pagers/:id/restore), then refresh landing list.
-            // Keep: menu label + RotateCcw icon; only on ARCHIVED cards.
-            // Owner-only: keep disabled + tooltip for non-owners.
+            onRestore();
           }}
         >
           <RotateCcw className="size-4" />

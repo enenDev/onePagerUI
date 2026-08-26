@@ -253,8 +253,9 @@ No function exists. Cover and initiative images are local `File`s. Preview URLs 
 No mock function. Attach a handler when the API exists.
 
 - **Export** — client-side PPT (`exportOnePagerPpt` in `frontend/src/services/exportOnePagerPpt.ts`). Home ⋯ and View/Preview More Options. Uses GET-by-id payload + `image_urls`. Optional later: `GET /api/one-pagers/:id/export` if the server should generate the file.
-- **Archive** — published cards → `POST /api/one-pagers/:id/archive` (**owner only**; menu is disabled for non-owners on Home and View)
-- **Restore** — archived cards → `POST /api/one-pagers/:id/restore` (**owner only**; Home card ⋯)
+- **Archive** — `archiveOnePager` in `onePagerApi.ts` (mock → `landingListStore.updateLandingCardStatus`). Redux thunk `landing/archiveOnePager`. UI: `ArchiveOnePagerModal`. Swap body for `POST /api/one-pagers/:id/archive`. Keep `{ ok, pager_id, status: "ARCHIVED" }`. Owner-only.
+- **Restore** — `restoreOnePager` → status **DRAFT** (not Active). Redux thunk `landing/restoreOnePager`. UI: `RestoreOnePagerModal`. Swap for `POST /api/one-pagers/:id/restore`. Keep `{ ok, pager_id, status: "DRAFT" }`. Owner-only.
+- **Edit published** — `EditPublishedOnePagerModal` (Archive & Edit / Keep Active & Edit). Both open `/edit/:id` with `createAsNew: true` so Save Draft / Publish create a **new** id. Archive & Edit calls archive first. Draft Edit still updates the same id.
 - **Logout** — header menu item is UI only. No mock function.
 
 ---

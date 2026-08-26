@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useOutletContext, useParams } from "react-router-dom";
+import {
+  useLocation,
+  useNavigate,
+  useOutletContext,
+  useParams,
+} from "react-router-dom";
 
 import { Loading } from "@/components/common/Loading";
 import { Button } from "@/components/ui/button";
@@ -16,6 +21,11 @@ import {
   type EditOnePagerLocationState,
 } from "@/services/onePagerApi";
 
+type EditRouteLocationState = {
+  /** Published Keep Active / Archive & Edit — save creates a new pager. */
+  createAsNew?: boolean;
+};
+
 /**
  * Edit entry: one GET-by-id, then open the matching create form.
  *
@@ -23,15 +33,21 @@ import {
  * (GetOnePagerApiResponse). Keep mapGetOnePagerResponse + pager_type branch
  * → /create/national vs /create/retailer.
  * Pass EditOnePagerLocationState.editRecord into the form (hydrate, no 2nd GET).
+ * createAsNew from location.state (published edit flows) keeps recordId null
+ * so Save Draft / Publish POST a new id.
  */
 export function EditOnePager() {
   const { pagerId } = useParams<{ pagerId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const currentUser = useAppSelector((state) => state.user.currentUser);
   const { setBackHandler, setHeaderTitle } =
     useOutletContext<FormLayoutContext>();
   const [error, setError] = useState<string | null>(null);
   const displayError = pagerId ? error : "Missing one-pager id.";
+  const createAsNew = Boolean(
+    (location.state as EditRouteLocationState | null)?.createAsNew,
+  );
 
   useEffect(() => {
     setHeaderTitle("Edit One-Pager");
@@ -68,7 +84,10 @@ export function EditOnePager() {
         return;
       }
 
-      const state: EditOnePagerLocationState = { editRecord: record };
+      const state: EditOnePagerLocationState = {
+        editRecord: record,
+        createAsNew,
+      };
       const path =
         record.pager_type === "retailer"
           ? "/create/retailer"
@@ -79,7 +98,13 @@ export function EditOnePager() {
     return () => {
       cancelled = true;
     };
-  }, [currentUser.id, currentUser.user_type, navigate, pagerId]);
+  }, [
+    createAsNew,
+    currentUser.id,
+    currentUser.user_type,
+    navigate,
+    pagerId,
+  ]);
 
   return (
     <PageContainer className="flex flex-1 flex-col py-6">
