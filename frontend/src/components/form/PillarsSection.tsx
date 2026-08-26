@@ -349,7 +349,7 @@ export function PillarsSection({
                       <button
                         type="button"
                         className="cursor-pointer px-2 py-1 text-primary hover:bg-accent"
-                        onClick={() => adjustWeight(pillar.pillar_number, -1)}
+                        onClick={() => adjustWeight(pillar.pillar_number, -5)}
                         aria-label="Decrease pillar score"
                       >
                         <Minus className="size-3.5" />
@@ -360,7 +360,7 @@ export function PillarsSection({
                       <button
                         type="button"
                         className="cursor-pointer px-2 py-1 text-primary hover:bg-accent"
-                        onClick={() => adjustWeight(pillar.pillar_number, 1)}
+                        onClick={() => adjustWeight(pillar.pillar_number, 5)}
                         aria-label="Increase pillar score"
                       >
                         <Plus className="size-3.5" />

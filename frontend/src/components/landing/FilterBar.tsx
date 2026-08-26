@@ -1,6 +1,7 @@
 import { Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { MarketRequiredTooltip } from "@/components/ui/market-required-tooltip";
 import { SearchableMultiSelect } from "@/components/ui/searchable-multi-select";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
@@ -77,12 +78,8 @@ export function FilterBar({
 
   return (
     <div className="flex w-full items-center gap-4">
-      <div className="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-border bg-white/80 p-3">
-        <span className="shrink-0 text-sm font-semibold text-foreground">
-          Filters
-        </span>
-
-        <div className="flex min-w-0 flex-1 items-center gap-2">
+      <div className="flex min-w-0 flex-1 items-end gap-2 rounded-lg border border-border bg-white/80 px-3 pt-1.5 pb-2.5">
+        <div className="flex min-w-0 flex-1 items-end gap-2">
           {FILTER_FIELDS.map((field) => {
             const options = optionsFor(field.key);
             const selected = filters[field.key];
@@ -92,7 +89,10 @@ export function FilterBar({
                 : dependentsDisabled;
 
             return (
-              <div key={field.key} className="min-w-0 flex-1">
+              <div key={field.key} className="min-w-0 flex-1 space-y-1">
+                <Label className="text-xs font-medium text-foreground">
+                  {field.label}
+                </Label>
                 <MarketRequiredTooltip
                   show={
                     field.key !== "market" && showMarketRequiredTooltip
@@ -100,6 +100,7 @@ export function FilterBar({
                 >
                   <SearchableMultiSelect
                     label={field.label}
+                    placeholder="Select"
                     options={options}
                     selected={selected}
                     disabled={disabled}
@@ -138,7 +139,7 @@ export function FilterBar({
         <Button
           type="button"
           onClick={onCreateNew}
-          className="h-9 shrink-0 cursor-pointer rounded-full bg-primary px-4 text-primary-foreground"
+          className="h-9 shrink-0 cursor-pointer rounded-lg bg-primary px-4 text-primary-foreground"
         >
           <Plus className="size-4" />
           Create New

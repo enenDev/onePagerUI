@@ -24,6 +24,8 @@ type SearchableMultiSelectProps = {
   selected: string[];
   onToggle: (value: string) => void;
   disabled?: boolean;
+  /** Empty-state trigger text. Defaults to `label`. */
+  placeholder?: string;
   searchPlaceholder?: string;
   className?: string;
 };
@@ -53,11 +55,12 @@ export function SearchableMultiSelect({
   selected,
   onToggle,
   disabled = false,
+  placeholder = label,
   searchPlaceholder = `Search ${label}…`,
   className,
 }: SearchableMultiSelectProps) {
   const [open, setOpen] = useState(false);
-  const triggerLabel = multiSelectLabel(label, selected, options);
+  const triggerLabel = multiSelectLabel(placeholder, selected, options);
   const hasSelection = selected.length > 0;
 
   const handleOpenChange = (next: boolean) => {
@@ -71,6 +74,7 @@ export function SearchableMultiSelect({
         <button
           type="button"
           role="combobox"
+          aria-label={label}
           aria-expanded={open}
           disabled={disabled}
           className={cn(

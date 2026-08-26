@@ -14,14 +14,14 @@ Axios is installed. Use `VITE_API_BASE_URL`. FastAPI has no real endpoints yet.
 - **Thunk:** `frontend/src/redux/userSlice.ts` — `fetchCurrentUser` (calls `getCurrentUser`)
 - **Store:** `state.user.currentUser` (`frontend/src/redux/store.ts`)
 - **Boot:** `MainLayout` dispatches `fetchCurrentUser` once on mount
-- **Replace:** the `delay()` + `userSlice.getInitialState().currentUser`. Do not add a second copy of id / email / initials / user_type in `userApi.ts`.
+- **Replace:** the `delay()` + `userSlice.getInitialState().currentUser`. Do not add a second copy of id / name / email / initials / user_type in `userApi.ts`.
 - **With:** `GET /api/me` (or the auth session after login)
-- **Serves:** header avatar/email, Home “My” tab, owner checks (Edit / Delete / Archive / Track dots), Track PATCH `updated_by`, preview owner label, create/role gates via `user_type`
-- **Data today:** mock user lives **only** in `userSlice` `initialState` (`id: "user-001"`, `email: "nitesh@example.com"`, `initials: "NN"`, `user_type: "user_type_1"`). No `CURRENT_USER_*` constants. Header works before fetch returns because of that seed. Change `user_type` in the slice to locally test roles (`user_type_1` full / `user_type_2` retailer-only / `user_type_3` read-only).
-- **Keep:** `{ id, email, initials, user_type }`. `id` is `created_by` / owner checks. `email` is header + Track `updated_by`. `initials` are the header avatar. `user_type` drives Create button, National option, My/Drafts tabs, and FE create-route redirects (map server role → these three until names are final).
+- **Serves:** header avatar + profile menu (name, email, role badge), Home “My” tab, owner checks (Edit / Delete / Archive / Track dots), Track PATCH `updated_by`, preview owner label, create/role gates via `user_type`
+- **Data today:** mock user lives **only** in `userSlice` `initialState` (`id: "user-001"`, `name: "Nitesh"`, `email: "nitesh@example.com"`, `initials: "NN"`, `user_type: "user_type_1"`). No `CURRENT_USER_*` constants. Header works before fetch returns because of that seed. Change `user_type` in the slice to locally test roles (`user_type_1` full / `user_type_2` retailer-only / `user_type_3` read-only).
+- **Keep:** `{ id, name, email, initials, user_type }`. `id` is `created_by` / owner checks. `name` is the profile-menu display name. `email` is profile menu + Track `updated_by`. `initials` are the header avatar. `user_type` drives Create button, National option, My/Drafts tabs, FE create-route redirects, and the profile role badge via `userTypeLabel` (`CSP` / `Retailer` / `Read-only`) — map server role → these three until names are final.
 - **Depends on:** none — load this on app boot
 - **Owner helper:** `isCurrentUserOwner(createdBy, userId)` in `userSlice.ts` — compare pager `created_by` to `state.user.currentUser.id`. Keep visible-but-disabled Edit/Delete/Track for non-owners.
-- **Role helpers:** `canCreateAnyOnePager` / `canCreateNationalOnePager` / `canCreateRetailerOnePager` / `canSeeMyOnePagersTab` / `canSeeDraftsTab` in `userSlice.ts`. FE create routes wrap with `RequireUserCreateAccess` — still enforce the same rules on FastAPI later.
+- **Role helpers:** `canCreateAnyOnePager` / `canCreateNationalOnePager` / `canCreateRetailerOnePager` / `canSeeMyOnePagersTab` / `canSeeDraftsTab` / `userTypeLabel` in `userSlice.ts`. FE create routes wrap with `RequireUserCreateAccess` — still enforce the same rules on FastAPI later.
 
 Mock save/publish still stamps Home-card `created_by` from `userSlice.getInitialState().currentUser.id` in `landingListStore.ts`. Delete that upsert when the list API returns `created_by` (section 5).
 
@@ -108,10 +108,10 @@ There is **no** separate GET for Track RAG. Dots come from this response via `tr
 - **File:** `frontend/src/services/onePagerApi.ts` — lines **175–188**
 - **Replace:** `removeLandingCard(trimmed)`
 - **With:** `DELETE /api/one-pagers/:id`
-- **Serves:** card delete, view delete, preview delete
+- **Serves:** card delete, View / Track / Preview More Options → Delete
 - **Data today:** removes the row from the in-memory landing list only
 - **Keep:** `{ ok: true, pager_id }` or `{ ok: false, error }`
-- **Depends on:** a real saved id. On success, Redux already drops the card. Server should 403 non-owners.
+- **Depends on:** a real saved id. On success, Redux already drops the card and View / Track / Preview navigate to `/home`. Server should 403 non-owners.
 
 ---
 
@@ -202,7 +202,9 @@ Leave `initiativeTrackKey` and `trackStateFromPillars` in place — the UI uses 
 
 ### Do not change
 
-`TrackOnePager.tsx`, `PillarBoard`, and `TrackStatusDot`. The page already looks up `pillar_id` / `initiative_id` from the mapped GET record and passes them into `updateTrackStatus` with `updated_by: currentUser.email`. View/Preview do not pass `track`, so they show no dots.
+Leave RAG wiring alone: `TrackOnePager` still looks up `pillar_id` / `initiative_id` from the mapped GET record and passes them into `updateTrackStatus` with `updated_by: currentUser.email`. Keep `PillarBoard` / `TrackStatusDot` for dots.
+
+Track **More Options** mirrors published View (Export / Archive / Edit / Delete; Track omitted because you are already on `/track/:id`). Do not remove that menu when swapping APIs — only swap the underlying mock calls. View/Preview without `track` still show no RAG dots.
 
 ---
 
@@ -250,13 +252,13 @@ No function exists. Cover and initiative images are local `File`s. Preview URLs 
 
 ## Not wired (UI only)
 
-No mock function. Attach a handler when the API exists.
+No mock function (or handler is UI-only until auth). Attach a handler when the API exists.
 
-- **Export** — client-side PPT (`exportOnePagerPpt` in `frontend/src/services/exportOnePagerPpt.ts`). Home ⋯ and View/Preview More Options. Uses GET-by-id payload + `image_urls`. Optional later: `GET /api/one-pagers/:id/export` if the server should generate the file.
-- **Archive** — `archiveOnePager` in `onePagerApi.ts` (mock → `landingListStore.updateLandingCardStatus`). Redux thunk `landing/archiveOnePager`. UI: `ArchiveOnePagerModal`. Swap body for `POST /api/one-pagers/:id/archive`. Keep `{ ok, pager_id, status: "ARCHIVED" }`. Owner-only.
-- **Restore** — `restoreOnePager` → status **DRAFT** (not Active). Redux thunk `landing/restoreOnePager`. UI: `RestoreOnePagerModal`. Swap for `POST /api/one-pagers/:id/restore`. Keep `{ ok, pager_id, status: "DRAFT" }`. Owner-only.
-- **Edit published** — `EditPublishedOnePagerModal` (Archive & Edit / Keep Active & Edit). Both open `/edit/:id` with `createAsNew: true` so Save Draft / Publish create a **new** id. Archive & Edit calls archive first. Draft Edit still updates the same id.
-- **Logout** — header menu item is UI only. No mock function.
+- **Export** — client-side PPT (`exportOnePagerPpt` in `frontend/src/services/exportOnePagerPpt.ts`). Home ⋯ and View / Track / Preview More Options. Uses GET-by-id payload + `image_urls`. Optional later: `GET /api/one-pagers/:id/export` if the server should generate the file.
+- **Archive** — `archiveOnePager` in `onePagerApi.ts` (mock → `landingListStore.updateLandingCardStatus`). Redux thunk `landing/archiveOnePager`. UI: `ArchiveOnePagerModal`. Swap body for `POST /api/one-pagers/:id/archive`. Keep `{ ok, pager_id, status: "ARCHIVED" }`. Owner-only. On success from View / Track / Preview, FE navigates to `/home` (Home card menu already stays on Home).
+- **Restore** — `restoreOnePager` → status **DRAFT** (not Active). Redux thunk `landing/restoreOnePager`. UI: `RestoreOnePagerModal`. Swap for `POST /api/one-pagers/:id/restore`. Keep `{ ok, pager_id, status: "DRAFT" }`. Owner-only. On success from View, FE navigates to `/home`.
+- **Edit published** — `EditPublishedOnePagerModal` (Archive & Edit / Keep Active & Edit) from View / Track / Preview More Options (and Home ⋯). Both open `/edit/:id` with `createAsNew: true` so Save Draft / Publish create a **new** id. Archive & Edit calls archive first. Draft Edit still updates the same id.
+- **Logout** — header profile menu item is UI only. No mock function. Profile header (icon + name + email + role badge) already reads `state.user.currentUser` from `getCurrentUser` / seed.
 
 ---
 

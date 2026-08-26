@@ -13,6 +13,8 @@ export type UserType = "user_type_1" | "user_type_2" | "user_type_3";
 
 export type CurrentUser = {
   id: string;
+  /** Display name in the header profile menu. */
+  name: string;
   email: string;
   initials: string;
   user_type: UserType;
@@ -25,6 +27,7 @@ interface UserState {
 const initialState: UserState = {
   currentUser: {
     id: "user-001",
+    name: "Nitesh",
     email: "nitesh@example.com",
     initials: "NN",
     // TODO: Replace seed with GET /api/me role. Keep UserType union until
@@ -47,6 +50,18 @@ export const userSlice = createSlice({
     });
   },
 });
+
+/** Temporary display labels for the header profile badge. */
+export function userTypeLabel(userType: UserType) {
+  switch (userType) {
+    case "user_type_1":
+      return "CSP";
+    case "user_type_2":
+      return "Retailer";
+    case "user_type_3":
+      return "Read-only";
+  }
+}
 
 export function isCurrentUserOwner(createdBy: string, userId: string) {
   return createdBy === userId;

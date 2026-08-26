@@ -7,9 +7,10 @@ const delay = (ms = 200) => new Promise((resolve) => setTimeout(resolve, ms));
  * Temporary: delay then the mock user from userSlice initialState.
  * No login API yet — do not keep a second copy of id / email / initials /
  * user_type here.
- * Keep { id, email, initials, user_type }: id is created_by / owner checks,
- * email is header + Track PATCH updated_by, initials are the header avatar,
- * user_type drives create / My / Drafts access (map server role → FE union).
+ * Keep { id, name, email, initials, user_type }: id is created_by / owner checks,
+ * name is the header profile label, email is header + Track PATCH updated_by,
+ * initials are the header avatar, user_type drives create / My / Drafts access
+ * (map server role → FE union).
  */
 export async function getCurrentUser(): Promise<CurrentUser> {
   await delay();

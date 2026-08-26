@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
-import { LogOut, Mail } from "lucide-react";
+import { LogOut, UserRound } from "lucide-react";
 
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAppSelector } from "@/redux/hooks";
+import { userTypeLabel } from "@/redux/userSlice";
 import perfectStoreLogo from "@/assets/Perfect_Store_Hero_Logo.svg";
 import unileverBrandLogo from "@/assets/Unilever_Brand_Logo.svg";
 
@@ -22,7 +24,9 @@ function HeaderDivider() {
 }
 
 export function AppHeader() {
-  const { email, initials } = useAppSelector((state) => state.user.currentUser);
+  const { name, email, initials, user_type } = useAppSelector(
+    (state) => state.user.currentUser,
+  );
 
   return (
     <header className="sticky top-0 z-40 w-full overflow-hidden bg-primary">
@@ -66,16 +70,33 @@ export function AppHeader() {
               </Avatar>
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel className="font-normal">
-              Account
+          <DropdownMenuContent align="end" className="w-72 p-0">
+            <DropdownMenuLabel className="p-0 font-normal">
+              <div className="flex items-center gap-3 px-3 py-2.5">
+                <div className="flex min-w-0 flex-1 items-center gap-2.5">
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                    <UserRound className="size-4" aria-hidden />
+                  </span>
+                  <div className="min-w-0 text-left">
+                    <p className="truncate text-sm font-medium text-foreground">
+                      {name}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {email}
+                    </p>
+                  </div>
+                </div>
+                <Badge
+                  variant="secondary"
+                  className="shrink-0 self-center bg-brand-soft text-primary hover:bg-brand-soft"
+                >
+                  {userTypeLabel(user_type)}
+                </Badge>
+              </div>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem disabled className="gap-2 opacity-100">
-              <Mail className="size-4 text-muted-foreground" />
-              <span className="truncate">{email}</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer gap-2">
+            <DropdownMenuSeparator className="m-0" />
+            {/* TODO: Wire Logout to real auth/session clear when login exists. */}
+            <DropdownMenuItem className="cursor-pointer gap-2 rounded-none px-3 py-2.5">
               <LogOut className="size-4" />
               Logout
             </DropdownMenuItem>

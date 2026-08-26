@@ -73,8 +73,6 @@ type NationalPreviewDocumentProps = {
   onRestore?: () => void;
   /** Track/Export/Archive/Edit/Delete — off in create Preview, on after publish. */
   moreOptionsEnabled?: boolean;
-  /** Hide More Options entirely (Track page). Status badge + date still use moreOptionsEnabled. */
-  hideMoreOptions?: boolean;
   /** Edit stays visible for non-owners but is disabled. */
   canEdit?: boolean;
   /** Delete stays visible for non-owners but is disabled. */
@@ -107,7 +105,6 @@ export function NationalPreviewDocument({
   onArchive,
   onRestore,
   moreOptionsEnabled = false,
-  hideMoreOptions = false,
   canEdit = true,
   canDelete = true,
   status = "PUBLISHED",
@@ -149,7 +146,7 @@ export function NationalPreviewDocument({
         </div>
 
         <div className="flex shrink-0 flex-col items-end gap-1 text-right">
-          {hideMoreOptions ? null : moreOptionsEnabled ? (
+          {moreOptionsEnabled ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
@@ -281,8 +278,7 @@ export function NationalPreviewDocument({
 
           <Badge
             className={cn(
-              "rounded-full px-2.5",
-              !hideMoreOptions && "mt-1",
+              "mt-1 rounded-full px-2.5",
               statusBadge.className,
             )}
           >

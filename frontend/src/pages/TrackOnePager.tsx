@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 
 import { Loading } from "@/components/common/Loading";
+import { ArchiveOnePagerModal } from "@/components/landing/ArchiveOnePagerModal";
+import { DeleteOnePagerModal } from "@/components/landing/DeleteOnePagerModal";
+import { EditPublishedOnePagerModal } from "@/components/landing/EditPublishedOnePagerModal";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { NationalPreviewDocument } from "@/components/preview/NationalPreviewDocument";
 import {
@@ -10,8 +13,10 @@ import {
 } from "@/components/preview/nationalPreview";
 import { Button } from "@/components/ui/button";
 import type { FormLayoutContext } from "@/layouts/MainLayout";
-import { useAppSelector } from "@/redux/hooks";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { archiveOnePager, deleteOnePager } from "@/redux/landingSlice";
 import { isCurrentUserOwner } from "@/redux/userSlice";
+import { exportOnePagerPpt } from "@/services/exportOnePagerPpt";
 import {
   getOnePagerById,
   type OnePagerByIdRecord,
@@ -36,12 +41,16 @@ function composeTitle(record: OnePagerByIdRecord) {
  * pillar_track / initiative_track. PATCH uses pager_id + pillar_id +
  * initiative_id ("" for pillar-only) from that GET.
  *
+ * More Options mirrors View for published: Export / Archive / Edit / Delete
+ * (Track omitted — already on this page). Archive / Delete → /home on success.
+ *
  * TODO: Swap getOnePagerById / updateTrackStatus bodies only.
  * Keep this page looking up pillar_id / initiative_id from the mapped record.
  */
 export function TrackOnePager() {
   const { pagerId } = useParams<{ pagerId: string }>();
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const currentUser = useAppSelector((state) => state.user.currentUser);
   const { setBackHandler, setHeaderTitle } =
     useOutletContext<FormLayoutContext>();
@@ -51,6 +60,17 @@ export function TrackOnePager() {
     initiatives: {},
   });
   const [error, setError] = useState<string | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [archiveOpen, setArchiveOpen] = useState(false);
+  const [archiving, setArchiving] = useState(false);
+  const [archiveError, setArchiveError] = useState<string | null>(null);
+  const [editPublishedOpen, setEditPublishedOpen] = useState(false);
+  const [editPublishedBusy, setEditPublishedBusy] = useState(false);
+  const [editPublishedError, setEditPublishedError] = useState<string | null>(
+    null,
+  );
   const displayError = pagerId ? error : "Missing one-pager id.";
 
   useEffect(() => {
@@ -94,9 +114,67 @@ export function TrackOnePager() {
     };
   }, [pagerId]);
 
-  const canUpdate = record
+  const trackTitle = record ? composeTitle(record) : "";
+  const isOwner = record
     ? isCurrentUserOwner(record.created_by, currentUser.id)
     : false;
+  const canUpdate = isOwner;
+
+  const goEditCreateAsNew = () => {
+    if (!record) return;
+    navigate(`/edit/${record.id}`, { state: { createAsNew: true } });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!record || !isOwner) return;
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      await dispatch(deleteOnePager(record.id)).unwrap();
+      setDeleteOpen(false);
+      navigate("/home");
+    } catch (err) {
+      setDeleteError(
+        err instanceof Error ? err.message : "Failed to delete one-pager",
+      );
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleConfirmArchive = async () => {
+    if (!record || !isOwner) return;
+    setArchiving(true);
+    setArchiveError(null);
+    try {
+      await dispatch(archiveOnePager(record.id)).unwrap();
+      setArchiveOpen(false);
+      navigate("/home");
+    } catch (err) {
+      setArchiveError(
+        err instanceof Error ? err.message : "Failed to archive one-pager",
+      );
+    } finally {
+      setArchiving(false);
+    }
+  };
+
+  const handleArchiveAndEdit = async () => {
+    if (!record || !isOwner) return;
+    setEditPublishedBusy(true);
+    setEditPublishedError(null);
+    try {
+      await dispatch(archiveOnePager(record.id)).unwrap();
+      setEditPublishedOpen(false);
+      goEditCreateAsNew();
+    } catch (err) {
+      setEditPublishedError(
+        err instanceof Error ? err.message : "Failed to archive one-pager",
+      );
+    } finally {
+      setEditPublishedBusy(false);
+    }
+  };
 
   const handlePillarChange = async (
     pillarNumber: number,
@@ -179,7 +257,26 @@ export function TrackOnePager() {
             publishedAt={record.published_at}
             status={record.list_status}
             moreOptionsEnabled
-            hideMoreOptions
+            canEdit={isOwner}
+            canDelete={isOwner}
+            onEdit={() => {
+              setEditPublishedError(null);
+              setEditPublishedOpen(true);
+            }}
+            onExport={() => {
+              void exportOnePagerPpt({
+                pagerType: record.pager_type,
+                payload: record.payload,
+              });
+            }}
+            onArchive={() => {
+              setArchiveError(null);
+              setArchiveOpen(true);
+            }}
+            onDelete={() => {
+              setDeleteError(null);
+              setDeleteOpen(true);
+            }}
             track={{
               canUpdate,
               statuses,
@@ -189,6 +286,40 @@ export function TrackOnePager() {
           />
         )}
       </PageContainer>
+
+      <DeleteOnePagerModal
+        open={deleteOpen}
+        title={trackTitle}
+        onOpenChange={setDeleteOpen}
+        onConfirm={() => {
+          void handleConfirmDelete();
+        }}
+        deleting={deleting}
+        error={deleteError}
+      />
+      <ArchiveOnePagerModal
+        open={archiveOpen}
+        title={trackTitle}
+        onOpenChange={setArchiveOpen}
+        onConfirm={() => {
+          void handleConfirmArchive();
+        }}
+        archiving={archiving}
+        error={archiveError}
+      />
+      <EditPublishedOnePagerModal
+        open={editPublishedOpen}
+        onOpenChange={setEditPublishedOpen}
+        busy={editPublishedBusy}
+        error={editPublishedError}
+        onKeepActiveAndEdit={() => {
+          setEditPublishedOpen(false);
+          goEditCreateAsNew();
+        }}
+        onArchiveAndEdit={() => {
+          void handleArchiveAndEdit();
+        }}
+      />
     </div>
   );
 }

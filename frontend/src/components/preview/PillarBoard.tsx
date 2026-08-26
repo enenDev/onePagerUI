@@ -133,7 +133,7 @@ export function PillarBoard({ pillars, track }: PillarBoardProps) {
     <div className="overflow-x-auto p-1.5">
       <div className="grid min-w-[72rem] grid-cols-5 gap-3">
         {pillars.map((pillar) => {
-          const targetCount = pillar.initiatives.length;
+          // const targetCount = pillar.initiatives.length;
           const theme = PILLAR_THEME[pillar.pillar_number] ?? PILLAR_THEME[1];
           const pillarStatus =
             track?.statuses.pillars[pillar.pillar_number] ?? "clear";
@@ -165,9 +165,9 @@ export function PillarBoard({ pillars, track }: PillarBoardProps) {
                   ) : null}
                   <span className="min-w-0">{pillar.pillar_name}</span>
                 </h3>
-                <span className="inline-flex w-fit self-end rounded-full bg-brand-soft px-2.5 py-0.5 text-xs font-semibold text-primary">
+                {/* <span className="inline-flex w-fit self-end rounded-full bg-brand-soft px-2.5 py-0.5 text-xs font-semibold text-primary">
                   {targetCount} {targetCount === 1 ? "Target" : "Targets"}
-                </span>
+                </span> */}
               </div>
 
               {pillar.initiatives.length > 0 ? (

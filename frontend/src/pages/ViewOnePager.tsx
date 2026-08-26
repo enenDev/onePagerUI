@@ -44,7 +44,8 @@ function composeViewTitle(record: OnePagerByIdRecord) {
  * shows Target Retailer when present). Do not route through create/preview.
  * Back → /home. More Options → Edit still uses /edit/:id (owner-only);
  * published Edit opens EditPublishedOnePagerModal (createAsNew on save).
- * Archive / Restore use mock thunks until FastAPI endpoints exist.
+ * Archive / Restore / Delete navigate to /home after a successful mock call
+ * until FastAPI endpoints exist.
  * More Options → Track uses /track/:id for PUBLISHED only.
  * More Options → Export downloads a one-slide PPT from this GET record
  * (not a server export file). Omit Export on DRAFT.
@@ -145,7 +146,7 @@ export function ViewOnePager() {
     try {
       await dispatch(archiveOnePager(record.id)).unwrap();
       setArchiveOpen(false);
-      setRecord({ ...record, list_status: "ARCHIVED" });
+      navigate("/home");
     } catch (err) {
       setArchiveError(
         err instanceof Error ? err.message : "Failed to archive one-pager",
@@ -162,7 +163,7 @@ export function ViewOnePager() {
     try {
       await dispatch(restoreOnePager(record.id)).unwrap();
       setRestoreOpen(false);
-      setRecord({ ...record, list_status: "DRAFT", status: "draft" });
+      navigate("/home");
     } catch (err) {
       setRestoreError(
         err instanceof Error ? err.message : "Failed to restore one-pager",

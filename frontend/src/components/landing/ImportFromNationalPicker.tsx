@@ -273,7 +273,7 @@ function PillSelect({
       onValueChange={onChange}
       placeholder={placeholder}
       searchPlaceholder={`Search ${placeholder}…`}
-      className="h-8 cursor-pointer rounded-full bg-white px-3"
+      className="h-8 w-fit cursor-pointer rounded-full bg-white px-3"
     />
   );
 }
