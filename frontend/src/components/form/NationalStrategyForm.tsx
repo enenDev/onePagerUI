@@ -2,19 +2,16 @@
 import { CloudUpload } from "lucide-react";
 
 import { AddCampaignModal } from "@/components/form/AddCampaignModal";
+import {
+  buildNationalOnePagerTitle,
+} from "@/components/form/buildOnePagerTitle";
 import { CharCount } from "@/components/form/CharCount";
 import { FIELD_LIMITS } from "@/components/form/fieldLimits";
 import type { NationalFormValues } from "@/components/form/nationalForm";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MarketRequiredTooltip } from "@/components/ui/market-required-tooltip";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Textarea } from "@/components/ui/textarea";
 import { useAppDispatch } from "@/redux/hooks";
 import { appendCampaignOption } from "@/redux/landingSlice";
@@ -26,6 +23,13 @@ type NationalStrategyFormProps = {
   catalog: CreateFormMetadata | null;
   catalogLoading: boolean;
 };
+
+const STRATEGY_TITLE_KEYS = [
+  "market",
+  "category",
+  "campaign",
+  "channel",
+] as const satisfies ReadonlyArray<keyof NationalFormValues>;
 
 export function NationalStrategyForm({
   values,
@@ -47,18 +51,37 @@ export function NationalStrategyForm({
   // Tooltip only when Market is empty — not while catalog is still loading.
   const showMarketRequiredTooltip = !marketSelected && !catalogLoading;
 
+  const titleFromStrategy = (next: NationalFormValues) => {
+    const nextScoped = next.market ? optionsByMarket[next.market] : undefined;
+    return buildNationalOnePagerTitle({
+      market: next.market,
+      category: next.category,
+      campaign: next.campaign,
+      channel: next.channel,
+      markets,
+      categories: nextScoped?.categories ?? [],
+      campaigns: nextScoped?.campaigns ?? [],
+      channels: nextScoped?.channels ?? [],
+    });
+  };
+
   const handleMarketChange = (market: string) => {
-    onChange({
+    const next: NationalFormValues = {
       ...values,
       market,
       category: "",
       campaign: "",
       channel: "",
-    });
+    };
+    onChange({ ...next, title: titleFromStrategy(next) });
   };
 
   const patch = (partial: Partial<NationalFormValues>) => {
-    onChange({ ...values, ...partial });
+    const next = { ...values, ...partial };
+    const strategyChanged = STRATEGY_TITLE_KEYS.some((key) => key in partial);
+    onChange(
+      strategyChanged ? { ...next, title: titleFromStrategy(next) } : next,
+    );
   };
 
   const dependentSelectKey = values.market || "no-market";
@@ -73,51 +96,27 @@ export function NationalStrategyForm({
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field label="Market" required>
-              <Select
-                value={values.market || undefined}
-                onValueChange={(value) => handleMarketChange(value ?? "")}
+              <SearchableSelect
+                options={markets}
+                value={values.market}
+                onValueChange={handleMarketChange}
                 disabled={catalogLoading}
-              >
-                <SelectTrigger className="h-9 w-full cursor-pointer bg-white disabled:cursor-not-allowed">
-                  <SelectValue placeholder="Select Market" />
-                </SelectTrigger>
-                <SelectContent>
-                  {markets.map((option) => (
-                    <SelectItem
-                      key={option.value}
-                      value={option.value}
-                      className="cursor-pointer"
-                    >
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                placeholder="Select Market"
+                searchPlaceholder="Search Market…"
+              />
             </Field>
 
             <Field label="Category" required>
               <MarketRequiredTooltip show={showMarketRequiredTooltip}>
-                <Select
-                  key={`category-${dependentSelectKey}`}
-                  value={values.category || undefined}
-                  onValueChange={(value) => patch({ category: value ?? "" })}
+                <SearchableSelect
+                  selectKey={`category-${dependentSelectKey}`}
+                  options={categoryOptions}
+                  value={values.category}
+                  onValueChange={(value) => patch({ category: value })}
                   disabled={dependentDisabled}
-                >
-                  <SelectTrigger className="h-9 w-full cursor-pointer bg-white disabled:cursor-not-allowed">
-                    <SelectValue placeholder="Select Category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categoryOptions.map((option) => (
-                      <SelectItem
-                        key={option.value}
-                        value={option.value}
-                        className="cursor-pointer"
-                      >
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  placeholder="Select Category"
+                  searchPlaceholder="Search Category…"
+                />
               </MarketRequiredTooltip>
             </Field>
 
@@ -134,53 +133,29 @@ export function NationalStrategyForm({
                 </button>
               </div>
               <MarketRequiredTooltip show={showMarketRequiredTooltip}>
-                <Select
-                  key={`campaign-${dependentSelectKey}`}
-                  value={values.campaign || undefined}
-                  onValueChange={(value) => patch({ campaign: value ?? "" })}
+                <SearchableSelect
+                  selectKey={`campaign-${dependentSelectKey}`}
+                  options={campaignOptions}
+                  value={values.campaign}
+                  onValueChange={(value) => patch({ campaign: value })}
                   disabled={dependentDisabled}
-                >
-                  <SelectTrigger className="h-9 w-full cursor-pointer bg-white disabled:cursor-not-allowed">
-                    <SelectValue placeholder="Select Campaign" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {campaignOptions.map((option) => (
-                      <SelectItem
-                        key={option.value}
-                        value={option.value}
-                        className="cursor-pointer"
-                      >
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  placeholder="Select Campaign"
+                  searchPlaceholder="Search Campaign…"
+                />
               </MarketRequiredTooltip>
             </div>
 
             <Field label="Channel" required>
               <MarketRequiredTooltip show={showMarketRequiredTooltip}>
-                <Select
-                  key={`channel-${dependentSelectKey}`}
-                  value={values.channel || undefined}
-                  onValueChange={(value) => patch({ channel: value ?? "" })}
+                <SearchableSelect
+                  selectKey={`channel-${dependentSelectKey}`}
+                  options={channelOptions}
+                  value={values.channel}
+                  onValueChange={(value) => patch({ channel: value })}
                   disabled={dependentDisabled}
-                >
-                  <SelectTrigger className="h-9 w-full cursor-pointer bg-white disabled:cursor-not-allowed">
-                    <SelectValue placeholder="Select Channel" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {channelOptions.map((option) => (
-                      <SelectItem
-                        key={option.value}
-                        value={option.value}
-                        className="cursor-pointer"
-                      >
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  placeholder="Select Channel"
+                  searchPlaceholder="Search Channel…"
+                />
               </MarketRequiredTooltip>
             </Field>
 
@@ -273,7 +248,24 @@ export function NationalStrategyForm({
               }),
             );
           }
-          patch({ campaign: campaign.value });
+          const next: NationalFormValues = {
+            ...values,
+            campaign: campaign.value,
+          };
+          // Include the just-added option — Redux catalog may not have it yet.
+          onChange({
+            ...next,
+            title: buildNationalOnePagerTitle({
+              market: next.market,
+              category: next.category,
+              campaign: next.campaign,
+              channel: next.channel,
+              markets,
+              categories: categoryOptions,
+              campaigns: [...campaignOptions, campaign],
+              channels: channelOptions,
+            }),
+          });
         }}
       />
     </>

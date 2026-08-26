@@ -29,7 +29,7 @@ const initialState: UserState = {
     initials: "NN",
     // TODO: Replace seed with GET /api/me role. Keep UserType union until
     // backend names are final; map server role → these three FE behaviors.
-    user_type: "user_type_3",
+    user_type: "user_type_1",
   },
 };
 

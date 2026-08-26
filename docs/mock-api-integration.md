@@ -261,13 +261,13 @@ No mock function. Attach a handler when the API exists.
 
 ## Form character limits (PPT fit)
 
-Limits live in `frontend/src/components/form/fieldLimits.ts` (`FIELD_LIMITS`). The form uses `maxLength` plus a `12/80` counter.
+Limits live in `frontend/src/components/form/fieldLimits.ts` (`FIELD_LIMITS`). The form uses `maxLength` plus a `12/100` counter.
 
 They match one widescreen PPT slide: a pillar column is about **40 characters per line**. Dropdowns (Market, Channel, Category, KPI, Department) and dates are not limited.
 
 | Field                   | Limit | Why                                                                                                |
 | ----------------------- | ----- | -------------------------------------------------------------------------------------------------- |
-| Title                   | 80    | Landing / payload title. PPT header is still composed from Market / Channel / Category / Campaign. |
+| Title                   | 100   | Auto from strategy dropdowns (National/Retailer-Market-…); still editable. Truncated if longer.   |
 | Business Outcome        | 120   | Header subtitle, about 2 lines.                                                                    |
 | Campaign name (Add New) | 30    | Header pill + a segment of the composed title.                                                     |
 | Pillar description      | 80    | About 2 lines under the pillar name.                                                               |

@@ -3,8 +3,8 @@
  * Column body is ~2.35" at 7pt Arial (~40 chars/line). Header is ~6.5" at 8–12pt.
  */
 export const FIELD_LIMITS = {
-  /** Landing + payload title. PPT header uses composed Market/Channel/etc. */
-  title: 80,
+  /** Landing + payload title (auto from strategy dropdowns; editable). */
+  title: 100,
   /** PPT header subtitle — about 2 lines. */
   businessOutcome: 120,
   /** Header pill + composed title segment. */

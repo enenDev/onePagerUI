@@ -10,13 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Textarea } from "@/components/ui/textarea";
 import { MAX_INITIATIVE_IMAGES, type InitiativeDraft, type InitiativeImage } from "@/components/form/pillars";
 import { CharCount } from "@/components/form/CharCount";
@@ -367,27 +361,15 @@ export function AddInitiativeModal({
               Accountable Function / Department{" "}
               <span className="text-destructive">*</span>
             </Label>
-            <Select
-              value={form.accountable_function_department || undefined}
+            <SearchableSelect
+              options={accountableOptions}
+              value={form.accountable_function_department}
               onValueChange={(value) =>
-                patch({ accountable_function_department: value ?? "" })
+                patch({ accountable_function_department: value })
               }
-            >
-              <SelectTrigger className="h-9 w-full cursor-pointer bg-white">
-                <SelectValue placeholder="Select" />
-              </SelectTrigger>
-              <SelectContent>
-                {accountableOptions.map((option) => (
-                  <SelectItem
-                    key={option.value}
-                    value={option.value}
-                    className="cursor-pointer"
-                  >
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              placeholder="Select"
+              searchPlaceholder="Search department…"
+            />
           </div>
         </div>
 
@@ -417,25 +399,13 @@ export function AddInitiativeModal({
             <Label>
               KPI Metric <span className="text-destructive">*</span>
             </Label>
-            <Select
-              value={form.kpi_metric || undefined}
-              onValueChange={(value) => patch({ kpi_metric: value ?? "" })}
-            >
-              <SelectTrigger className="h-9 w-full cursor-pointer bg-white">
-                <SelectValue placeholder="Select KPI Metric" />
-              </SelectTrigger>
-              <SelectContent>
-                {kpiOptions.map((option) => (
-                  <SelectItem
-                    key={option.value}
-                    value={option.value}
-                    className="cursor-pointer"
-                  >
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SearchableSelect
+              options={kpiOptions}
+              value={form.kpi_metric}
+              onValueChange={(value) => patch({ kpi_metric: value })}
+              placeholder="Select KPI Metric"
+              searchPlaceholder="Search KPI…"
+            />
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between gap-2">

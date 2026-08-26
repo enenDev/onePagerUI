@@ -261,7 +261,7 @@ export function NationalPreviewDocument({
         {payload.pillars.some((pillar) => pillar.initiatives.length === 0) ? (
           <div className="flex items-center gap-2.5 rounded-lg border border-amber-300 bg-amber-50 px-3.5 py-3 text-medium font-medium text-amber-950">
             <Info className="mt-0.5 size-4 shrink-0 text-amber-700" />
-            <p>You haven't added an initiative to every pillar</p>
+            <p>No initiatives added for the pillars</p>
           </div>
         ) : null}
         <h2 className="text-sm font-semibold text-foreground">

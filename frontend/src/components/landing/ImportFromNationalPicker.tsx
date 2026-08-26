@@ -3,13 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { fetchMetadata, fetchOnePagers } from "@/redux/landingSlice";
 import {
@@ -273,30 +267,13 @@ function PillSelect({
   onChange: (value: string) => void;
 }) {
   return (
-    <Select
-      value={value || undefined}
-      onValueChange={(next) => onChange(next ?? "")}
-    >
-      <SelectTrigger className="h-8 cursor-pointer rounded-full bg-white px-3">
-        <SelectValue placeholder={placeholder} />
-      </SelectTrigger>
-      <SelectContent align="start">
-        {options.length === 0 ? (
-          <p className="px-2 py-1.5 text-sm text-muted-foreground">
-            No options
-          </p>
-        ) : (
-          options.map((option) => (
-            <SelectItem
-              key={option.value}
-              value={option.value}
-              className="cursor-pointer"
-            >
-              {option.label}
-            </SelectItem>
-          ))
-        )}
-      </SelectContent>
-    </Select>
+    <SearchableSelect
+      options={options}
+      value={value}
+      onValueChange={onChange}
+      placeholder={placeholder}
+      searchPlaceholder={`Search ${placeholder}…`}
+      className="h-8 cursor-pointer rounded-full bg-white px-3"
+    />
   );
 }

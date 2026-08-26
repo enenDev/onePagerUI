@@ -146,33 +146,29 @@ export function PillarBoard({ pillars, track }: PillarBoardProps) {
                 theme.card,
               )}
             >
-              <div className="flex items-start justify-between gap-2">
-                <p className="flex items-center gap-1.5 text-xs font-medium text-preview-pillar-label">
+              <div className="flex min-w-0 flex-col gap-2">
+                <h3
+                  className={cn(
+                    "flex min-w-0 items-center gap-1.5 text-[14px] font-bold leading-snug break-words",
+                    theme.title,
+                  )}
+                >
                   {track ? (
                     <TrackStatusDot
                       value={pillarStatus}
                       canUpdate={track.canUpdate}
-                      ariaLabel={`Pillar ${pillar.pillar_number} status`}
+                      ariaLabel={`${pillar.pillar_name} status`}
                       onChange={(status) =>
                         track.onPillarChange(pillar.pillar_number, status)
                       }
                     />
                   ) : null}
-                  Pillar {pillar.pillar_number}
-                </p>
-                <span className="inline-flex rounded-full bg-brand-soft px-2.5 py-0.5 text-xs font-semibold text-primary">
+                  <span className="min-w-0">{pillar.pillar_name}</span>
+                </h3>
+                <span className="inline-flex w-fit self-end rounded-full bg-brand-soft px-2.5 py-0.5 text-xs font-semibold text-primary">
                   {targetCount} {targetCount === 1 ? "Target" : "Targets"}
                 </span>
               </div>
-
-              <h3
-                className={cn(
-                  "min-w-0 text-[14px] font-bold leading-snug break-words",
-                  theme.title,
-                )}
-              >
-                {pillar.pillar_name}
-              </h3>
 
               {pillar.initiatives.length > 0 ? (
                 <div className="flex flex-col gap-4">
