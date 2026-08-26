@@ -9,7 +9,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { useAppSelector } from "@/redux/hooks";
+import { canCreateNationalOnePager } from "@/redux/userSlice";
 import type { RetailerImportLocationState } from "@/pages/CreateRetailerOnePager";
 import type { OnePagerListItem } from "@/types/onePager";
 
@@ -19,6 +26,9 @@ type CreateOnePagerModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
+
+const NATIONAL_CREATE_CSP_ONLY_TOOLTIP =
+  "National one pager creation is only accessible for the CSP users";
 
 const TYPE_OPTIONS = [
   {
@@ -51,6 +61,8 @@ export function CreateOnePagerModal({
   onOpenChange,
 }: CreateOnePagerModalProps) {
   const navigate = useNavigate();
+  const userType = useAppSelector((state) => state.user.currentUser.user_type);
+  const nationalAllowed = canCreateNationalOnePager(userType);
   const [step, setStep] = useState<CreateStep>("type");
 
   const handleOpenChange = (nextOpen: boolean) => {
@@ -123,16 +135,24 @@ export function CreateOnePagerModal({
               (option) => {
                 const Icon = option.icon;
                 const isRetailerStep = step === "retailer";
+                const nationalDisabled =
+                  !isRetailerStep &&
+                  option.id === "national" &&
+                  !nationalAllowed;
 
-                return (
+                const card = (
                   <button
-                    key={option.id}
                     type="button"
+                    disabled={nationalDisabled}
                     className={cn(
-                      "flex h-full min-h-36 cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-border bg-white p-6 text-center transition-colors",
-                      "hover:border-primary hover:bg-accent",
+                      "flex h-full min-h-36 w-full flex-col items-center justify-center gap-3 rounded-xl border border-border bg-white p-6 text-center transition-colors",
+                      nationalDisabled
+                        ? "cursor-not-allowed opacity-50"
+                        : "cursor-pointer hover:border-primary hover:bg-accent",
                     )}
                     onClick={() => {
+                      if (nationalDisabled) return;
+
                       if (!isRetailerStep && option.id === "retailer") {
                         setStep("retailer");
                         return;
@@ -155,16 +175,42 @@ export function CreateOnePagerModal({
                       }
                     }}
                   >
-                    <Icon className="size-8 text-primary" />
+                    <Icon
+                      className={cn(
+                        "size-8",
+                        nationalDisabled
+                          ? "text-muted-foreground"
+                          : "text-primary",
+                      )}
+                    />
                     <span
                       className={cn(
                         "text-sm font-medium",
-                        isRetailerStep ? "text-primary" : "text-foreground",
+                        nationalDisabled
+                          ? "text-muted-foreground"
+                          : isRetailerStep
+                            ? "text-primary"
+                            : "text-foreground",
                       )}
                     >
                       {option.label}
                     </span>
                   </button>
+                );
+
+                if (!nationalDisabled) {
+                  return <div key={option.id}>{card}</div>;
+                }
+
+                return (
+                  <Tooltip key={option.id}>
+                    <TooltipTrigger asChild>
+                      <span className="flex h-full min-h-36">{card}</span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{NATIONAL_CREATE_CSP_ONLY_TOOLTIP}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 );
               },
             )}

@@ -29,6 +29,8 @@ const FILTER_FIELDS: { key: FilterKey; label: string }[] = [
 
 type FilterBarProps = {
   onCreateNew: () => void;
+  /** Hide for read-only users (user_type_3). Default true. */
+  showCreateNew?: boolean;
 };
 
 function multiSelectLabel(
@@ -119,7 +121,10 @@ function MultiSelectFilter({
   );
 }
 
-export function FilterBar({ onCreateNew }: FilterBarProps) {
+export function FilterBar({
+  onCreateNew,
+  showCreateNew = true,
+}: FilterBarProps) {
   const dispatch = useAppDispatch();
   const { metadata, filters, listLoading, metadataLoading } = useAppSelector(
     (state) => state.landing,
@@ -223,14 +228,16 @@ export function FilterBar({ onCreateNew }: FilterBarProps) {
         </div>
       </div>
 
-      <Button
-        type="button"
-        onClick={onCreateNew}
-        className="h-9 shrink-0 cursor-pointer rounded-full bg-primary px-4 text-primary-foreground"
-      >
-        <Plus className="size-4" />
-        Create New
-      </Button>
+      {showCreateNew && (
+        <Button
+          type="button"
+          onClick={onCreateNew}
+          className="h-9 shrink-0 cursor-pointer rounded-full bg-primary px-4 text-primary-foreground"
+        >
+          <Plus className="size-4" />
+          Create New
+        </Button>
+      )}
     </div>
   );
 }

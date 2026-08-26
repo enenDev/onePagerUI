@@ -39,7 +39,7 @@ const initialState: LandingState = {
   filters: createEmptyFilters(),
   items: [],
   statusTab: "active",
-  scopeTab: "all",
+  scopeTab: "my",
   metadataLoading: false,
   listLoading: false,
   error: null,

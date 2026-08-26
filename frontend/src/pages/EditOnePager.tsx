@@ -6,7 +6,11 @@ import { Button } from "@/components/ui/button";
 import { PageContainer } from "@/components/layout/PageContainer";
 import type { FormLayoutContext } from "@/layouts/MainLayout";
 import { useAppSelector } from "@/redux/hooks";
-import { isCurrentUserOwner } from "@/redux/userSlice";
+import {
+  canCreateNationalOnePager,
+  canCreateRetailerOnePager,
+  isCurrentUserOwner,
+} from "@/redux/userSlice";
 import {
   getOnePagerById,
   type EditOnePagerLocationState,
@@ -55,6 +59,15 @@ export function EditOnePager() {
         return;
       }
 
+      const canOpenForm =
+        record.pager_type === "retailer"
+          ? canCreateRetailerOnePager(currentUser.user_type)
+          : canCreateNationalOnePager(currentUser.user_type);
+      if (!canOpenForm) {
+        setError("Your role cannot edit this one-pager type.");
+        return;
+      }
+
       const state: EditOnePagerLocationState = { editRecord: record };
       const path =
         record.pager_type === "retailer"
@@ -66,7 +79,7 @@ export function EditOnePager() {
     return () => {
       cancelled = true;
     };
-  }, [currentUser.id, navigate, pagerId]);
+  }, [currentUser.id, currentUser.user_type, navigate, pagerId]);
 
   return (
     <PageContainer className="flex flex-1 flex-col py-6">

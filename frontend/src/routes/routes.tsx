@@ -1,5 +1,6 @@
 import { Navigate } from "react-router-dom";
 
+import { RequireUserCreateAccess } from "../components/auth/RequireUserCreateAccess";
 import { Home } from "../pages/Home";
 import { CreateNationalOnePager } from "../pages/CreateNationalOnePager";
 import { CreateRetailerOnePager } from "../pages/CreateRetailerOnePager";
@@ -49,7 +50,11 @@ const routes = [
       },
       {
         path: "create/national",
-        element: <CreateNationalOnePager />,
+        element: (
+          <RequireUserCreateAccess kind="national">
+            <CreateNationalOnePager />
+          </RequireUserCreateAccess>
+        ),
         handle: {
           headerVariant: "simple",
           title: "Create New National One-Pager",
@@ -57,7 +62,11 @@ const routes = [
       },
       {
         path: "create/national/preview",
-        element: <PreviewNationalOnePager />,
+        element: (
+          <RequireUserCreateAccess kind="national">
+            <PreviewNationalOnePager />
+          </RequireUserCreateAccess>
+        ),
         handle: {
           headerVariant: "simple",
           title: "Preview National One-Pager",
@@ -65,7 +74,11 @@ const routes = [
       },
       {
         path: "create/retailer",
-        element: <CreateRetailerOnePager />,
+        element: (
+          <RequireUserCreateAccess kind="retailer">
+            <CreateRetailerOnePager />
+          </RequireUserCreateAccess>
+        ),
         handle: {
           headerVariant: "simple",
           title: "Build New Retailer One-Pager",
@@ -73,7 +86,11 @@ const routes = [
       },
       {
         path: "create/retailer/preview",
-        element: <PreviewRetailerOnePager />,
+        element: (
+          <RequireUserCreateAccess kind="retailer">
+            <PreviewRetailerOnePager />
+          </RequireUserCreateAccess>
+        ),
         handle: {
           headerVariant: "simple",
           title: "Preview Retailer One-Pager",

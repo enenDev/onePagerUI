@@ -12,6 +12,11 @@ import {
   setScopeTab,
   setStatusTab,
 } from "@/redux/landingSlice";
+import {
+  canCreateAnyOnePager,
+  canSeeDraftsTab,
+  canSeeMyOnePagersTab,
+} from "@/redux/userSlice";
 import { createEmptyFilters, type StatusTab } from "@/types/onePager";
 import { cn } from "@/lib/utils";
 
@@ -35,6 +40,34 @@ export const Home = () => {
   const currentUser = useAppSelector((state) => state.user.currentUser);
   const [createOpen, setCreateOpen] = useState(false);
 
+  const showCreate = canCreateAnyOnePager(currentUser.user_type);
+  const showMyTab = canSeeMyOnePagersTab(currentUser.user_type);
+  const showDraftsTab = canSeeDraftsTab(currentUser.user_type);
+  /** Drafts: My only. Active/Archive: All always (My when allowed). */
+  const showAllTab = statusTab !== "drafts";
+
+  const visibleStatusTabs = useMemo(
+    () => STATUS_TABS.filter((tab) => tab.id !== "drafts" || showDraftsTab),
+    [showDraftsTab],
+  );
+
+  // Drafts → only My. Read-only → only All (and never Drafts).
+  useEffect(() => {
+    if (!showDraftsTab && statusTab === "drafts") {
+      dispatch(setStatusTab("active"));
+      return;
+    }
+
+    if (!showMyTab && scopeTab === "my") {
+      dispatch(setScopeTab("all"));
+      return;
+    }
+
+    if (statusTab === "drafts" && scopeTab !== "my") {
+      dispatch(setScopeTab("my"));
+    }
+  }, [dispatch, scopeTab, showDraftsTab, showMyTab, statusTab]);
+
   useEffect(() => {
     // List always reloads unfiltered; reset dropdown UI to match.
     // Redux filters persist across create/edit, so coming back would
@@ -44,17 +77,20 @@ export const Home = () => {
     void dispatch(fetchOnePagers(createEmptyFilters()));
   }, [dispatch]);
 
+  const effectiveScope =
+    statusTab === "drafts" ? "my" : !showMyTab ? "all" : scopeTab;
+
   const visibleItems = useMemo(() => {
     const byStatus = items.filter(
       (item) => item.status === STATUS_MAP[statusTab],
     );
 
-    if (scopeTab === "my") {
+    if (effectiveScope === "my") {
       return byStatus.filter((item) => item.created_by === currentUser.id);
     }
 
     return byStatus;
-  }, [currentUser.id, items, scopeTab, statusTab]);
+  }, [currentUser.id, effectiveScope, items, statusTab]);
 
   const allCount = useMemo(
     () => items.filter((item) => item.status === STATUS_MAP[statusTab]).length,
@@ -75,7 +111,7 @@ export const Home = () => {
     <div className="flex w-full flex-col gap-6">
       <div className="flex justify-center">
         <div className="flex items-center rounded-full bg-brand-soft p-1">
-          {STATUS_TABS.map((tab) => (
+          {visibleStatusTabs.map((tab) => (
             <button
               key={tab.id}
               type="button"
@@ -93,7 +129,10 @@ export const Home = () => {
         </div>
       </div>
 
-      <FilterBar onCreateNew={() => setCreateOpen(true)} />
+      <FilterBar
+        onCreateNew={() => setCreateOpen(true)}
+        showCreateNew={showCreate}
+      />
 
       {listLoading ? (
         <Loading label="Loading one-pagers…" />
@@ -101,43 +140,47 @@ export const Home = () => {
         <>
           <div className="border-b border-border">
             <div className="flex gap-6">
-              <button
-                type="button"
-                onClick={() => dispatch(setScopeTab("all"))}
-                className={cn(
-                  "relative cursor-pointer pb-3 text-sm font-medium transition-colors",
-                  scopeTab === "all"
-                    ? "text-primary"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                All One-Pagers
-                <span className="ml-2 inline-flex size-5 items-center justify-center rounded-full bg-brand-soft text-xs text-primary">
-                  {allCount}
-                </span>
-                {scopeTab === "all" && (
-                  <span className="absolute inset-x-0 -bottom-px h-0.5 bg-primary" />
-                )}
-              </button>
+              {showMyTab && (
+                <button
+                  type="button"
+                  onClick={() => dispatch(setScopeTab("my"))}
+                  className={cn(
+                    "relative cursor-pointer pb-3 text-sm font-medium transition-colors",
+                    effectiveScope === "my"
+                      ? "text-primary"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  My One-Pagers
+                  <span className="ml-2 inline-flex size-5 items-center justify-center rounded-full bg-brand-soft text-xs text-primary">
+                    {myCount}
+                  </span>
+                  {effectiveScope === "my" && (
+                    <span className="absolute inset-x-0 -bottom-px h-0.5 bg-primary" />
+                  )}
+                </button>
+              )}
 
-              <button
-                type="button"
-                onClick={() => dispatch(setScopeTab("my"))}
-                className={cn(
-                  "relative cursor-pointer pb-3 text-sm font-medium transition-colors",
-                  scopeTab === "my"
-                    ? "text-primary"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                My One-Pagers
-                <span className="ml-2 inline-flex size-5 items-center justify-center rounded-full bg-brand-soft text-xs text-primary">
-                  {myCount}
-                </span>
-                {scopeTab === "my" && (
-                  <span className="absolute inset-x-0 -bottom-px h-0.5 bg-primary" />
-                )}
-              </button>
+              {showAllTab && (
+                <button
+                  type="button"
+                  onClick={() => dispatch(setScopeTab("all"))}
+                  className={cn(
+                    "relative cursor-pointer pb-3 text-sm font-medium transition-colors",
+                    effectiveScope === "all"
+                      ? "text-primary"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  All One-Pagers
+                  <span className="ml-2 inline-flex size-5 items-center justify-center rounded-full bg-brand-soft text-xs text-primary">
+                    {allCount}
+                  </span>
+                  {effectiveScope === "all" && (
+                    <span className="absolute inset-x-0 -bottom-px h-0.5 bg-primary" />
+                  )}
+                </button>
+              )}
             </div>
           </div>
 
@@ -164,7 +207,9 @@ export const Home = () => {
         </>
       )}
 
-      <CreateOnePagerModal open={createOpen} onOpenChange={setCreateOpen} />
+      {showCreate && (
+        <CreateOnePagerModal open={createOpen} onOpenChange={setCreateOpen} />
+      )}
     </div>
   );
 };

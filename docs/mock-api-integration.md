@@ -14,13 +14,14 @@ Axios is installed. Use `VITE_API_BASE_URL`. FastAPI has no real endpoints yet.
 - **Thunk:** `frontend/src/redux/userSlice.ts` — `fetchCurrentUser` (calls `getCurrentUser`)
 - **Store:** `state.user.currentUser` (`frontend/src/redux/store.ts`)
 - **Boot:** `MainLayout` dispatches `fetchCurrentUser` once on mount
-- **Replace:** the `delay()` + `userSlice.getInitialState().currentUser`. Do not add a second copy of id / email / initials in `userApi.ts`.
+- **Replace:** the `delay()` + `userSlice.getInitialState().currentUser`. Do not add a second copy of id / email / initials / user_type in `userApi.ts`.
 - **With:** `GET /api/me` (or the auth session after login)
-- **Serves:** header avatar/email, Home “My” tab, owner checks (Edit / Delete / Archive / Track dots), Track PATCH `updated_by`, preview owner label
-- **Data today:** mock user lives **only** in `userSlice` `initialState` (`id: "user-001"`, `email: "nitesh@example.com"`, `initials: "NN"`). No `CURRENT_USER_*` constants. Header works before fetch returns because of that seed.
-- **Keep:** `{ id, email, initials }`. `id` is `created_by` / owner checks. `email` is header + Track `updated_by`. `initials` are the header avatar.
+- **Serves:** header avatar/email, Home “My” tab, owner checks (Edit / Delete / Archive / Track dots), Track PATCH `updated_by`, preview owner label, create/role gates via `user_type`
+- **Data today:** mock user lives **only** in `userSlice` `initialState` (`id: "user-001"`, `email: "nitesh@example.com"`, `initials: "NN"`, `user_type: "user_type_1"`). No `CURRENT_USER_*` constants. Header works before fetch returns because of that seed. Change `user_type` in the slice to locally test roles (`user_type_1` full / `user_type_2` retailer-only / `user_type_3` read-only).
+- **Keep:** `{ id, email, initials, user_type }`. `id` is `created_by` / owner checks. `email` is header + Track `updated_by`. `initials` are the header avatar. `user_type` drives Create button, National option, My/Drafts tabs, and FE create-route redirects (map server role → these three until names are final).
 - **Depends on:** none — load this on app boot
 - **Owner helper:** `isCurrentUserOwner(createdBy, userId)` in `userSlice.ts` — compare pager `created_by` to `state.user.currentUser.id`. Keep visible-but-disabled Edit/Delete/Track for non-owners.
+- **Role helpers:** `canCreateAnyOnePager` / `canCreateNationalOnePager` / `canCreateRetailerOnePager` / `canSeeMyOnePagersTab` / `canSeeDraftsTab` in `userSlice.ts`. FE create routes wrap with `RequireUserCreateAccess` — still enforce the same rules on FastAPI later.
 
 Mock save/publish still stamps Home-card `created_by` from `userSlice.getInitialState().currentUser.id` in `landingListStore.ts`. Delete that upsert when the list API returns `created_by` (section 5).
 
