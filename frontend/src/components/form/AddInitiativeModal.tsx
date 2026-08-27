@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
-import { CalendarDays, CloudUpload, X } from "lucide-react";
+import { CalendarDays, CloudUpload, Loader2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +16,9 @@ import { MAX_INITIATIVE_IMAGES, type InitiativeDraft, type InitiativeImage } fro
 import { CharCount } from "@/components/form/CharCount";
 import { FIELD_LIMITS } from "@/components/form/fieldLimits";
 import type { FilterOption } from "@/services/createFormApi";
+import { uploadImage } from "@/services/imageUploadApi";
+
+const UPLOAD_FAILED_MESSAGE = "Upload failed. Please try again.";
 
 function isImageFile(file: File) {
   if (file.type.startsWith("image/")) return true;
@@ -124,12 +127,18 @@ export function AddInitiativeModal({
     initialInitiative ? initiativeToForm(initialInitiative) : emptyForm(),
   );
   const [error, setError] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [pendingUploads, setPendingUploads] = useState<
+    { id: string; name: string }[]
+  >([]);
   const startPickerRef = useRef<HTMLInputElement>(null);
   const endPickerRef = useRef<HTMLInputElement>(null);
   const retainedImageIdsRef = useRef(
     new Set(initialInitiative?.images.map((image) => image.id) ?? []),
   );
-  const atImageLimit = form.images.length >= MAX_INITIATIVE_IMAGES;
+  const atImageLimit =
+    form.images.length + pendingUploads.length >= MAX_INITIATIVE_IMAGES;
+  const imagesBusy = pendingUploads.length > 0;
 
   // Radix can leave body pointer-events stuck after the dialog unmounts
   // (especially after a native file picker). Only repair on teardown.
@@ -165,13 +174,18 @@ export function AddInitiativeModal({
     if (!nextOpen) {
       setForm((prev) => {
         prev.images.forEach((image) => {
-          if (!retainedImageIdsRef.current.has(image.id)) {
+          if (
+            !retainedImageIdsRef.current.has(image.id) &&
+            image.blobUrl.startsWith("blob:")
+          ) {
             URL.revokeObjectURL(image.blobUrl);
           }
         });
         return emptyForm();
       });
       setError(null);
+      setUploadError(null);
+      setPendingUploads([]);
       document
         .querySelectorAll("[data-initiative-file-picker='true']")
         .forEach((node) => node.remove());
@@ -195,26 +209,49 @@ export function AddInitiativeModal({
 
     // Snapshot immediately — FileList from a removed <input> is live and can clear
     // before the setState updater runs (breaks multi-select / sequential picks).
-    const selected = Array.from(fileList);
+    const selected = Array.from(fileList).filter(isImageFile);
+    if (selected.length === 0) return;
 
-    setForm((prev) => {
-      const remaining = MAX_INITIATIVE_IMAGES - prev.images.length;
-      if (remaining <= 0) return prev;
+    const remaining =
+      MAX_INITIATIVE_IMAGES - form.images.length - pendingUploads.length;
+    if (remaining <= 0) return;
 
-      const nextImages = [...prev.images];
-      for (const file of selected.slice(0, remaining)) {
-        if (!isImageFile(file)) continue;
-        nextImages.push({
-          id: `${file.name}-${file.lastModified}-${crypto.randomUUID()}`,
-          name: file.name,
-          // TODO: On Save/Publish with real backend, upload `file` and replace blobUrl
-          // with the permanent URL before/while building NationalOnePagerCreatePayload.
-          blobUrl: URL.createObjectURL(file),
-          file,
+    const batch = selected.slice(0, remaining).map((file) => ({
+      id: `${file.name}-${file.lastModified}-${crypto.randomUUID()}`,
+      name: file.name,
+      file,
+    }));
+
+    setUploadError(null);
+    setPendingUploads((prev) => [
+      ...prev,
+      ...batch.map(({ id, name }) => ({ id, name })),
+    ]);
+
+    void (async () => {
+      for (const item of batch) {
+        const result = await uploadImage(item.file);
+        setPendingUploads((prev) =>
+          prev.filter((pending) => pending.id !== item.id),
+        );
+
+        if (!result.ok) {
+          setUploadError(UPLOAD_FAILED_MESSAGE);
+          continue;
+        }
+
+        setForm((prev) => {
+          if (prev.images.length >= MAX_INITIATIVE_IMAGES) return prev;
+          const nextImage: InitiativeImage = {
+            id: item.id,
+            name: item.name,
+            blobUrl: result.url,
+            file: null,
+          };
+          return { ...prev, images: [...prev.images, nextImage] };
         });
       }
-      return { ...prev, images: nextImages };
-    });
+    })();
   };
 
   /** Fresh input per pick — avoids Radix/dialog file-input getting stuck after the first OS picker. */
@@ -273,6 +310,10 @@ export function AddInitiativeModal({
   };
 
   const handleSave = () => {
+    if (imagesBusy) {
+      setError("Please wait for image uploads to finish.");
+      return;
+    }
     if (!form.accountable_function_department) {
       setError("Accountable Function / Department is required.");
       return;
@@ -498,39 +539,57 @@ export function AddInitiativeModal({
             <Label>Photo Guideline & Checklist</Label>
 
             <div className="flex h-16 items-center gap-2 overflow-x-auto rounded-lg border border-dashed border-border bg-[#f8fafc] px-2">
-              {form.images.length === 0 ? (
+              {form.images.length === 0 && pendingUploads.length === 0 ? (
                 <p className="w-full text-center text-xs text-muted-foreground">
                   Image preview
                 </p>
               ) : (
-                form.images.map((image) => (
-                  <div
-                    key={image.id}
-                    className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md border border-border bg-white"
-                  >
-                    <img
-                      src={image.blobUrl}
-                      alt={image.name}
-                      className="h-full w-full object-cover"
-                    />
-                    <button
-                      type="button"
-                      className="absolute top-0.5 right-0.5 cursor-pointer rounded-full bg-black/60 p-0.5 text-white"
-                      onClick={() => removeImage(image.id)}
-                      aria-label={`Remove ${image.name}`}
+                <>
+                  {form.images.map((image) => (
+                    <div
+                      key={image.id}
+                      className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md border border-border bg-white"
                     >
-                      <X className="size-3" />
-                    </button>
-                  </div>
-                ))
+                      <img
+                        src={image.blobUrl}
+                        alt={image.name}
+                        className="h-full w-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        className="absolute top-0.5 right-0.5 cursor-pointer rounded-full bg-black/60 p-0.5 text-white"
+                        onClick={() => removeImage(image.id)}
+                        aria-label={`Remove ${image.name}`}
+                      >
+                        <X className="size-3" />
+                      </button>
+                    </div>
+                  ))}
+                  {pendingUploads.map((pending) => (
+                    <div
+                      key={pending.id}
+                      className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md border border-border bg-white"
+                      title={pending.name}
+                    >
+                      <Loader2
+                        className="size-4 animate-spin text-primary"
+                        aria-label={`Uploading ${pending.name}`}
+                      />
+                    </div>
+                  ))}
+                </>
               )}
             </div>
+
+            {uploadError ? (
+              <p className="text-sm text-destructive">{uploadError}</p>
+            ) : null}
 
             <Button
               type="button"
               variant="outline"
               className="h-11 w-full cursor-pointer rounded-lg border-primary text-primary hover:bg-accent hover:text-primary"
-              disabled={atImageLimit}
+              disabled={atImageLimit || imagesBusy}
               onClick={openImagePicker}
             >
               <CloudUpload className="size-4" />
@@ -572,6 +631,7 @@ export function AddInitiativeModal({
           <Button
             type="button"
             className="cursor-pointer rounded-lg"
+            disabled={imagesBusy}
             onClick={handleSave}
           >
             {initialInitiative ? "Update Initiative" : "Save Initiative"}

@@ -4,14 +4,11 @@ export type InitiativeImage = {
   id: string;
   name: string;
   /**
-   * In-browser preview URL (`blob:...`) until real image upload exists.
-   *
-   * TODO: Swap to permanent storage URL after upload API without breaking previews:
-   * - Upload `file` → receive URL → set this field to that URL (keep name/id).
-   * - On edit load from API, populate from server URL; `file` may be absent.
+   * Permanent image URL from `uploadImage` (payload field still named `blob_url`).
+   * May still be a legacy `blob:` URL for unsaved in-memory drafts until re-picked.
    */
   blobUrl: string;
-  /** Raw file for future upload; required on create picks, null when hydrating from API. */
+  /** Raw file while uploading / before upload completes; null after upload or hydrate. */
   file: File | null;
 };
 

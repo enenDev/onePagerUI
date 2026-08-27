@@ -239,14 +239,18 @@ Track **More Options** mirrors published View (Export / Archive / Edit / Delete;
 
 ---
 
-## 15. Image upload — not mocked yet
+## 15. `uploadImage`
 
-No function exists. Cover and initiative images are local `File`s. Preview URLs are `blob:` and die on refresh.
-
-- **Add:** e.g. `uploadImage(file)` → permanent URL
-- **When:** before save/publish (or on file pick)
-- **Put the URL in:** `cover_image.blob_url` and initiative `images[].blob_url`
-- **Blocks:** APIs 8, 9, 11, 12, and Home card covers
+- **File:** `frontend/src/services/imageUploadApi.ts`
+- **Replace:** the `delay()` + fake `https://cdn.example.com/uploads/...` URL
+- **With:** real multipart or signed-url upload (e.g. `POST /api/uploads`)
+- **Serves:** Cover Image on National/Retailer create/edit; initiative images in Add Initiative modal
+- **When:** on each file pick (not batched on Save Draft / Publish)
+- **UI:** loader until success → preview uses returned URL; on failure remove that pending image and show “Upload failed. Please try again.”
+- **Keep:** `(file: File) => Promise<UploadImageResult>` with `{ ok: true, url }` or `{ ok: false, error }`
+- **Put the URL in:** form `coverImageUrl` / initiative `blobUrl` → payload `cover_image.blob_url` and `images[].blob_url`
+- **Depends on:** none. Must succeed before those URLs are available for draft/publish payloads.
+- **Blocks:** Home card covers still need list API permanent URLs after save/publish (section 5)
 
 ---
 

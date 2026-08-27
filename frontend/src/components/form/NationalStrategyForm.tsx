@@ -1,5 +1,5 @@
-﻿import { useState, type ReactNode } from "react";
-import { CloudUpload } from "lucide-react";
+﻿import { useRef, useState, type ReactNode } from "react";
+import { CloudUpload, Loader2 } from "lucide-react";
 
 import { AddCampaignModal } from "@/components/form/AddCampaignModal";
 import {
@@ -8,6 +8,7 @@ import {
 import { CharCount } from "@/components/form/CharCount";
 import { FIELD_LIMITS } from "@/components/form/fieldLimits";
 import type { NationalFormValues } from "@/components/form/nationalForm";
+import { useCoverImageUpload } from "@/components/form/useCoverImageUpload";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MarketRequiredTooltip } from "@/components/ui/market-required-tooltip";
@@ -39,6 +40,12 @@ export function NationalStrategyForm({
 }: NationalStrategyFormProps) {
   const dispatch = useAppDispatch();
   const [addCampaignOpen, setAddCampaignOpen] = useState(false);
+  const valuesRef = useRef(values);
+  valuesRef.current = values;
+  const { uploading: coverUploading, error: coverUploadError, onCoverFileChange } =
+    useCoverImageUpload({
+      patch: (next) => onChange({ ...valuesRef.current, ...next }),
+    });
 
   const markets = catalog?.markets ?? [];
   const optionsByMarket = catalog?.optionsByMarket ?? {};
@@ -178,30 +185,42 @@ export function NationalStrategyForm({
 
             <div className="space-y-2 sm:col-span-2">
               <Label>Cover Image/Thumbnail</Label>
-              <label className="flex h-11 cursor-pointer items-center justify-center gap-2 rounded-lg border border-primary bg-white text-sm font-medium text-primary hover:bg-accent">
-                <CloudUpload className="size-4" />
-                {values.coverImageName || "Upload Cover Image"}
+              <label
+                className={`flex h-11 items-center justify-center gap-2 rounded-lg border border-primary bg-white text-sm font-medium text-primary ${
+                  coverUploading
+                    ? "cursor-not-allowed opacity-60"
+                    : "cursor-pointer hover:bg-accent"
+                }`}
+              >
+                {coverUploading ? (
+                  <Loader2 className="size-4 animate-spin" aria-hidden />
+                ) : (
+                  <CloudUpload className="size-4" />
+                )}
+                {coverUploading
+                  ? "Uploading…"
+                  : values.coverImageName || "Upload Cover Image"}
                 <input
                   type="file"
                   accept="image/png,image/jpeg,image/jpg,image/webp,image/gif,image/svg+xml"
                   className="sr-only"
+                  disabled={coverUploading}
                   onChange={(event) => {
                     const file = event.target.files?.[0] ?? null;
-                    if (values.coverImageUrl.startsWith("blob:")) {
-                      URL.revokeObjectURL(values.coverImageUrl);
-                    }
-                    // TODO: When upload API exists, optionally upload file here (or on Save)
-                    // and store the returned permanent URL in coverImageUrl instead of blob:.
-                    patch({
-                      coverImageName: file?.name ?? "",
-                      coverImageUrl: file ? URL.createObjectURL(file) : "",
-                      coverImageFile: file,
-                    });
+                    void onCoverFileChange(file);
                     event.target.value = "";
                   }}
                 />
               </label>
-              {values.coverImageUrl ? (
+              {coverUploadError ? (
+                <p className="text-sm text-destructive">{coverUploadError}</p>
+              ) : null}
+              {coverUploading ? (
+                <div className="flex h-28 items-center justify-center gap-2 rounded-lg border border-border bg-[#f8fafc] text-sm text-muted-foreground">
+                  <Loader2 className="size-5 animate-spin text-primary" aria-hidden />
+                  Uploading image…
+                </div>
+              ) : values.coverImageUrl ? (
                 <div className="overflow-hidden rounded-lg border border-border bg-[#f8fafc]">
                   <img
                     src={values.coverImageUrl}

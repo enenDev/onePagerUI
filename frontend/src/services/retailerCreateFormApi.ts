@@ -32,9 +32,7 @@ export type RetailerOnePagerCreatePayload = {
 
 /**
  * Builds the create/save/publish request body from retailer form state.
- *
- * TODO: When image upload exists, upload files first then put permanent URLs into
- * form state (or map here). Do not POST raw `blob:` URLs as final image locations.
+ * Image URLs must already be uploaded into form state (`uploadImage`).
  * Keep field names (`target_retailer`, `cover_image.blob_url`, pillar/initiative shape)
  * stable when swapping to FastAPI.
  */

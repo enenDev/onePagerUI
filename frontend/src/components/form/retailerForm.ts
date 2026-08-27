@@ -19,13 +19,10 @@ export type RetailerFormValues = {
   businessOutcome: string;
   coverImageName: string;
   /**
-   * In-browser preview URL for cover (`blob:...`) until upload API exists.
-   *
-   * TODO: After real upload, store the permanent CDN/API URL here (or add `coverImageRemoteUrl`
-   * and keep blob only for local preview). Revoke blob URLs when replacing/discarding.
+   * Cover image URL from `uploadImage` (same value goes to payload `cover_image.blob_url`).
    */
   coverImageUrl: string;
-  /** Raw file kept for future multipart/signed upload. Null in edit mode until re-picked. */
+  /** Kept for compatibility; cleared after a successful upload. */
   coverImageFile: File | null;
 };
 

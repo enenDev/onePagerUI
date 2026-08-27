@@ -145,16 +145,10 @@ export async function addCampaign(
 /**
  * Image fields on the national create/save payload.
  *
- * TODO: Image upload / blob storage integration
- * - Today `blob_url` is a browser-only `blob:...` object URL (not durable, not sendable as final CDN URL).
- * - Keep payload field names stable for the form (`name` + `blob_url`) OR introduce `url` alongside
- *   `blob_url` and map after upload — avoid renaming form state fields without a migration plan.
- * - Real flow (preferred):
- *   1) Upload cover `File` + each initiative `File` to backend/storage (multipart or signed URL).
- *   2) Receive permanent URLs from API.
- *   3) Put those permanent URLs into this payload (same shape consumers expect).
- * - FE already keeps `File` on cover (`coverImageFile`) and initiative images (`file`) for upload.
- * - Until then, mock save/publish stores `blob_url` in memory only (lost on refresh).
+ * `blob_url` holds the URL from `uploadImage` (mock or real). Keep this field name
+ * when swapping FastAPI — do not POST raw `blob:` object URLs as final storage.
+ * Cover/initiative picks call `uploadImage` on file select; form state already has URLs
+ * before Save Draft / Publish. See `frontend/src/services/imageUploadApi.ts`.
  */
 export type NationalImagePayload = {
   id?: string;
@@ -207,11 +201,8 @@ export type NationalOnePagerCreatePayload = {
 
 /**
  * Builds the create/save/publish request body from form state.
- *
- * TODO: When image upload exists, either:
- * - Upload files first, then call this builder with permanent URLs already written into form state, OR
- * - Extend this builder to accept uploaded URL maps and substitute `blob_url` before POST.
- * Do not POST raw `blob:` URLs to FastAPI as final image locations.
+ * Image URLs must already be uploaded (`uploadImage`) into form state — this
+ * builder only maps `coverImageUrl` / initiative `blobUrl` into `blob_url`.
  */
 export function buildNationalOnePagerPayload(
   values: NationalFormValues,
@@ -323,7 +314,7 @@ function upsertNationalRecord(
  * - Endpoint (example): POST /api/national-one-pagers/draft
  * - Body: `NationalOnePagerCreatePayload` (+ id when updating existing draft)
  * - Response: `{ id, status: "draft" }` (keep `NationalOnePagerMutationResult` shape)
- * - After image upload exists, payload image URLs must be permanent (see NationalImagePayload TODO).
+ * - Payload image URLs come from `uploadImage` into form state before this call.
  * - Remove `delay` + `upsertNationalRecord` in-memory path.
  */
 export async function saveNationalDraft(
