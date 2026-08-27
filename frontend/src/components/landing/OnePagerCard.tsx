@@ -5,7 +5,6 @@ import {
   Pencil,
   RotateCcw,
   Share2,
-  Target,
   Trash2,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -38,7 +37,6 @@ type OnePagerCardProps = {
 };
 
 type CardMenuAction =
-  | "track"
   | "export"
   | "archive"
   | "restore"
@@ -47,7 +45,7 @@ type CardMenuAction =
 
 function menuActionsForStatus(status: OnePagerStatus): CardMenuAction[] {
   if (status === "PUBLISHED") {
-    return ["track", "export", "archive", "edit", "delete"];
+    return ["export", "archive", "edit", "delete"];
   }
   if (status === "DRAFT") {
     return ["edit", "delete"];
@@ -63,7 +61,10 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
   const scoringLabel =
     item.scoring_mode === "WEIGHTED" ? "Weighted" : "Unweighted";
   const isOwner = isCurrentUserOwner(item.created_by, currentUser.id);
-  const viewPath = `/view/${item.pager_id}`;
+  const openPath =
+    item.status === "PUBLISHED"
+      ? `/track/${item.pager_id}`
+      : `/view/${item.pager_id}`;
   const actions = menuActionsForStatus(item.status);
 
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -194,9 +195,6 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
                   }
                   navigate(`/edit/${item.pager_id}`);
                 }}
-                onTrack={() => {
-                  navigate(`/track/${item.pager_id}`);
-                }}
                 onExport={() => {
                   void handleExport();
                 }}
@@ -223,7 +221,7 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
       </div>
 
       <Link
-        to={viewPath}
+        to={openPath}
         className="block cursor-pointer text-inherit no-underline outline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
         aria-label={`Open ${item.title}`}
       >
@@ -326,7 +324,6 @@ function CardMenuItem({
   isOwner,
   showSeparator,
   onEdit,
-  onTrack,
   onExport,
   exporting,
   onArchive,
@@ -337,7 +334,6 @@ function CardMenuItem({
   isOwner: boolean;
   showSeparator: boolean;
   onEdit: () => void;
-  onTrack: () => void;
   onExport: () => void;
   exporting: boolean;
   onArchive: () => void;
@@ -349,14 +345,6 @@ function CardMenuItem({
   let menuItem: ReactNode;
 
   switch (action) {
-    case "track":
-      menuItem = (
-        <DropdownMenuItem className={itemClassName} onClick={onTrack}>
-          <Target className="size-4" />
-          Track
-        </DropdownMenuItem>
-      );
-      break;
     case "export":
       menuItem = (
         <DropdownMenuItem

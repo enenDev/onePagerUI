@@ -8,7 +8,6 @@ import {
 import { Pencil, Send } from "lucide-react";
 
 import type { NationalFormValues } from "@/components/form/nationalForm";
-import { FormToast } from "@/components/form/FormToast";
 import type { PillarDraft, ScoringMode } from "@/components/form/pillars";
 import { DeleteOnePagerModal } from "@/components/landing/DeleteOnePagerModal";
 import { ArchiveOnePagerModal } from "@/components/landing/ArchiveOnePagerModal";
@@ -60,16 +59,10 @@ export function PreviewNationalOnePager() {
   const composedTitle = payload ? composeNationalPreviewTitle(payload) : "";
 
   const [publishing, setPublishing] = useState(false);
-  const [published, setPublished] = useState(false);
-  const [recordId, setRecordId] = useState<string | null>(
-    () => state?.recordId ?? null,
-  );
-  const [publishedAt, setPublishedAt] = useState(() =>
-    formatPublishedAt(new Date()),
-  );
+  const published = false;
+  const recordId = state?.recordId ?? null;
+  const publishedAt = formatPublishedAt(new Date());
   const [error, setError] = useState<string | null>(null);
-  const [toastOpen, setToastOpen] = useState(false);
-  const [toastMessage, setToastMessage] = useState("");
   const [publishConfirmOpen, setPublishConfirmOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -127,7 +120,8 @@ export function PreviewNationalOnePager() {
     setError(null);
     // TODO: Confirm Publish → real FastAPI POST /api/national-one-pagers/publish.
     // Temporary: publishNationalOnePager mock upsert with NationalOnePagerCreatePayload + optional id.
-    // Keep response { id, status: "published" }. Stay on this page (no home redirect).
+    // Keep response { id, status: "published" }. Then replace-navigate to /track/:id
+    // (do not stay on preview). Toast message travels in location.state.publishedToast.
     const result = await publishNationalOnePager(payload, recordId ?? state.recordId);
     setPublishing(false);
 
@@ -136,11 +130,10 @@ export function PreviewNationalOnePager() {
       return;
     }
 
-    setRecordId(result.id);
-    setPublished(true);
-    setPublishedAt(formatPublishedAt(new Date()));
-    setToastMessage(`"${composedTitle}" is now published`);
-    setToastOpen(true);
+    navigate(`/track/${result.id}`, {
+      replace: true,
+      state: { publishedToast: `"${composedTitle}" is now published` },
+    });
   };
 
   const handleConfirmDelete = async () => {
@@ -329,12 +322,6 @@ export function PreviewNationalOnePager() {
         onArchiveAndEdit={() => {
           void handleArchiveAndEdit();
         }}
-      />
-
-      <FormToast
-        open={toastOpen}
-        message={toastMessage}
-        onOpenChange={setToastOpen}
       />
     </div>
   );

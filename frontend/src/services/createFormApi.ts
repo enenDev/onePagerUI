@@ -333,7 +333,7 @@ export async function saveNationalDraft(
  * - Creates published OR promotes existing draft id → published
  * - Response: `{ id, status: "published" }`
  * - FE: confirm Publish on preview calls this with `NationalOnePagerCreatePayload` (+ id).
- *   On success the preview stays on-page (toast, drop "(Preview)" prefix, enable More Options).
+ *   On success FE replace-navigates to `/track/:id` and shows the publish toast there.
  * - Remove in-memory upsert once backend owns status transitions.
  */
 export async function publishNationalOnePager(

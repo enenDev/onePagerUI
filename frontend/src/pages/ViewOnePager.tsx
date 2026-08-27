@@ -35,8 +35,9 @@ function composeViewTitle(record: OnePagerByIdRecord) {
 }
 
 /**
- * Landing card click: GET-by-id, then the published/document view.
- * Active / Draft / Archive all open this page (no sticky Publish bar).
+ * Landing card click: GET-by-id, then the document view.
+ * Draft / Archive open this page (no sticky Publish bar). Active (published)
+ * cards open Track instead (`/track/:id`).
  *
  * TODO: Swap only getOnePagerById to GET /api/one-pagers/:id
  * (GetOnePagerApiResponse). Keep mapGetOnePagerResponse + OnePagerByIdRecord.

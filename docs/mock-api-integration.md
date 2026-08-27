@@ -84,7 +84,7 @@ Edit dropdowns only show a value if it exists in this catalog. GET-by-id `market
 - **Mapper:** `frontend/src/services/mapGetOnePagerResponse.ts` — `mapGetOnePagerResponse`
 - **Replace:** cloning mock JSON + stamping `pager_id` / `pager_type`. Stop importing `getOnePager.json`.
 - **With:** `GET /api/one-pagers/:id` returning `GetOnePagerApiResponse` (flat body, no nested `payload`)
-- **Serves:** Edit (`/edit/:id`), View (`/view/:id`), Track (`/track/:id`) — **same GET for all three**
+- **Serves:** Edit (`/edit/:id`), View (`/view/:id`), Track (`/track/:id`) — **same GET for all three**. Home **Active** cards and post-publish Preview open Track. Home **Drafts** / **Archive** cards open View.
 - **Data today:** any id → `mocks/getOnePager.json`. Mock stamps URL `pager_id` and `pager_type` (`National` vs `Retailer` from the landing list). `created_by` in that JSON is `"user-001"` so it matches `userSlice` initial `id`.
 - **Keep:** mapper output `{ id, status, created_by, list_status, published_at, pager_type, payload }`. Do not rewrite View / Edit / Track pages.
 - **Depends on:** real save/publish data. Import From National does **not** use this — it uses `getNationalOnePager`. Owner UX compares `created_by` to `state.user.currentUser.id`.
@@ -108,10 +108,10 @@ There is **no** separate GET for Track RAG. Dots come from this response via `tr
 - **File:** `frontend/src/services/onePagerApi.ts` — lines **175–188**
 - **Replace:** `removeLandingCard(trimmed)`
 - **With:** `DELETE /api/one-pagers/:id`
-- **Serves:** card delete, View / Track / Preview More Options → Delete
+- **Serves:** card delete, View / Track More Options → Delete, Home ⋯ Delete
 - **Data today:** removes the row from the in-memory landing list only
 - **Keep:** `{ ok: true, pager_id }` or `{ ok: false, error }`
-- **Depends on:** a real saved id. On success, Redux already drops the card and View / Track / Preview navigate to `/home`. Server should 403 non-owners.
+- **Depends on:** a real saved id. On success, Redux already drops the card and View / Track navigate to `/home`. Server should 403 non-owners.
 
 ---
 
@@ -133,7 +133,7 @@ There is **no** separate GET for Track RAG. Dots come from this response via `tr
 - **File:** `frontend/src/services/createFormApi.ts` — lines **348–354**
 - **Replace:** same in-memory upsert as draft
 - **With:** `POST /api/national-one-pagers/publish`
-- **Serves:** Preview → Confirm Publish. Stay on the preview page (do not redirect Home).
+- **Serves:** Preview → Confirm Publish. On success FE replace-navigates to `/track/:id` (do not stay on preview). Publish toast is `location.state.publishedToast` on Track.
 - **Data today:** same `nationalRecords` Map as draft
 - **Keep:** `{ ok: true, id, status: "published" }`
 - **Depends on:** **image upload first**
@@ -170,7 +170,7 @@ There is **no** separate GET for Track RAG. Dots come from this response via `tr
 - **File:** `frontend/src/services/retailerCreateFormApi.ts` — lines **163–169**
 - **Replace:** same in-memory upsert as retailer draft
 - **With:** `POST /api/retailer-one-pagers/publish`
-- **Serves:** Retailer preview → Confirm Publish. Stay on the page.
+- **Serves:** Retailer preview → Confirm Publish. On success FE replace-navigates to `/track/:id` (same toast handoff as national).
 - **Data today:** same `retailerRecords` Map as draft
 - **Keep:** `{ ok: true, id, status: "published" }`
 - **Depends on:** **image upload first**
@@ -188,7 +188,7 @@ Track uses **2** functions. There is no `getTrackStatuses` and no in-memory RAG 
 
 On open: **1 GET**. On each click: **1 PATCH**.
 
-Anyone can open `/track/:id` (published only). Only the owner can change dots (`created_by === state.user.currentUser.id`). Server should still 403 non-owners on PATCH.
+Anyone can open `/track/:id` (published only). Home **Active** card click and Confirm Publish both land here. Home ⋯ does **not** include Track (opening the card already shows RAG). Only the owner can change dots (`created_by === state.user.currentUser.id`). Server should still 403 non-owners on PATCH.
 
 ### Where to change
 
@@ -204,7 +204,7 @@ Leave `initiativeTrackKey` and `trackStateFromPillars` in place — the UI uses 
 
 Leave RAG wiring alone: `TrackOnePager` still looks up `pillar_id` / `initiative_id` from the mapped GET record and passes them into `updateTrackStatus` with `updated_by: currentUser.email`. Keep `PillarBoard` / `TrackStatusDot` for dots.
 
-Track **More Options** mirrors published View (Export / Archive / Edit / Delete; Track omitted because you are already on `/track/:id`). Do not remove that menu when swapping APIs — only swap the underlying mock calls. View/Preview without `track` still show no RAG dots.
+Track **More Options** is Export / Archive / Edit / Delete (Track omitted — already on `/track/:id`). Do not remove that menu when swapping APIs — only swap the underlying mock calls. Home ⋯ for Active cards is Export / Archive / Edit / Delete (no Track). Draft/Archive View and pre-publish Preview have no RAG dots.
 
 ---
 
@@ -293,10 +293,10 @@ Login is a **page**, not a route gate. `/` → `/login`. After mock SSO, FE navi
 
 No mock function (or handler is UI-only until a real API exists). Attach a handler when the API exists.
 
-- **Export** — client-side PPT (`exportOnePagerPpt` in `frontend/src/services/exportOnePagerPpt.ts`). Home ⋯ and View / Track / Preview More Options. Uses GET-by-id payload + `image_urls`. Optional later: `GET /api/one-pagers/:id/export` if the server should generate the file.
-- **Archive** — `archiveOnePager` in `onePagerApi.ts` (mock → `landingListStore.updateLandingCardStatus`). Redux thunk `landing/archiveOnePager`. UI: `ArchiveOnePagerModal`. Swap body for `POST /api/one-pagers/:id/archive`. Keep `{ ok, pager_id, status: "ARCHIVED" }`. Owner-only. On success from View / Track / Preview, FE navigates to `/home` (Home card menu already stays on Home).
+- **Export** — client-side PPT (`exportOnePagerPpt` in `frontend/src/services/exportOnePagerPpt.ts`). Home ⋯ and View / Track More Options. Uses GET-by-id payload + `image_urls`. Optional later: `GET /api/one-pagers/:id/export` if the server should generate the file.
+- **Archive** — `archiveOnePager` in `onePagerApi.ts` (mock → `landingListStore.updateLandingCardStatus`). Redux thunk `landing/archiveOnePager`. UI: `ArchiveOnePagerModal`. Swap body for `POST /api/one-pagers/:id/archive`. Keep `{ ok, pager_id, status: "ARCHIVED" }`. Owner-only. On success from View / Track, FE navigates to `/home` (Home card menu already stays on Home).
 - **Restore** — `restoreOnePager` → status **DRAFT** (not Active). Redux thunk `landing/restoreOnePager`. UI: `RestoreOnePagerModal`. Swap for `POST /api/one-pagers/:id/restore`. Keep `{ ok, pager_id, status: "DRAFT" }`. Owner-only. On success from View, FE navigates to `/home`.
-- **Edit published** — `EditPublishedOnePagerModal` (Archive & Edit / Keep Active & Edit) from View / Track / Preview More Options (and Home ⋯). Both open `/edit/:id` with `createAsNew: true` so Save Draft / Publish create a **new** id. Archive & Edit calls archive first. Draft Edit still updates the same id.
+- **Edit published** — `EditPublishedOnePagerModal` (Archive & Edit / Keep Active & Edit) from Track / View More Options (and Home ⋯). Both open `/edit/:id` with `createAsNew: true` so Save Draft / Publish create a **new** id. Archive & Edit calls archive first. Draft Edit still updates the same id.
 
 ---
 

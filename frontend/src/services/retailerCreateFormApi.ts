@@ -156,7 +156,7 @@ export async function saveRetailerDraft(
  * Mock POST publish for retailer one-pagers.
  *
  * TODO: Replace with POST /api/retailer-one-pagers/publish
- * Response: { id, status: "published" }. Preview stays on-page after success.
+ * Response: { id, status: "published" }. FE then replace-navigates to `/track/:id`.
  */
 export async function publishRetailerOnePager(
   payload: RetailerOnePagerCreatePayload,

@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useOutletContext, useParams } from "react-router-dom";
+import {
+  useLocation,
+  useNavigate,
+  useOutletContext,
+  useParams,
+} from "react-router-dom";
 
 import { Loading } from "@/components/common/Loading";
+import { FormToast } from "@/components/form/FormToast";
 import { ArchiveOnePagerModal } from "@/components/landing/ArchiveOnePagerModal";
 import { DeleteOnePagerModal } from "@/components/landing/DeleteOnePagerModal";
 import { EditPublishedOnePagerModal } from "@/components/landing/EditPublishedOnePagerModal";
@@ -36,19 +42,27 @@ function composeTitle(record: OnePagerByIdRecord) {
   return composeNationalPreviewTitle(record.payload);
 }
 
+function publishedToastFromState(state: unknown): string {
+  if (!state || typeof state !== "object") return "";
+  const message = (state as { publishedToast?: unknown }).publishedToast;
+  return typeof message === "string" ? message : "";
+}
+
 /**
  * Published-only Track board. Same GET-by-id as View/Edit; dots come from
  * pillar_track / initiative_track. PATCH uses pager_id + pillar_id +
  * initiative_id ("" for pillar-only) from that GET.
  *
- * More Options mirrors View for published: Export / Archive / Edit / Delete
- * (Track omitted — already on this page). Archive / Delete → /home on success.
+ * Home Active card click and post-publish Preview both open this page.
+ * More Options: Export / Archive / Edit / Delete (Track omitted — already
+ * here). Archive / Delete → /home on success.
  *
  * TODO: Swap getOnePagerById / updateTrackStatus bodies only.
  * Keep this page looking up pillar_id / initiative_id from the mapped record.
  */
 export function TrackOnePager() {
   const { pagerId } = useParams<{ pagerId: string }>();
+  const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const currentUser = useAppSelector((state) => state.user.currentUser);
@@ -60,6 +74,12 @@ export function TrackOnePager() {
     initiatives: {},
   });
   const [error, setError] = useState<string | null>(null);
+  const [toastOpen, setToastOpen] = useState(() =>
+    Boolean(publishedToastFromState(location.state)),
+  );
+  const [toastMessage] = useState(() =>
+    publishedToastFromState(location.state),
+  );
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -319,6 +339,11 @@ export function TrackOnePager() {
         onArchiveAndEdit={() => {
           void handleArchiveAndEdit();
         }}
+      />
+      <FormToast
+        open={toastOpen}
+        message={toastMessage}
+        onOpenChange={setToastOpen}
       />
     </div>
   );
