@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Info } from "lucide-react";
 
 import {
   formatPreviewDateRange,
@@ -94,7 +95,9 @@ function InitiativeBlock({
       <PreviewSection label="Success Target">
         {formatSuccessTarget(initiative)}
       </PreviewSection>
-      <PreviewSection label="Guidelines">{initiative.guidelines}</PreviewSection>
+      <PreviewSection label="Guidelines">
+        {initiative.guidelines}
+      </PreviewSection>
 
       {dateLabel ? (
         <span className="inline-flex w-fit rounded-full bg-preview-date px-2.5 py-0.5 text-xs font-medium text-preview-date-fg">
@@ -186,7 +189,9 @@ export function PillarBoard({ pillars, track }: PillarBoardProps) {
                         key={`${pillar.pillar_number}-${initiative.initiative_number}`}
                         className={cn(
                           "min-w-0",
-                          index > 0 ? "border-t border-preview-divider pt-4" : "",
+                          index > 0
+                            ? "border-t border-preview-divider pt-4"
+                            : "",
                         )}
                       >
                         <InitiativeBlock
@@ -213,9 +218,10 @@ export function PillarBoard({ pillars, track }: PillarBoardProps) {
                   })}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">
-                  No initiative added.
-                </p>
+                <div className="flex items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-2.5 py-2 text-sm font-medium text-amber-950">
+                  <Info className="size-3.5 shrink-0 text-amber-700" />
+                  <p className="text-[#b03800]">No initiatives added.</p>
+                </div>
               )}
             </article>
           );

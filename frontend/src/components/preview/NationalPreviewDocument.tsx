@@ -277,10 +277,7 @@ export function NationalPreviewDocument({
           )}
 
           <Badge
-            className={cn(
-              "mt-1 rounded-full px-2.5",
-              statusBadge.className,
-            )}
+            className={cn("mt-1 rounded-full px-2.5", statusBadge.className)}
           >
             {statusBadge.label}
           </Badge>
@@ -296,10 +293,13 @@ export function NationalPreviewDocument({
       </div>
 
       <div className="space-y-3">
-        {payload.pillars.some((pillar) => pillar.initiatives.length === 0) ? (
+        {!moreOptionsEnabled &&
+        payload.pillars.some((pillar) => pillar.initiatives.length === 0) ? (
           <div className="flex items-center gap-2.5 rounded-lg border border-amber-300 bg-amber-50 px-3.5 py-3 text-medium font-medium text-amber-950">
             <Info className="mt-0.5 size-4 shrink-0 text-amber-700" />
-            <p>No initiatives added for the pillars</p>
+            <p className="text-[#b03800]">
+              No initiatives added for the pillars
+            </p>
           </div>
         ) : null}
         <h2 className="text-sm font-semibold text-foreground">
