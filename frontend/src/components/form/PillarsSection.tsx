@@ -35,6 +35,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import type { CreateFormMetadata } from "@/services/createFormApi";
@@ -215,6 +216,19 @@ export function PillarsSection({
     );
   };
 
+  const setWeight = (pillarNumber: number, raw: string) => {
+    if (!isWeighted) return;
+    const digits = raw.replace(/\D/g, "").slice(0, 3);
+    const next = digits === "" ? 0 : Math.min(100, Number(digits));
+    onPillarsChange(
+      pillars.map((pillar) =>
+        pillar.pillar_number === pillarNumber
+          ? { ...pillar, pillar_weight: next }
+          : pillar,
+      ),
+    );
+  };
+
   const resetEqualWeights = () => {
     onPillarsChange(
       pillars.map((pillar) => ({
@@ -308,7 +322,7 @@ export function PillarsSection({
           return (
             <div
               key={pillar.pillar_number}
-              className="rounded-xl border border-border bg-white"
+              className="rounded-xl border border-border bg-[#fbfbfb]"
             >
               <div className="flex flex-wrap items-center gap-3 px-4 py-3">
                 <div
@@ -341,11 +355,11 @@ export function PillarsSection({
                 )}
 
                 {isWeighted && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 rounded-lg bg-white px-2 py-1">
                     <span className="text-xs font-medium text-muted-foreground">
                       Pillar Score
                     </span>
-                    <div className="flex items-center rounded-lg border border-border">
+                    <div className="flex items-center rounded-lg border border-border bg-white">
                       <button
                         type="button"
                         className="cursor-pointer px-2 py-1 text-primary hover:bg-accent"
@@ -354,9 +368,24 @@ export function PillarsSection({
                       >
                         <Minus className="size-3.5" />
                       </button>
-                      <span className="min-w-8 text-center text-sm font-semibold">
-                        {pillar.pillar_weight}
-                      </span>
+                      <Input
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        maxLength={3}
+                        value={pillar.pillar_weight}
+                        onChange={(event) =>
+                          setWeight(pillar.pillar_number, event.target.value)
+                        }
+                        onFocus={(event) => event.target.select()}
+                        onKeyDown={(event) => {
+                          if (["e", "E", "+", "-", ".", ","].includes(event.key)) {
+                            event.preventDefault();
+                          }
+                        }}
+                        aria-label={`${pillar.pillar_name} pillar score`}
+                        className="h-7 w-10 min-w-0 rounded-none border-0 bg-white px-0 text-center text-sm font-semibold shadow-none focus-visible:border-transparent focus-visible:ring-0"
+                      />
                       <button
                         type="button"
                         className="cursor-pointer px-2 py-1 text-primary hover:bg-accent"

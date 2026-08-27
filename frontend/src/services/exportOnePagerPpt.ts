@@ -135,6 +135,17 @@ const PRIORITY_COLOR: Record<string, string> = {
   P3: "A5BA02",
 };
 
+/** Slot label: initiative 1 → P1, 2 → P2, 3 → P3 (same rule as the form). */
+function priorityBadge(
+  initiative: NationalInitiativePayload,
+): "P1" | "P2" | "P3" {
+  const fromNumber = `P${initiative.initiative_number}`;
+  if (fromNumber === "P1" || fromNumber === "P2" || fromNumber === "P3") {
+    return fromNumber;
+  }
+  return initiative.priority_level;
+}
+
 /** Blocks a second click while images fetch + the file writes. */
 let exportBusy = false;
 
@@ -393,15 +404,17 @@ function addInitiative(
   let cursor = y + pad;
 
   const badge = 0.18;
+  const priority = priorityBadge(initiative);
+  const priorityColor = PRIORITY_COLOR[priority] ?? "E73C43";
   slide.addShape(pptx.ShapeType.ellipse, {
     x: innerX,
     y: cursor,
     w: badge,
     h: badge,
-    fill: { color: PRIORITY_COLOR[initiative.priority_level] ?? "E73C43" },
-    line: { color: PRIORITY_COLOR[initiative.priority_level] ?? "E73C43" },
+    fill: { color: priorityColor },
+    line: { color: priorityColor },
   });
-  slide.addText(initiative.priority_level, {
+  slide.addText(priority, {
     x: innerX,
     y: cursor,
     w: badge,
@@ -626,9 +639,12 @@ function addColumn(
   const initH =
     (bodyH - initGap * (MAX_INITIATIVES_PER_PILLAR - 1)) /
     MAX_INITIATIVES_PER_PILLAR;
+  const initiatives = [...pillar.initiatives].sort(
+    (a, b) => a.initiative_number - b.initiative_number,
+  );
 
   for (let i = 0; i < MAX_INITIATIVES_PER_PILLAR; i++) {
-    const initiative = pillar.initiatives[i];
+    const initiative = initiatives[i];
     const initY = bodyY + i * (initH + initGap);
     if (!initiative) continue;
     if (i > 0) {
