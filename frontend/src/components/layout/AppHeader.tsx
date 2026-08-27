@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { LogOut, UserRound } from "lucide-react";
 
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAppSelector } from "@/redux/hooks";
 import { userTypeLabel } from "@/redux/userSlice";
+import { logout } from "@/services/authApi";
 import perfectStoreLogo from "@/assets/Perfect_Store_Hero_Logo.svg";
 import unileverBrandLogo from "@/assets/Unilever_Brand_Logo.svg";
 
@@ -24,9 +25,16 @@ function HeaderDivider() {
 }
 
 export function AppHeader() {
+  const navigate = useNavigate();
   const { name, email, initials, user_type } = useAppSelector(
     (state) => state.user.currentUser,
   );
+
+  const handleLogout = () => {
+    void logout().then(() => {
+      navigate("/login");
+    });
+  };
 
   return (
     <header className="sticky top-0 z-40 w-full overflow-hidden bg-primary">
@@ -95,8 +103,10 @@ export function AppHeader() {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator className="m-0" />
-            {/* TODO: Wire Logout to real auth/session clear when login exists. */}
-            <DropdownMenuItem className="cursor-pointer gap-2 rounded-none px-3 py-2.5">
+            <DropdownMenuItem
+              className="cursor-pointer gap-2 rounded-none px-3 py-2.5"
+              onClick={handleLogout}
+            >
               <LogOut className="size-4" />
               Logout
             </DropdownMenuItem>

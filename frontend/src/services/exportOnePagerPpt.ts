@@ -73,6 +73,9 @@
  * Do not POST blob: URLs as storage; upload first, then save/publish.
  */
 
+// TODO: Remove frontend/package.json overrides.image-size once pptxgenjs
+// drops unused image-size (gitbrent/PptxGenJS#1474). Keep pptxgenjs ^4.0.1;
+// do not run npm audit fix --force (it downgrades to 1.1.5).
 import PptxGenJS from "pptxgenjs";
 
 import { PILLAR_ICON_BY_NUMBER } from "@/assets/pillars/pillarIcons";
