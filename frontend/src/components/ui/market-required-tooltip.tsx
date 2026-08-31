@@ -8,7 +8,7 @@ import {
 
 /** Exact product copy for dependent filters when Market is empty. */
 export const MARKET_REQUIRED_FILTER_TOOLTIP =
-  "Please chose a Market to enable this filter";
+  "Please choose a Market to enable this filter";
 
 /**
  * Wraps a disabled control so hover still shows the market-required tooltip.

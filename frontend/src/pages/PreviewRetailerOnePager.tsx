@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button";
 import { PageContainer } from "@/components/layout/PageContainer";
 import type { FormLayoutContext } from "@/layouts/MainLayout";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-import { archiveOnePager, deleteOnePager } from "@/redux/landingSlice";
+import { deleteOnePager, fetchOnePagers,archiveOnePager } from "@/redux/landingSlice";
 import { exportOnePagerPpt } from "@/services/exportOnePagerPpt";
 import {
   publishRetailerOnePager,
@@ -52,6 +52,7 @@ export function PreviewRetailerOnePager() {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const { filters } = useAppSelector((state) => state.landing);
   const owner = useAppSelector((state) => state.user.currentUser.id);
   const { setBackHandler, setHeaderTitle } =
     useOutletContext<FormLayoutContext>();
@@ -121,10 +122,9 @@ export function PreviewRetailerOnePager() {
     setError(null);
     // TODO: Confirm Publish → real FastAPI POST /api/retailer-one-pagers/publish.
     // Temporary: publishRetailerOnePager mock. Keep { id, status: "published" }.
-    // Then replace-navigate to /track/:id (do not stay on preview).
-    // Toast message travels in location.state.publishedToast.
+    // Stay on this page (no home redirect).
     const result = await publishRetailerOnePager(
-      payload,
+      { ...payload, status: "PUBLISHED", published_by: owner },
       recordId ?? state.recordId,
     );
     setPublishing(false);
@@ -149,7 +149,8 @@ export function PreviewRetailerOnePager() {
     setDeleting(true);
     setDeleteError(null);
     try {
-      await dispatch(deleteOnePager(id)).unwrap();
+      await dispatch(deleteOnePager({ pagerId: id, user: owner })).unwrap();
+      void dispatch(fetchOnePagers(filters));
       setDeleteOpen(false);
       navigate("/home");
     } catch (err) {
@@ -170,7 +171,7 @@ export function PreviewRetailerOnePager() {
     setArchiving(true);
     setArchiveError(null);
     try {
-      await dispatch(archiveOnePager(id)).unwrap();
+      await dispatch(archiveOnePager({ pagerId: id, user: owner })).unwrap();
       setArchiveOpen(false);
       navigate("/home");
     } catch (err) {
@@ -191,7 +192,7 @@ export function PreviewRetailerOnePager() {
     setEditPublishedBusy(true);
     setEditPublishedError(null);
     try {
-      await dispatch(archiveOnePager(id)).unwrap();
+      await dispatch(archiveOnePager({ pagerId: id, user: owner })).unwrap();
       setEditPublishedOpen(false);
       goEditCreateAsNew();
     } catch (err) {
@@ -216,19 +217,19 @@ export function PreviewRetailerOnePager() {
           onTrack={
             published
               ? () => {
-                  const id = recordId ?? state.recordId;
-                  if (id) navigate(`/track/${id}`);
-                }
+                const id = recordId ?? state.recordId;
+                if (id) navigate(`/track/${id}`);
+              }
               : undefined
           }
           onExport={
             published
               ? () => {
-                  void exportOnePagerPpt({
-                    pagerType: "retailer",
-                    payload,
-                  });
-                }
+                void exportOnePagerPpt({
+                  pagerType: "retailer",
+                  payload,
+                });
+              }
               : undefined
           }
           onArchive={

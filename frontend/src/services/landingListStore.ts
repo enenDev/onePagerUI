@@ -62,7 +62,7 @@ export function upsertLandingCardFromPayload({
   record_status,
   payload,
 }: UpsertLandingCardArgs) {
-  const cover_image_url = payload.cover_image?.blob_url ?? null;
+  const cover_image_url = payload.image_url ?? null;
   const retailer =
     pager_type === "retailer"
       ? (payload as RetailerOnePagerCreatePayload).target_retailer

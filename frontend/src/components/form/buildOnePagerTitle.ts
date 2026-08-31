@@ -1,8 +1,8 @@
 import { clipToLimit, FIELD_LIMITS } from "@/components/form/fieldLimits";
 import type { FilterOption } from "@/types/onePager";
 
-function labelFor(options: FilterOption[], value: string): string {
-  if (!value.trim()) return "";
+function labelFor(options: FilterOption[], value: string="  "): string {
+  if (!value?.trim()) return "";
   return options.find((option) => option.value === value)?.label ?? value;
 }
 

@@ -70,7 +70,7 @@ function InitiativeBlock({
     initiative.week_start,
     initiative.week_end,
   );
-  const images = initiative.images.filter((image) => image.blob_url);
+  const images = initiative?.images?.filter((image) => image)||[];
 
   return (
     <div className="flex min-w-0 flex-col gap-3">
@@ -111,11 +111,11 @@ function InitiativeBlock({
             Photo Blueprint
           </p>
           <div className="grid grid-cols-3 gap-1.5">
-            {images.slice(0, 3).map((image) => (
+            {images.slice(0, 3).map((image, indexKey) => (
               <img
-                key={image.id ?? image.blob_url}
-                src={image.blob_url}
-                alt={image.name || "Initiative photo"}
+                key={indexKey}
+                src={image}
+                alt={image || "Initiative photo"}
                 className="h-14 w-full rounded-md object-cover"
               />
             ))}

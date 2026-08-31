@@ -242,8 +242,8 @@ async function loadImageCache(urls: string[]) {
   return cache;
 }
 
-/** Logos, 5 pillar icons, then each initiative’s image_urls (max 3). Cover image is skipped. */
-function collectImageUrls(payload: ExportPayload) {
+/** Logos, 5 pillar icons, then each initiative’s images (max 3). Cover image is skipped. */
+function collectImageUrls(payload: ExportPayload): string[] {
   const urls = new Set<string>([
     perfectStoreLogo,
     unileverBrandLogo,
@@ -251,12 +251,12 @@ function collectImageUrls(payload: ExportPayload) {
   ]);
   for (const pillar of payload.pillars) {
     for (const initiative of pillar.initiatives) {
-      for (const image of initiative.images.slice(0, MAX_INITIATIVE_IMAGES)) {
-        if (image.blob_url) urls.add(image.blob_url);
+      for (const image of initiative?.images?.slice(0, MAX_INITIATIVE_IMAGES)||[]) {
+        if (image) urls.add(image);
       }
     }
   }
-  return [...urls];
+  return Array.from(urls);
 }
 
 /** Blue bar: logos, composed title, outcome, Channel/Category/Market pills (not Campaign). Tweak x/y/w/h here for header spacing. */
@@ -516,8 +516,7 @@ function addInitiative(
   const imageW =
     (innerW - imageGap * (MAX_INITIATIVE_IMAGES - 1)) / MAX_INITIATIVE_IMAGES;
   const imageH = 0.34;
-  const urls = initiative?.images
-    ?.map((image) => image.blob_url)
+  const urls = (initiative.images ?? [])
     .filter(Boolean)
     .slice(0, MAX_INITIATIVE_IMAGES);
 

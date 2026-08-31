@@ -65,6 +65,7 @@ export function TrackOnePager() {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const owner = useAppSelector((state) => state.user.currentUser.id);
   const currentUser = useAppSelector((state) => state.user.currentUser);
   const { setBackHandler, setHeaderTitle } =
     useOutletContext<FormLayoutContext>();
@@ -150,7 +151,7 @@ export function TrackOnePager() {
     setDeleting(true);
     setDeleteError(null);
     try {
-      await dispatch(deleteOnePager(record.id)).unwrap();
+      await dispatch(deleteOnePager({ pagerId: record.id, user: owner })).unwrap();
       setDeleteOpen(false);
       navigate("/home");
     } catch (err) {
@@ -167,7 +168,7 @@ export function TrackOnePager() {
     setArchiving(true);
     setArchiveError(null);
     try {
-      await dispatch(archiveOnePager(record.id)).unwrap();
+      await dispatch(archiveOnePager({ pagerId: record.id, user: owner })).unwrap();
       setArchiveOpen(false);
       navigate("/home");
     } catch (err) {
@@ -184,7 +185,7 @@ export function TrackOnePager() {
     setEditPublishedBusy(true);
     setEditPublishedError(null);
     try {
-      await dispatch(archiveOnePager(record.id)).unwrap();
+      await dispatch(archiveOnePager({ pagerId: record.id, user: owner })).unwrap();
       setEditPublishedOpen(false);
       goEditCreateAsNew();
     } catch (err) {

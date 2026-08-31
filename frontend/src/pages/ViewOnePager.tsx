@@ -10,15 +10,16 @@ import { NationalPreviewDocument } from "@/components/preview/NationalPreviewDoc
 import {
   composeNationalPreviewTitle,
   composeRetailerPreviewTitle,
+  formatPublishedAt,
 } from "@/components/preview/nationalPreview";
 import { Button } from "@/components/ui/button";
 import { PageContainer } from "@/components/layout/PageContainer";
 import type { FormLayoutContext } from "@/layouts/MainLayout";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { deleteOnePager, fetchOnePagers } from "@/redux/landingSlice";
 import {
   archiveOnePager,
-  deleteOnePager,
-  restoreOnePager,
+  restoreOnePager
 } from "@/redux/landingSlice";
 import { isCurrentUserOwner } from "@/redux/userSlice";
 import { exportOnePagerPpt } from "@/services/exportOnePagerPpt";
@@ -56,6 +57,8 @@ export function ViewOnePager() {
   const { pagerId } = useParams<{ pagerId: string }>();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const owner = useAppSelector((state) => state.user.currentUser.id);
+  const { filters } = useAppSelector((state) => state.landing);
   const currentUser = useAppSelector((state) => state.user.currentUser);
   const { setBackHandler, setHeaderTitle } =
     useOutletContext<FormLayoutContext>();
@@ -128,7 +131,8 @@ export function ViewOnePager() {
     setDeleting(true);
     setDeleteError(null);
     try {
-      await dispatch(deleteOnePager(record.id)).unwrap();
+      await dispatch(deleteOnePager({ pagerId: record.id, user: currentUser.email })).unwrap();
+      void dispatch(fetchOnePagers(filters));
       setDeleteOpen(false);
       navigate("/home");
     } catch (err) {
@@ -145,7 +149,7 @@ export function ViewOnePager() {
     setArchiving(true);
     setArchiveError(null);
     try {
-      await dispatch(archiveOnePager(record.id)).unwrap();
+      await dispatch(archiveOnePager({ pagerId: record.id, user: owner })).unwrap();
       setArchiveOpen(false);
       navigate("/home");
     } catch (err) {
@@ -162,7 +166,7 @@ export function ViewOnePager() {
     setRestoring(true);
     setRestoreError(null);
     try {
-      await dispatch(restoreOnePager(record.id)).unwrap();
+      await dispatch(restoreOnePager({pagerId: record.id, user: currentUser.email })).unwrap();
       setRestoreOpen(false);
       navigate("/home");
     } catch (err) {
@@ -179,7 +183,7 @@ export function ViewOnePager() {
     setEditPublishedBusy(true);
     setEditPublishedError(null);
     try {
-      await dispatch(archiveOnePager(record.id)).unwrap();
+      await dispatch(archiveOnePager({ pagerId: record.id, user: owner })).unwrap();
       setEditPublishedOpen(false);
       goEditCreateAsNew();
     } catch (err) {
@@ -206,13 +210,13 @@ export function ViewOnePager() {
               Back to home
             </Button>
           </div>
-        ) : !record ? (
+        ) : !record?.payload ? (
           <Loading label="Loading one-pager…" />
         ) : (
           <NationalPreviewDocument
             payload={record.payload}
             owner={record.created_by}
-            publishedAt={record.published_at}
+            publishedAt={formatPublishedAt(new Date(record.published_at))}
             status={record.list_status}
             moreOptionsEnabled
             canEdit={isOwner}
@@ -234,11 +238,11 @@ export function ViewOnePager() {
               record.list_status === "DRAFT"
                 ? undefined
                 : () => {
-                    void exportOnePagerPpt({
-                      pagerType: record.pager_type,
-                      payload: record.payload,
-                    });
-                  }
+                  void exportOnePagerPpt({
+                    pagerType: record.pager_type,
+                    payload: record.payload,
+                  });
+                }
             }
             onArchive={
               record.list_status === "PUBLISHED"

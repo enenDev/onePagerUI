@@ -4,9 +4,9 @@ import type {
   ScoringMode,
 } from "@/components/form/pillars";
 import createFormMetadataMock from "@/services/mocks/createFormMetadata.json";
-import nationalOnePagerMock from "@/services/mocks/nationalOnePager.json";
-import { upsertLandingCardFromPayload } from "@/services/landingListStore";
+
 import type { FilterMetadata } from "@/types/onePager";
+import ApiBase from "@/components/auth/apiBase";
 
 export type FilterOption = {
   label: string;
@@ -118,8 +118,6 @@ export async function addCampaign(
   campaignName: string,
   existingCampaigns: FilterOption[] = [],
 ): Promise<AddCampaignResult> {
-  await delay(400);
-
   const trimmed = campaignName.trim();
   if (!market) {
     return { ok: false, error: "Select a market before adding a campaign." };
@@ -138,8 +136,19 @@ export async function addCampaign(
       error: "This campaign already exists for the selected market.",
     };
   }
+  try {
+    await ApiBase.post('api/v1/campaigns', {
+      market: market,
+      campaign_name: trimmed,
+      created_by: "gowtham.gunasekaran@unilver.com",
+      user_id: "gowtham.gunasekaran@unilver.com",
+    })
+    return { ok: true, campaign: { label: trimmed, value: trimmed } };
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    throw error;
+  }
 
-  return { ok: true, campaign: { label: trimmed, value: trimmed } };
 }
 
 /**
@@ -168,7 +177,7 @@ export type NationalInitiativePayload = {
   week_end: string;
   guidelines: string;
   checklist_compliance_notes: string;
-  images: NationalImagePayload[];
+  images: string[];
   /** GET-by-id RAG. `null` = Clear. View/Edit ignore this. */
   initiative_track?: "red" | "amber" | "green" | null;
   /** GET-by-id UUID — required for Track PATCH. View/Edit ignore this. */
@@ -192,11 +201,17 @@ export type NationalOnePagerCreatePayload = {
   category: string;
   campaign: string;
   channel: string;
+  created_by?: string;
+  pager_type?: string;
   title: string;
   business_outcome_statement: string;
-  cover_image: NationalImagePayload | null;
+  image_url: string | null;
   scoring_mode: ScoringMode;
   pillars: NationalPillarPayload[];
+  status?: string;
+  published_at?: string;
+  published_by?: string;
+  campaign_focus?: string;
 };
 
 /**
@@ -216,11 +231,8 @@ export function buildNationalOnePagerPayload(
     channel: values.channel,
     title: values.title.trim(),
     business_outcome_statement: values.businessOutcome.trim(),
-    cover_image: values.coverImageUrl
-      ? {
-          name: values.coverImageName,
-          blob_url: values.coverImageUrl,
-        }
+    image_url: values.coverImageUrl
+      ? values.coverImageUrl
       : null,
     scoring_mode: scoringMode,
     pillars: pillars.map((pillar) => ({
@@ -241,11 +253,10 @@ export function buildNationalOnePagerPayload(
         week_end: initiative.week_end,
         guidelines: initiative.guidelines,
         checklist_compliance_notes: initiative.checklist_compliance_notes,
-        images: initiative.images.map((image) => ({
-          id: image.id,
-          name: image.name,
-          blob_url: image.blobUrl,
-        })),
+        // images: initiative.images
+        images: initiative?.images?.map((image) =>
+        image.blobUrl || ""
+        )?.filter(Boolean),
       })),
     })),
   };
@@ -255,14 +266,14 @@ export type OnePagerRecordStatus = "draft" | "published";
 
 /** Response shape the real backend should return for save/publish. */
 export type NationalOnePagerMutationResult =
-  | { ok: true; id: string; status: OnePagerRecordStatus }
+  | { ok: true; id: string; status: OnePagerRecordStatus, error?: string }
   | { ok: false; error: string };
 
-type StoredNationalRecord = {
-  id: string;
-  status: OnePagerRecordStatus;
-  payload: NationalOnePagerCreatePayload;
-};
+// type StoredNationalRecord = {
+//   id: string;
+//   status: OnePagerRecordStatus;
+//   payload: NationalOnePagerCreatePayload;
+// };
 
 /**
  * In-memory mock DB for national one-pagers.
@@ -274,38 +285,38 @@ type StoredNationalRecord = {
  * - Landing Active/Drafts lists should read from the same backend source, not only sample data.
  * - Required-field validation belongs on the backend; FE already gates via `getNationalSubmitBlockers`.
  */
-const nationalRecords = new Map<string, StoredNationalRecord>();
+// const nationalRecords = new Map<string, StoredNationalRecord>();
 
-function createRecordId(status: OnePagerRecordStatus) {
-  const prefix = status === "draft" ? "draft" : "published";
-  return `${prefix}-${crypto.randomUUID()}`;
-}
+// function createRecordId(status: OnePagerRecordStatus) {
+//   const prefix = status === "draft" ? "draft" : "published";
+//   return `${prefix}-${crypto.randomUUID()}`;
+// }
 
-function upsertNationalRecord(
-  payload: NationalOnePagerCreatePayload,
-  status: OnePagerRecordStatus,
-  id?: string | null,
-): NationalOnePagerMutationResult {
-  const existing = id ? nationalRecords.get(id) : undefined;
-  const nextId = existing?.id ?? createRecordId(status);
+// function upsertNationalRecord(
+//   payload: NationalOnePagerCreatePayload,
+//   status: OnePagerRecordStatus,
+//   id?: string | null,
+// ): NationalOnePagerMutationResult {
+//   const existing = id ? nationalRecords.get(id) : undefined;
+//   const nextId = existing?.id ?? createRecordId(status);
 
-  nationalRecords.set(nextId, {
-    id: nextId,
-    status,
-    payload: structuredClone(payload),
-  });
+//   nationalRecords.set(nextId, {
+//     id: nextId,
+//     status,
+//     payload: structuredClone(payload),
+//   });
 
-  // TODO: Remove FE landing upsert when FastAPI list returns saved/published
-  // rows with permanent cover_image_url. Keep card cover_image_url field name.
-  upsertLandingCardFromPayload({
-    pager_id: nextId,
-    pager_type: "national",
-    record_status: status,
-    payload,
-  });
+//   // TODO: Remove FE landing upsert when FastAPI list returns saved/published
+//   // rows with permanent cover_image_url. Keep card cover_image_url field name.
+//   upsertLandingCardFromPayload({
+//     pager_id: nextId,
+//     pager_type: "national",
+//     record_status: status,
+//     payload,
+//   });
 
-  return { ok: true, id: nextId, status };
-}
+//   return { ok: true, id: nextId, status };
+// }
 
 /**
  * Mock POST save-draft — swap implementation body for real HTTP call.
@@ -321,8 +332,18 @@ export async function saveNationalDraft(
   payload: NationalOnePagerCreatePayload,
   id?: string | null,
 ): Promise<NationalOnePagerMutationResult> {
-  await delay(400);
-  return upsertNationalRecord(payload, "draft", id);
+  try {
+    if (id) {
+      const { data } = await ApiBase.patch(`api/v1/pagers/${id}`, { ...payload, pager_id: id || "" })
+      return { ok: true, id: data?.pager_id || "", status: "draft" };
+    }
+    const { data } = await ApiBase.post('api/v1/pagers', { ...payload, pager_id: id || "" })
+    return { ok: true, id: data?.pager_id || "", status: "draft" };
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    throw error;
+  }
+  // return upsertNationalRecord(payload, "draft", id);
 }
 
 /**
@@ -340,8 +361,19 @@ export async function publishNationalOnePager(
   payload: NationalOnePagerCreatePayload,
   id?: string | null,
 ): Promise<NationalOnePagerMutationResult> {
-  await delay(500);
-  return upsertNationalRecord(payload, "published", id);
+  try {
+    if (id) {
+      const { data } = await ApiBase.patch(`api/v1/pagers/${id}`, { ...payload, pager_id: id || "" })
+      return { ok: true, id: data?.pager_id || "", status: "draft" };
+    }
+    const { data } = await ApiBase.post('api/v1/pagers', { ...payload, pager_id: id || "" })
+    
+    return { ok: true, id: data?.pager_id || "", status: "published" };
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    throw error;
+  }
+  // return upsertNationalRecord(payload, "published", id);
 }
 
 export type NationalOnePagerRecord = {
@@ -361,10 +393,12 @@ export type NationalOnePagerRecord = {
 export async function getNationalOnePager(
   id: string,
 ): Promise<NationalOnePagerRecord | null> {
-  await delay(300);
-  const record = structuredClone(
-    nationalOnePagerMock,
-  ) as NationalOnePagerRecord;
-  record.id = id;
-  return record;
+  try {
+    const { data } = await ApiBase.get(`api/v1/pagers/${id}`)
+    return { payload: data as NationalOnePagerCreatePayload, id, status: data?.status || "" } as NationalOnePagerRecord;
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    throw error;
+  }
+
 }

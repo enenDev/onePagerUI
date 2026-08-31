@@ -23,14 +23,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { deleteOnePager, fetchOnePagers } from "@/redux/landingSlice";
 import {
   archiveOnePager,
-  deleteOnePager,
   restoreOnePager,
 } from "@/redux/landingSlice";
 import { isCurrentUserOwner } from "@/redux/userSlice";
 import { exportOnePagerById } from "@/services/exportOnePagerPpt";
-import type { OnePagerListItem, OnePagerStatus } from "@/types/onePager";
+import { type OnePagerListItem, type OnePagerStatus } from "@/types/onePager";
+import { formatPublishedAt } from "../preview/nationalPreview";
 
 type OnePagerCardProps = {
   item: OnePagerListItem;
@@ -58,6 +59,7 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const currentUser = useAppSelector((state) => state.user.currentUser);
+  const { filters } = useAppSelector((state) => state.landing);
   const scoringLabel =
     item.scoring_mode === "WEIGHTED" ? "Weighted" : "Unweighted";
   const isOwner = isCurrentUserOwner(item.created_by, currentUser.id);
@@ -104,7 +106,8 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
     setDeleting(true);
     setDeleteError(null);
     try {
-      await dispatch(deleteOnePager(item.pager_id)).unwrap();
+      await dispatch(deleteOnePager({ pagerId: item.pager_id, user: currentUser.email })).unwrap();
+      void dispatch(fetchOnePagers(filters));
       setDeleteOpen(false);
     } catch (err) {
       setDeleteError(
@@ -120,7 +123,7 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
     setArchiving(true);
     setArchiveError(null);
     try {
-      await dispatch(archiveOnePager(item.pager_id)).unwrap();
+      await dispatch(archiveOnePager({ pagerId: item.pager_id, user: currentUser.email })).unwrap();
       setArchiveOpen(false);
     } catch (err) {
       setArchiveError(
@@ -136,7 +139,7 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
     setRestoring(true);
     setRestoreError(null);
     try {
-      await dispatch(restoreOnePager(item.pager_id)).unwrap();
+      await dispatch(restoreOnePager({ pagerId: item.pager_id, user: currentUser.email })).unwrap();
       setRestoreOpen(false);
     } catch (err) {
       setRestoreError(
@@ -152,7 +155,7 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
     setEditPublishedBusy(true);
     setEditPublishedError(null);
     try {
-      await dispatch(archiveOnePager(item.pager_id)).unwrap();
+      await dispatch(archiveOnePager({ pagerId: item.pager_id, user: currentUser.email })).unwrap();
       setEditPublishedOpen(false);
       goEditCreateAsNew();
     } catch (err) {
@@ -228,9 +231,9 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
         {/* Cover inset — grey card bg forms the border around it */}
         <div className="px-3 pt-3">
           <div className="relative h-36 overflow-hidden rounded-lg bg-white">
-            {item.cover_image_url ? (
+            {!item.cover_image_url ? (
               <img
-                src={item.cover_image_url}
+                src={item.cover_image_url || "./Placeholder.png"}
                 alt=""
                 className="size-full object-cover"
               />
@@ -261,8 +264,10 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
           </p>
           <div className="space-y-1 text-xs text-muted-foreground">
             <p>
-              <span className="font-semibold text-foreground">Published:</span>{" "}
-              {item.published_at}
+              <span className="font-semibold text-foreground">
+                {(item.published_at && item.status === "PUBLISHED") ? "Published:" : "Last Updated:"}</span>{" "}
+              {(item.published_at && item.status === "PUBLISHED") ? formatPublishedAt(new Date(item.published_at)) :
+                (item.updated_at && item.status !== "PUBLISHED") ? formatPublishedAt(new Date(item.updated_at)) : "NA"}
             </p>
             <p>
               <span className="font-semibold text-foreground">Owner:</span>{" "}

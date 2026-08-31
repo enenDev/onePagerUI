@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { LogOut, UserRound } from "lucide-react";
+import { HelpCircle, LogOut, UserRound } from "lucide-react";
 
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -48,20 +48,21 @@ export function AppHeader() {
             <img
               src={perfectStoreLogo}
               alt=""
-              className="h-7 w-auto object-contain"
+              className="size-28 object-contain"
             />
             <HeaderDivider />
             {/* TODO: Swap /logo-secondary.svg for the real second brand logo asset. */}
             <img
               src={unileverBrandLogo}
               alt=""
-              className="h-7 w-auto object-contain"
+              className="size-16 object-contain"
+
             />
           </Link>
           <HeaderDivider />
-          <span className="truncate text-sm font-semibold tracking-wide text-primary-foreground md:text-base">
-            CATEGORY ONE-PAGER-APP
-          </span>
+          <p className="mt-[5px] font-semibold text-[#ffffff] text-[14px] tracking-[0.2px] whitespace-nowrap" >
+            CATEGORY ONE-PAGER APP
+          </p>
         </div>
 
         <DropdownMenu>
@@ -102,6 +103,12 @@ export function AppHeader() {
                 </Badge>
               </div>
             </DropdownMenuLabel>
+            <DropdownMenuSeparator className="m-0" />
+            <DropdownMenuItem className="cursor-pointer gap-2">
+              <HelpCircle className="size-4 " />
+              {/* <span className="truncate">Help</span> */}
+              Help
+            </DropdownMenuItem>
             <DropdownMenuSeparator className="m-0" />
             <DropdownMenuItem
               className="cursor-pointer gap-2 rounded-none px-3 py-2.5"

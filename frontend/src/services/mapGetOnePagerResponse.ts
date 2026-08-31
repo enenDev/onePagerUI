@@ -1,6 +1,5 @@
 import { formatPublishedAt } from "@/components/preview/nationalPreview";
 import type {
-  NationalImagePayload,
   NationalInitiativePayload,
   NationalOnePagerCreatePayload,
   NationalPillarPayload,
@@ -31,7 +30,7 @@ export type GetOnePagerApiInitiative = {
   week_end: string;
   guidelines: string;
   checklist_compliance_notes: string;
-  image_urls: string[];
+  images: string[];
 };
 
 export type GetOnePagerApiPillar = {
@@ -69,23 +68,6 @@ export type GetOnePagerApiResponse = {
   pillars: GetOnePagerApiPillar[];
 };
 
-function fileName(url: string, fallback: string) {
-  const part = url.split("/").pop();
-  return part || fallback;
-}
-
-function toCoverImage(url: string | null): NationalImagePayload | null {
-  if (!url) return null;
-  return { name: fileName(url, "cover"), blob_url: url };
-}
-
-function toInitiativeImages(urls: string[]): NationalImagePayload[] {
-  return urls.map((url, index) => ({
-    name: fileName(url, `image-${index + 1}`),
-    blob_url: url,
-  }));
-}
-
 function toListStatus(status: string): OnePagerStatus {
   const normalized = status.trim().toUpperCase();
   if (normalized === "DRAFT") return "DRAFT";
@@ -120,7 +102,7 @@ function mapInitiative(
     week_end: initiative.week_end,
     guidelines: initiative.guidelines,
     checklist_compliance_notes: initiative.checklist_compliance_notes,
-    images: toInitiativeImages(initiative.image_urls ?? []),
+    images: initiative.images ?? [],
     initiative_track: initiative.initiative_track,
     initiative_id: initiative.initiative_id,
   };
@@ -146,7 +128,7 @@ function mapSharedPayload(api: GetOnePagerApiResponse): NationalOnePagerCreatePa
     channel: api.channel,
     title: api.title,
     business_outcome_statement: api.business_outcome_statement,
-    cover_image: toCoverImage(api.image_url),
+    image_url: api.image_url,
     scoring_mode: api.scoring_mode,
     pillars: api.pillars.map(mapPillar),
   };

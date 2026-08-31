@@ -1,4 +1,4 @@
-const delay = (ms = 500) => new Promise((resolve) => setTimeout(resolve, ms));
+import ApiBase from "@/components/auth/apiBase";
 
 export type UploadImageResult =
   | { ok: true; url: string }
@@ -12,10 +12,22 @@ export type UploadImageResult =
  * Callers already store `url` in coverImageUrl / initiative `blobUrl` (payload `blob_url`).
  */
 export async function uploadImage(file: File): Promise<UploadImageResult> {
-  await delay(500);
-  const safeName = file.name.replace(/[^\w.-]+/g, "_");
-  return {
-    ok: true,
-    url: `https://cdn.example.com/uploads/${crypto.randomUUID()}-${safeName}`,
-  };
+  const formData = new FormData();
+  formData.append('file', file)
+  try {
+    const { data } = await ApiBase.post('api/v1/upload', formData, {
+      headers: {
+        'accept': 'application/json',
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+    // const safeName = file.name.replace(/[^\w.\-]+/g, "_");
+    return {
+      ok: true,
+      url: data?.url || '',
+    };
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    throw error;
+  }
 }

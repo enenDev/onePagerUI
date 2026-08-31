@@ -134,10 +134,10 @@ export function AddInitiativeModal({
   const startPickerRef = useRef<HTMLInputElement>(null);
   const endPickerRef = useRef<HTMLInputElement>(null);
   const retainedImageIdsRef = useRef(
-    new Set(initialInitiative?.images.map((image) => image.id) ?? []),
+    new Set(initialInitiative?.images?.map((image) => image.id) ?? []),
   );
   const atImageLimit =
-    form.images.length + pendingUploads.length >= MAX_INITIATIVE_IMAGES;
+    (form?.images?.length || 0) + pendingUploads.length >= MAX_INITIATIVE_IMAGES;
   const imagesBusy = pendingUploads.length > 0;
 
   // Radix can leave body pointer-events stuck after the dialog unmounts

@@ -26,12 +26,10 @@ interface UserState {
 
 const initialState: UserState = {
   currentUser: {
-    id: "user-001",
-    name: "Nitesh",
-    email: "nitesh@example.com",
-    initials: "NN",
-    // TODO: Replace seed with GET /api/me role. Keep UserType union until
-    // backend names are final; map server role → these three FE behaviors.
+    id: "gowtham.gunasekaran@unilever.com",
+    email: "gowtham.gunasekaran@unilever.com",
+    name:"Gowtham,Gunasekaran",
+    initials: "GG",
     user_type: "user_type_1",
   },
 };

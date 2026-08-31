@@ -45,11 +45,11 @@ export function getRetailerSubmitBlockers(
   pillars: PillarDraft[],
   scoringMode: ScoringMode,
 ): string | null {
-  if (!values.market.trim()) return "Select a Market.";
-  if (!values.targetRetailer.trim()) return "Select a Target Retailer.";
-  if (!values.category.trim()) return "Select a Category.";
-  if (!values.channel.trim()) return "Select a Channel.";
-  if (!values.title.trim()) return "Enter a Title.";
+  if (!values?.market?.trim()) return "Select a Market.";
+  if (!values?.targetRetailer?.trim()) return "Select a Target Retailer.";
+  if (!values?.category?.trim()) return "Select a Category.";
+  if (!values?.channel?.trim()) return "Select a Channel.";
+  if (!values?.title?.trim()) return "Enter a Title.";
 
   return getWeightedPillarWeightBlocker(scoringMode, pillars);
 }
