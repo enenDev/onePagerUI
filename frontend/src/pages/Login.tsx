@@ -17,6 +17,8 @@ import unileverBrandLogo from "@/assets/Unilever_Brand_Logo.svg";
 export const Login = () => {
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
+  const accessInstructionsUrl =
+    import.meta.env.VITE_ACCESS_INSTRUCTIONS_URL?.trim() ?? "";
   const [helpOpen, setHelpOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -106,16 +108,25 @@ export const Login = () => {
               link below to request or regain access.
             </DialogDescription>
           </DialogHeader>
-          {/* TODO: Point this at the real SSO access-instructions URL.
-              Keep the modal copy and "View access instructions →" label.
-              Swap this button for <a href="…" target="_blank" rel="noopener noreferrer">
-              when the URL is known. Placeholder only — no navigation yet. */}
-          <button
-            type="button"
-            className="mx-auto cursor-pointer border-0 bg-transparent p-0 text-sm font-medium text-primary underline underline-offset-2 hover:text-primary/80"
-          >
-            View access instructions →
-          </button>
+          {/* TODO: Set VITE_ACCESS_INSTRUCTIONS_URL in frontend/.env.
+              Keep the modal copy and "View access instructions →" label. */}
+          {accessInstructionsUrl ? (
+            <a
+              href={accessInstructionsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mx-auto cursor-pointer text-sm font-medium text-primary underline underline-offset-2 hover:text-primary/80"
+            >
+              View access instructions →
+            </a>
+          ) : (
+            <button
+              type="button"
+              className="mx-auto cursor-pointer border-0 bg-transparent p-0 text-sm font-medium text-primary underline underline-offset-2 hover:text-primary/80"
+            >
+              View access instructions →
+            </button>
+          )}
         </DialogContent>
       </Dialog>
     </div>

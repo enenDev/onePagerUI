@@ -5,7 +5,7 @@ interface AppState {
 }
 
 const initialState: AppState = {
-  appName: "One Pager",
+  appName: import.meta.env.VITE_APP_NAME?.trim() || "One Category Pager",
 };
 
 const appSlice = createSlice({

@@ -13,7 +13,7 @@ export type UploadImageResult =
  */
 export async function uploadImage(file: File): Promise<UploadImageResult> {
   await delay(500);
-  const safeName = file.name.replace(/[^\w.\-]+/g, "_");
+  const safeName = file.name.replace(/[^\w.-]+/g, "_");
   return {
     ok: true,
     url: `https://cdn.example.com/uploads/${crypto.randomUUID()}-${safeName}`,

@@ -118,9 +118,19 @@ export function isEditLocationState(
   );
 }
 
+export type NationalEditLocationState = {
+  editRecord: NationalOnePagerByIdRecord;
+  createAsNew?: boolean;
+};
+
+export type RetailerEditLocationState = {
+  editRecord: RetailerOnePagerByIdRecord;
+  createAsNew?: boolean;
+};
+
 export function isNationalEditState(
   value: unknown,
-): value is { editRecord: NationalOnePagerByIdRecord } {
+): value is NationalEditLocationState {
   return (
     isEditLocationState(value) && value.editRecord.pager_type === "national"
   );
@@ -128,7 +138,7 @@ export function isNationalEditState(
 
 export function isRetailerEditState(
   value: unknown,
-): value is { editRecord: RetailerOnePagerByIdRecord } {
+): value is RetailerEditLocationState {
   return (
     isEditLocationState(value) && value.editRecord.pager_type === "retailer"
   );

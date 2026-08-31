@@ -1,4 +1,4 @@
-import { useRef, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { CloudUpload, Loader2 } from "lucide-react";
 
 import { CharCount } from "@/components/form/CharCount";
@@ -51,7 +51,9 @@ export function RetailerStrategyForm({
   lockScope = false,
 }: RetailerStrategyFormProps) {
   const valuesRef = useRef(values);
-  valuesRef.current = values;
+  useEffect(() => {
+    valuesRef.current = values;
+  }, [values]);
   const { uploading: coverUploading, error: coverUploadError, onCoverFileChange } =
     useCoverImageUpload({
       patch: (next) => onChange({ ...valuesRef.current, ...next }),

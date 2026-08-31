@@ -1,4 +1,4 @@
-﻿import { useRef, useState, type ReactNode } from "react";
+﻿import { useEffect, useRef, useState, type ReactNode } from "react";
 import { CloudUpload, Loader2 } from "lucide-react";
 
 import { AddCampaignModal } from "@/components/form/AddCampaignModal";
@@ -41,7 +41,9 @@ export function NationalStrategyForm({
   const dispatch = useAppDispatch();
   const [addCampaignOpen, setAddCampaignOpen] = useState(false);
   const valuesRef = useRef(values);
-  valuesRef.current = values;
+  useEffect(() => {
+    valuesRef.current = values;
+  }, [values]);
   const { uploading: coverUploading, error: coverUploadError, onCoverFileChange } =
     useCoverImageUpload({
       patch: (next) => onChange({ ...valuesRef.current, ...next }),

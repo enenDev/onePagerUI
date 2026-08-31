@@ -199,7 +199,7 @@ export function AddInitiativeModal({
 
   const handleUnitChange = (value: string) => {
     const next = value.slice(0, FIELD_LIMITS.unit);
-    if (next === "" || /^[A-Za-z0-9%.\/ ]+$/.test(next)) {
+    if (next === "" || /^[A-Za-z0-9%./ ]+$/.test(next)) {
       patch({ unit: next });
     }
   };

@@ -516,8 +516,8 @@ function addInitiative(
   const imageW =
     (innerW - imageGap * (MAX_INITIATIVE_IMAGES - 1)) / MAX_INITIATIVE_IMAGES;
   const imageH = 0.34;
-  const urls = initiative.images
-    .map((image) => image.blob_url)
+  const urls = initiative?.images
+    ?.map((image) => image.blob_url)
     .filter(Boolean)
     .slice(0, MAX_INITIATIVE_IMAGES);
 

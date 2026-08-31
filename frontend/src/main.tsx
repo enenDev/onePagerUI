@@ -7,6 +7,8 @@ import App from "./App.tsx";
 
 import { store } from "./redux/store.ts";
 
+document.title = import.meta.env.VITE_APP_NAME?.trim() || "One Category Pager";
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <Provider store={store}>
