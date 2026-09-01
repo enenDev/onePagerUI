@@ -173,12 +173,18 @@ export async function getOnePagerById(
   api.pager_type = pagerType === "retailer" ? "Retailer" : "National";
   const mapped = mapGetOnePagerResponse(api);
   // Prefer landing-list status so Archive/Restore mock updates show on View.
+  // Shared GET mock is always WEIGHTED. Stamp scoring_mode from the listing
+  // so Track / View / Export match that pager. Real GET will send it on the payload.
   const listing = landingList.find((item) => item.pager_id === id);
   if (listing) {
     return {
       ...mapped,
       list_status: listing.status,
       status: listing.status === "DRAFT" ? "draft" : "published",
+      payload: {
+        ...mapped.payload,
+        scoring_mode: listing.scoring_mode,
+      },
     };
   }
   return mapped;

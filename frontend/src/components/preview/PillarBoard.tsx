@@ -6,6 +6,7 @@ import {
   formatSuccessTarget,
 } from "@/components/preview/nationalPreview";
 import { TrackStatusDot } from "@/components/track/TrackStatusDot";
+import { PILLAR_ICON_BY_NUMBER } from "@/assets/pillars/pillarIcons";
 import type { ScoringMode } from "@/components/form/pillars";
 import type {
   NationalInitiativePayload,
@@ -137,7 +138,7 @@ export function PillarBoard({ pillars, scoringMode, track }: PillarBoardProps) {
   const showWeight = scoringMode === "WEIGHTED";
   return (
     <div className="overflow-x-auto p-1.5">
-      <div className="grid min-w-[72rem] grid-cols-5 gap-3">
+      <div className="grid min-w-[72rem] grid-cols-5 gap-2">
         {pillars.map((pillar) => {
           // const targetCount = pillar.initiatives.length;
           const theme = PILLAR_THEME[pillar.pillar_number] ?? PILLAR_THEME[1];
@@ -148,47 +149,57 @@ export function PillarBoard({ pillars, scoringMode, track }: PillarBoardProps) {
             <article
               key={pillar.pillar_number}
               className={cn(
-                "flex min-w-0 flex-col gap-4 overflow-hidden rounded-preview-card p-4 shadow-preview-card",
+                "flex min-w-0 flex-col gap-4 overflow-hidden rounded-preview-card px-2 py-4 shadow-preview-card",
                 theme.card,
               )}
             >
-              <div
-                className={cn(
-                  "flex min-w-0 flex-col",
-                  showWeight ? "gap-0.5" : "gap-2",
-                )}
-              >
-                <h3
-                  className={cn(
-                    "flex min-w-0 items-center gap-1.5 text-[14px] font-bold leading-snug break-words",
-                    theme.title,
-                  )}
-                >
+              <div className="flex min-w-0 flex-col gap-1">
+                <div className="flex min-w-0 items-center gap-1.5">
                   {track ? (
-                    <TrackStatusDot
-                      value={pillarStatus}
-                      canUpdate={track.canUpdate}
-                      ariaLabel={`${pillar.pillar_name} status`}
-                      onChange={(status) =>
-                        track.onPillarChange(pillar.pillar_number, status)
-                      }
+                    <span className="inline-flex shrink-0">
+                      <TrackStatusDot
+                        value={pillarStatus}
+                        canUpdate={track.canUpdate}
+                        ariaLabel={`${pillar.pillar_name} status`}
+                        onChange={(status) =>
+                          track.onPillarChange(pillar.pillar_number, status)
+                        }
+                      />
+                    </span>
+                  ) : null}
+                  {PILLAR_ICON_BY_NUMBER[pillar.pillar_number] ? (
+                    <img
+                      src={PILLAR_ICON_BY_NUMBER[pillar.pillar_number]}
+                      alt=""
+                      className="size-9 shrink-0 object-contain"
                     />
                   ) : null}
-                  <span className="min-w-0">{pillar.pillar_name}</span>
-                </h3>
-                {showWeight ? (
-                  <span
-                    className={cn(
-                      "self-end whitespace-nowrap text-[10px] font-medium leading-none",
-                      theme.title,
-                    )}
-                  >
-                    {pillar.pillar_weight}%
-                  </span>
+                  <div className="min-w-0 flex-1">
+                    <h3
+                      className={cn(
+                        "text-xs font-bold leading-snug break-words",
+                        theme.title,
+                      )}
+                    >
+                      {pillar.pillar_name}
+                    </h3>
+                    {showWeight ? (
+                      <p
+                        className={cn(
+                          "mt-0.5 whitespace-nowrap text-[10px] font-medium leading-none",
+                          theme.title,
+                        )}
+                      >
+                        {pillar.pillar_weight}pts
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
+                {pillar.pillar_description.trim() ? (
+                  <p className="text-[10px] leading-snug text-foreground/70">
+                    {pillar.pillar_description}
+                  </p>
                 ) : null}
-                {/* <span className="inline-flex w-fit self-end rounded-full bg-brand-soft px-2.5 py-0.5 text-xs font-semibold text-primary">
-                  {targetCount} {targetCount === 1 ? "Target" : "Targets"}
-                </span> */}
               </div>
 
               {pillar.initiatives.length > 0 ? (

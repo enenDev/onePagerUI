@@ -20,7 +20,7 @@
  *                      business_outcome_statement
  *   -----------------------------------------------------------------------------------
  *   | Pillar 1 col | Pillar 2 col | Pillar 3 col | Pillar 4 col | Pillar 5 col |
- *   | icon + name  | …            |              |              |              |
+ *   | icon + name / pts (weighted) | …            |              |              |
  *   | description  |              |              |              |              |
  *   | P1 / P2 / P3 initiative slots (empty slots stay blank so the grid does not shift)
  *
@@ -615,21 +615,26 @@ function addColumn(
   });
 
   const pad = 0.08;
-  const icon = 0.28;
+  const icon = 0.32;
+  const titleH = 0.18;
+  const scoreH = showWeight ? 0.12 : 0;
+  const stackH = titleH + scoreH;
+  const headerH = Math.max(icon, stackH);
   const iconUrl = PILLAR_ICON_BY_NUMBER[pillar.pillar_number];
   const iconData = iconUrl ? images.get(iconUrl) : undefined;
+  const iconY = y + pad + (headerH - icon) / 2;
   if (iconData) {
     slide.addImage({
       data: iconData,
       x: x + pad,
-      y: y + pad,
+      y: iconY,
       w: icon,
       h: icon,
     });
   } else {
     slide.addShape(pptx.ShapeType.ellipse, {
       x: x + pad,
-      y: y + pad,
+      y: iconY,
       w: icon,
       h: icon,
       fill: { color: theme.title },
@@ -637,11 +642,14 @@ function addColumn(
     });
   }
 
+  const titleX = x + pad + icon + 0.05;
+  const titleW = w - pad * 2 - icon - 0.05;
+  const textY = y + pad + (headerH - stackH) / 2;
   slide.addText(pillar.pillar_name, {
-    x: x + pad + icon + 0.06,
-    y: y + pad,
-    w: w - pad * 2 - icon - 0.06,
-    h: icon,
+    x: titleX,
+    y: textY,
+    w: titleW,
+    h: titleH,
     fontSize: 9,
     fontFace: "Arial",
     color: theme.title,
@@ -649,18 +657,17 @@ function addColumn(
     valign: "middle",
     margin: 0,
   });
-  const weightH = showWeight ? 0.12 : 0;
   if (showWeight) {
-    slide.addText(`${pillar.pillar_weight}%`, {
-      x: x + pad,
-      y: y + pad + icon,
-      w: w - pad * 2,
-      h: weightH,
-      fontSize: 6,
+    slide.addText(`${pillar.pillar_weight}pts`, {
+      x: titleX,
+      y: textY + titleH,
+      w: titleW,
+      h: scoreH,
+      fontSize: 7,
       fontFace: "Arial",
       color: theme.title,
-      align: "right",
-      valign: "middle",
+      align: "left",
+      valign: "top",
       margin: 0,
       wrap: false,
     });
@@ -668,7 +675,7 @@ function addColumn(
 
   slide.addText(pillar.pillar_description || "", {
     x: x + pad,
-    y: y + pad + icon + weightH + 0.04,
+    y: y + pad + headerH + 0.04,
     w: w - pad * 2,
     h: 0.32,
     fontSize: 7,
@@ -678,7 +685,7 @@ function addColumn(
     margin: 0,
   });
 
-  const bodyY = y + pad + icon + weightH + 0.4;
+  const bodyY = y + pad + headerH + 0.4;
   const bodyH = h - (bodyY - y) - pad;
   const initGap = 0.05;
   const initH =

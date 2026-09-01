@@ -289,6 +289,12 @@ export function NationalPreviewDocument({
             <span className="font-semibold text-foreground">Owner:</span>{" "}
             {owner}
           </p>
+          {payload.scoring_mode === "WEIGHTED" ? (
+            <p className="text-xs text-muted-foreground">
+              <span className="font-semibold text-foreground">Total :</span>{" "}
+              100pts
+            </p>
+          ) : null}
         </div>
       </div>
 
