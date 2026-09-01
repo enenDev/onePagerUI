@@ -6,6 +6,7 @@ import {
   formatSuccessTarget,
 } from "@/components/preview/nationalPreview";
 import { TrackStatusDot } from "@/components/track/TrackStatusDot";
+import type { ScoringMode } from "@/components/form/pillars";
 import type {
   NationalInitiativePayload,
   NationalPillarPayload,
@@ -128,10 +129,12 @@ function InitiativeBlock({
 
 type PillarBoardProps = {
   pillars: NationalPillarPayload[];
+  scoringMode?: ScoringMode;
   track?: PillarBoardTrack;
 };
 
-export function PillarBoard({ pillars, track }: PillarBoardProps) {
+export function PillarBoard({ pillars, scoringMode, track }: PillarBoardProps) {
+  const showWeight = scoringMode === "WEIGHTED";
   return (
     <div className="overflow-x-auto p-1.5">
       <div className="grid min-w-[72rem] grid-cols-5 gap-3">
@@ -149,7 +152,12 @@ export function PillarBoard({ pillars, track }: PillarBoardProps) {
                 theme.card,
               )}
             >
-              <div className="flex min-w-0 flex-col gap-0.5">
+              <div
+                className={cn(
+                  "flex min-w-0 flex-col",
+                  showWeight ? "gap-0.5" : "gap-2",
+                )}
+              >
                 <h3
                   className={cn(
                     "flex min-w-0 items-center gap-1.5 text-[14px] font-bold leading-snug break-words",
@@ -168,14 +176,16 @@ export function PillarBoard({ pillars, track }: PillarBoardProps) {
                   ) : null}
                   <span className="min-w-0">{pillar.pillar_name}</span>
                 </h3>
-                <span
-                  className={cn(
-                    "self-end whitespace-nowrap text-[10px] font-medium leading-none",
-                    theme.title,
-                  )}
-                >
-                  {pillar.pillar_weight}%
-                </span>
+                {showWeight ? (
+                  <span
+                    className={cn(
+                      "self-end whitespace-nowrap text-[10px] font-medium leading-none",
+                      theme.title,
+                    )}
+                  >
+                    {pillar.pillar_weight}%
+                  </span>
+                ) : null}
                 {/* <span className="inline-flex w-fit self-end rounded-full bg-brand-soft px-2.5 py-0.5 text-xs font-semibold text-primary">
                   {targetCount} {targetCount === 1 ? "Target" : "Targets"}
                 </span> */}

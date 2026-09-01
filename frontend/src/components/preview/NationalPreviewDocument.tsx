@@ -306,7 +306,11 @@ export function NationalPreviewDocument({
           Five Category Execution Pillars & Directives
         </h2>
 
-        <PillarBoard pillars={payload.pillars} track={track} />
+        <PillarBoard
+          pillars={payload.pillars}
+          scoringMode={payload.scoring_mode}
+          track={track}
+        />
       </div>
     </div>
   );

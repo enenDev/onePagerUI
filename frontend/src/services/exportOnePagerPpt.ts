@@ -601,6 +601,7 @@ function addColumn(
   w: number,
   h: number,
   images: Map<string, string>,
+  showWeight: boolean,
 ) {
   const theme = PILLAR_THEME[pillar.pillar_number] ?? PILLAR_THEME[1];
   slide.addShape(pptx.ShapeType.roundRect, {
@@ -648,24 +649,26 @@ function addColumn(
     valign: "middle",
     margin: 0,
   });
-  const weightH = 0.12;
-  slide.addText(`${pillar.pillar_weight}%`, {
-    x: x + pad,
-    y: y + pad + icon,
-    w: w - pad * 2,
-    h: weightH,
-    fontSize: 6,
-    fontFace: "Arial",
-    color: theme.title,
-    align: "right",
-    valign: "middle",
-    margin: 0,
-    wrap: false,
-  });
+  const weightH = showWeight ? 0.12 : 0;
+  if (showWeight) {
+    slide.addText(`${pillar.pillar_weight}%`, {
+      x: x + pad,
+      y: y + pad + icon,
+      w: w - pad * 2,
+      h: weightH,
+      fontSize: 6,
+      fontFace: "Arial",
+      color: theme.title,
+      align: "right",
+      valign: "middle",
+      margin: 0,
+      wrap: false,
+    });
+  }
 
   slide.addText(pillar.pillar_description || "", {
     x: x + pad,
-    y: y + pad + icon + weightH + 0.02,
+    y: y + pad + icon + weightH + 0.04,
     w: w - pad * 2,
     h: 0.32,
     fontSize: 7,
@@ -675,7 +678,7 @@ function addColumn(
     margin: 0,
   });
 
-  const bodyY = y + pad + icon + weightH + 0.38;
+  const bodyY = y + pad + icon + weightH + 0.4;
   const bodyH = h - (bodyY - y) - pad;
   const initGap = 0.05;
   const initH =
@@ -747,6 +750,7 @@ export async function exportOnePagerPpt(input: ExportOnePagerInput) {
         colW,
         colH,
         images,
+        input.payload.scoring_mode === "WEIGHTED",
       );
     });
 
