@@ -149,7 +149,7 @@ export function PillarBoard({ pillars, track }: PillarBoardProps) {
                 theme.card,
               )}
             >
-              <div className="flex min-w-0 flex-col gap-2">
+              <div className="flex min-w-0 flex-col gap-0.5">
                 <h3
                   className={cn(
                     "flex min-w-0 items-center gap-1.5 text-[14px] font-bold leading-snug break-words",
@@ -168,6 +168,14 @@ export function PillarBoard({ pillars, track }: PillarBoardProps) {
                   ) : null}
                   <span className="min-w-0">{pillar.pillar_name}</span>
                 </h3>
+                <span
+                  className={cn(
+                    "self-end whitespace-nowrap text-[10px] font-medium leading-none",
+                    theme.title,
+                  )}
+                >
+                  {pillar.pillar_weight}%
+                </span>
                 {/* <span className="inline-flex w-fit self-end rounded-full bg-brand-soft px-2.5 py-0.5 text-xs font-semibold text-primary">
                   {targetCount} {targetCount === 1 ? "Target" : "Targets"}
                 </span> */}

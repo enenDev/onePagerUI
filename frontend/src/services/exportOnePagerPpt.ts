@@ -16,7 +16,7 @@
  * ---------------------------------------------------------------------------
  * Slide map (widescreen 13.333" × 7.5")
  * ---------------------------------------------------------------------------
- *   [ Perfect Store ]  TITLE (composed)           [Channel][Category][Market] [Unilever]
+ *   [ Perfect Store ]  TITLE (composed)           [Channel | Category | Market] [Unilever]
  *                      business_outcome_statement
  *   -----------------------------------------------------------------------------------
  *   | Pillar 1 col | Pillar 2 col | Pillar 3 col | Pillar 4 col | Pillar 5 col |
@@ -40,7 +40,7 @@
  * Slide / header / columns: SLIDE_W, SLIDE_H, HEADER_H, MARGIN_X, COL_GAP
  * Colors: PILLAR_THEME, PRIORITY_COLOR, header fill "0066CC"
  * Header logos: x/y/w/h inside addHeader (Perfect Store left, Unilever right)
- * Header pills: pillW / pillGap in addHeader
+ * Header meta bar: barH / segmentPadX in addHeader (one capsule, Channel|Category|Market)
  * Column icon size: `icon` in addColumn
  * Initiative text box heights: the 0.32 / 0.24 / 0.33 cursor steps in addInitiative
  * Photo size: imageH and MAX_INITIATIVE_IMAGES (strip width = innerW / 3)
@@ -242,8 +242,8 @@ async function loadImageCache(urls: string[]) {
   return cache;
 }
 
-/** Logos, 5 pillar icons, then each initiative’s image_urls (max 3). Cover image is skipped. */
-function collectImageUrls(payload: ExportPayload) {
+/** Logos, 5 pillar icons, then each initiative’s images (max 3). Cover image is skipped. */
+function collectImageUrls(payload: ExportPayload): string[] {
   const urls = new Set<string>([
     perfectStoreLogo,
     unileverBrandLogo,
@@ -251,15 +251,16 @@ function collectImageUrls(payload: ExportPayload) {
   ]);
   for (const pillar of payload.pillars) {
     for (const initiative of pillar.initiatives) {
-      for (const image of initiative.images.slice(0, MAX_INITIATIVE_IMAGES)) {
-        if (image.blob_url) urls.add(image.blob_url);
+      for (const image of initiative?.images?.slice(0, MAX_INITIATIVE_IMAGES) ||
+        []) {
+        if (image) urls.add(image);
       }
     }
   }
-  return [...urls];
+  return Array.from(urls);
 }
 
-/** Blue bar: logos, composed title, outcome, Channel/Category/Market pills (not Campaign). Tweak x/y/w/h here for header spacing. */
+/** Blue bar: logos, composed title, outcome, Channel|Category|Market capsule (not Campaign). Tweak x/y/w/h here for header spacing. */
 function addHeader(
   pptx: PptxGenJS,
   slide: Slide,
@@ -292,42 +293,70 @@ function addHeader(
     });
   }
 
-  const pills = [payload.channel, payload.category, payload.market].filter(
-    (value) => value.trim(),
+  const labels = [payload.channel, payload.category, payload.market]
+    .map((value) => value.trim())
+    .filter(Boolean);
+  const barH = 0.28;
+  const barY = 0.21;
+  const barRight = SLIDE_W - 1.28;
+  const segmentPadX = 0.16;
+  const charW = 0.072;
+  const minSegW = 0.78;
+  const maxSegW = 1.75;
+  const segmentWidths = labels.map((label) =>
+    Math.min(
+      maxSegW,
+      Math.max(minSegW, segmentPadX * 2 + label.length * charW),
+    ),
   );
-  const pillW = 1.15;
-  const pillGap = 0.06;
-  const pillsX = SLIDE_W - 1.32 - pills.length * (pillW + pillGap);
+  const barW = segmentWidths.reduce((sum, width) => sum + width, 0);
+  const barX = labels.length > 0 ? barRight - barW : barRight;
 
-  pills.forEach((label, index) => {
-    const x = pillsX + index * (pillW + pillGap);
+  if (labels.length > 0) {
     slide.addShape(pptx.ShapeType.roundRect, {
-      x,
-      y: 0.22,
-      w: pillW,
-      h: 0.26,
-      rectRadius: 0.12,
-      fill: { color: "DBEAFE" },
-      line: { color: "DBEAFE" },
+      x: barX,
+      y: barY,
+      w: barW,
+      h: barH,
+      rectRadius: barH / 2,
+      fill: { color: "FFFFFF", transparency: 45 },
+      line: { type: "none" },
     });
-    slide.addText(label, {
-      x,
-      y: 0.22,
-      w: pillW,
-      h: 0.26,
-      align: "center",
-      valign: "middle",
-      fontSize: 8,
-      fontFace: "Arial",
-      color: "0066CC",
-      bold: true,
-      margin: 0,
+
+    let segmentX = barX;
+    labels.forEach((label, index) => {
+      const segmentW = segmentWidths[index] ?? minSegW;
+      if (index > 0) {
+        const dividerInset = 0.06;
+        slide.addShape(pptx.ShapeType.rect, {
+          x: segmentX - 0.007,
+          y: barY + dividerInset,
+          w: 0.014,
+          h: barH - dividerInset * 2,
+          fill: { color: "FFFFFF" },
+          line: { type: "none" },
+        });
+      }
+      slide.addText(label, {
+        x: segmentX,
+        y: barY,
+        w: segmentW,
+        h: barH,
+        align: "center",
+        valign: "middle",
+        fontSize: 8,
+        fontFace: "Arial",
+        color: "FFFFFF",
+        bold: true,
+        margin: 0,
+      });
+      segmentX += segmentW;
     });
-  });
+  }
 
   const title = composeTitle(pagerType, payload);
   const titleX = 1.8;
-  const titleW = Math.max(3.5, pillsX - titleX - 0.12);
+  const titleW = Math.max(3.5, barX - titleX - 0.12);
   slide.addText(title, {
     x: titleX,
     y: 0.08,
@@ -516,8 +545,7 @@ function addInitiative(
   const imageW =
     (innerW - imageGap * (MAX_INITIATIVE_IMAGES - 1)) / MAX_INITIATIVE_IMAGES;
   const imageH = 0.34;
-  const urls = initiative?.images
-    ?.map((image) => image.blob_url)
+  const urls = (initiative.images ?? [])
     .filter(Boolean)
     .slice(0, MAX_INITIATIVE_IMAGES);
 
@@ -620,10 +648,24 @@ function addColumn(
     valign: "middle",
     margin: 0,
   });
+  const weightH = 0.12;
+  slide.addText(`${pillar.pillar_weight}%`, {
+    x: x + pad,
+    y: y + pad + icon,
+    w: w - pad * 2,
+    h: weightH,
+    fontSize: 6,
+    fontFace: "Arial",
+    color: theme.title,
+    align: "right",
+    valign: "middle",
+    margin: 0,
+    wrap: false,
+  });
 
   slide.addText(pillar.pillar_description || "", {
     x: x + pad,
-    y: y + pad + icon + 0.04,
+    y: y + pad + icon + weightH + 0.02,
     w: w - pad * 2,
     h: 0.32,
     fontSize: 7,
@@ -633,7 +675,7 @@ function addColumn(
     margin: 0,
   });
 
-  const bodyY = y + pad + icon + 0.4;
+  const bodyY = y + pad + icon + weightH + 0.38;
   const bodyH = h - (bodyY - y) - pad;
   const initGap = 0.05;
   const initH =
