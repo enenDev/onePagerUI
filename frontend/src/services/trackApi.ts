@@ -1,3 +1,5 @@
+import ApiBase from "@/components/auth/apiBase";
+
 export type ApiTrackColor = "red" | "amber" | "green";
 export type TrackRagStatus = "clear" | ApiTrackColor;
 
@@ -20,7 +22,6 @@ export type UpdateTrackPayload = {
   updated_by: string;
 };
 
-const delay = (ms = 200) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export function initiativeTrackKey(
   pillarNumber: number,
@@ -74,10 +75,26 @@ export async function updateTrackStatus(input: {
   status: TrackRagStatus;
   updated_by: string;
 }): Promise<{ ok: true } | { ok: false; error: string }> {
-  await delay();
 
   if (!input.pagerId.trim() || !input.pillarId.trim()) {
     return { ok: false, error: "Missing pager or pillar id." };
+  }
+  try {
+    const { pagerId, pillarId, initiativeId } = input
+    await ApiBase.patch('api/v1/update-track', {
+      table: (pagerId && pillarId && initiativeId) ? "initiative"
+        : (pagerId && pillarId && !initiativeId) ? "pillar"
+          : "pager",
+      pager_id: input.pagerId,
+      pillar_id: input.pillarId,
+      initiative_id: input.initiativeId,
+      track: input.status,
+      updated_by: input.updated_by
+    })
+    return { ok: true };
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    throw error;
   }
 
   return { ok: true };

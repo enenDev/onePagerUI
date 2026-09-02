@@ -6,11 +6,7 @@ import {
   emptyRetailerFormValues,
   type RetailerFormValues,
 } from "@/components/form/retailerForm";
-import type {
-  InitiativeImage,
-  PillarDraft,
-  ScoringMode,
-} from "@/components/form/pillars";
+import type { PillarDraft, ScoringMode, InitiativeImage } from "@/components/form/pillars";
 import type {
   NationalOnePagerCreatePayload,
   NationalPillarPayload,
@@ -69,11 +65,6 @@ export function hydratePillarsFromPayload(
   }));
 }
 
-function coverName(signedUrl: string | null | undefined, publicUrl: string | null | undefined) {
-  const url = signedUrl || publicUrl || "";
-  return url ? fileName(url, "cover") : "";
-}
-
 export function hydrateNationalFormFromPayload(
   payload: NationalOnePagerCreatePayload,
 ): {
@@ -90,8 +81,11 @@ export function hydrateNationalFormFromPayload(
       channel: payload.channel,
       title: payload.title,
       businessOutcome: payload.business_outcome_statement,
-      coverImageName: coverName(payload.image_signed_url, payload.image_url),
-      coverImageUrl: payload.image_signed_url ?? "",
+      coverImageName:
+        payload.image_signed_url?.split("/").pop() ||
+        payload.image_url?.split("/").pop() ||
+        "",
+      coverImageUrl: payload.image_signed_url ?? payload.image_url ?? "",
       coverImagePublicUrl: payload.image_url ?? "",
       coverImageFile: null,
     },
@@ -117,8 +111,11 @@ export function hydrateRetailerFormFromPayload(
       channel: payload.channel,
       title: payload.title,
       businessOutcome: payload.business_outcome_statement,
-      coverImageName: coverName(payload.image_signed_url, payload.image_url),
-      coverImageUrl: payload.image_signed_url ?? "",
+      coverImageName:
+        payload.image_signed_url?.split("/").pop() ||
+        payload.image_url?.split("/").pop() ||
+        "",
+      coverImageUrl: payload.image_signed_url ?? payload.image_url ?? "",
       coverImagePublicUrl: payload.image_url ?? "",
       coverImageFile: null,
     },

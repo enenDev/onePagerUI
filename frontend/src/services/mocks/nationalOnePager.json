@@ -12,6 +12,11 @@
     "channel": "Supermarket",
     "title": "National Execution Excellence One-Pager 2026",
     "business_outcome_statement": "Improve execution quality, customer engagement, availability, and sales performance across all regions.",
+    "cover_image": {
+      "id": "cover-1",
+      "name": "cover.jpg",
+      "blob_url": "https://picsum.photos/seed/national-cover/800/320"
+    },
     "scoring_mode": "WEIGHTED",
     "pillars": [
       {
@@ -33,14 +38,9 @@
             "guidelines": "All eligible employees must complete the monthly capability session.",
             "checklist_compliance_notes": "Verify attendance, completion, and manager sign-off.",
             "images": [
-              "https://cdn.example.com/public/p1i1a.jpg",
-              "https://cdn.example.com/public/p1i1b.jpg",
-              "https://cdn.example.com/public/p1i1c.jpg"
-            ],
-            "image_signed_url": [
-              "https://picsum.photos/seed/p1i1a/400/280",
-              "https://picsum.photos/seed/p1i1b/400/280",
-              "https://picsum.photos/seed/p1i1c/400/280"
+              { "id": "p1-i1-1", "name": "pillar1-initiative1-1.jpg", "blob_url": "https://picsum.photos/seed/p1i1a/400/280" },
+              { "id": "p1-i1-2", "name": "pillar1-initiative1-2.jpg", "blob_url": "https://picsum.photos/seed/p1i1b/400/280" },
+              { "id": "p1-i1-3", "name": "pillar1-initiative1-3.jpg", "blob_url": "https://picsum.photos/seed/p1i1c/400/280" }
             ]
           },
           {
@@ -56,12 +56,8 @@
             "guidelines": "Managers should conduct and document at least one coaching session every week.",
             "checklist_compliance_notes": "Check coaching records and manager confirmation.",
             "images": [
-              "https://cdn.example.com/public/p1i2a.jpg",
-              "https://cdn.example.com/public/p1i2b.jpg"
-            ],
-            "image_signed_url": [
-              "https://picsum.photos/seed/p1i2a/400/280",
-              "https://picsum.photos/seed/p1i2b/400/280"
+              { "id": "p1-i2-1", "name": "pillar1-initiative2-1.jpg", "blob_url": "https://picsum.photos/seed/p1i2a/400/280" },
+              { "id": "p1-i2-2", "name": "pillar1-initiative2-2.jpg", "blob_url": "https://picsum.photos/seed/p1i2b/400/280" }
             ]
           },
           {
@@ -77,10 +73,7 @@
             "guidelines": "All new employees must complete the onboarding checklist.",
             "checklist_compliance_notes": "Verify onboarding documents and completion status.",
             "images": [
-              "https://cdn.example.com/public/p1i3a.jpg"
-            ],
-            "image_signed_url": [
-              "https://picsum.photos/seed/p1i3a/400/280"
+              { "id": "p1-i3-1", "name": "pillar1-initiative3-1.jpg", "blob_url": "https://picsum.photos/seed/p1i3a/400/280" }
             ]
           }
         ]
@@ -104,12 +97,8 @@
             "guidelines": "Teams should follow the defined customer engagement checklist.",
             "checklist_compliance_notes": "Capture visit evidence and customer feedback.",
             "images": [
-              "https://cdn.example.com/public/p2i1a.jpg",
-              "https://cdn.example.com/public/p2i1b.jpg"
-            ],
-            "image_signed_url": [
-              "https://picsum.photos/seed/p2i1a/400/280",
-              "https://picsum.photos/seed/p2i1b/400/280"
+              { "id": "p2-i1-1", "name": "pillar2-initiative1-1.jpg", "blob_url": "https://picsum.photos/seed/p2i1a/400/280" },
+              { "id": "p2-i1-2", "name": "pillar2-initiative1-2.jpg", "blob_url": "https://picsum.photos/seed/p2i1b/400/280" }
             ]
           },
           {
@@ -125,10 +114,7 @@
             "guidelines": "All customer complaints should be tracked until closure.",
             "checklist_compliance_notes": "Review open complaints and resolution timestamps.",
             "images": [
-              "https://cdn.example.com/public/p2i2a.jpg"
-            ],
-            "image_signed_url": [
-              "https://picsum.photos/seed/p2i2a/400/280"
+              { "id": "p2-i2-1", "name": "pillar2-initiative2-1.jpg", "blob_url": "https://picsum.photos/seed/p2i2a/400/280" }
             ]
           }
         ]
@@ -152,12 +138,8 @@
             "guidelines": "Follow the approved standard operating procedures.",
             "checklist_compliance_notes": "Validate daily operational checklist completion.",
             "images": [
-              "https://cdn.example.com/public/p3i1a.jpg",
-              "https://cdn.example.com/public/p3i1b.jpg"
-            ],
-            "image_signed_url": [
-              "https://picsum.photos/seed/p3i1a/400/280",
-              "https://picsum.photos/seed/p3i1b/400/280"
+              { "id": "p3-i1-1", "name": "pillar3-initiative1-1.jpg", "blob_url": "https://picsum.photos/seed/p3i1a/400/280" },
+              { "id": "p3-i1-2", "name": "pillar3-initiative1-2.jpg", "blob_url": "https://picsum.photos/seed/p3i1b/400/280" }
             ]
           },
           {
@@ -173,10 +155,7 @@
             "guidelines": "Monitor inventory daily and address stock-out risks proactively.",
             "checklist_compliance_notes": "Verify inventory reports and replenishment actions.",
             "images": [
-              "https://cdn.example.com/public/p3i2a.jpg"
-            ],
-            "image_signed_url": [
-              "https://picsum.photos/seed/p3i2a/400/280"
+              { "id": "p3-i2-1", "name": "pillar3-initiative2-1.jpg", "blob_url": "https://picsum.photos/seed/p3i2a/400/280" }
             ]
           }
         ]
@@ -200,12 +179,8 @@
             "guidelines": "Focus on priority accounts and high-potential opportunities.",
             "checklist_compliance_notes": "Review conversion performance weekly.",
             "images": [
-              "https://cdn.example.com/public/p4i1a.jpg",
-              "https://cdn.example.com/public/p4i1b.jpg"
-            ],
-            "image_signed_url": [
-              "https://picsum.photos/seed/p4i1a/400/280",
-              "https://picsum.photos/seed/p4i1b/400/280"
+              { "id": "p4-i1-1", "name": "pillar4-initiative1-1.jpg", "blob_url": "https://picsum.photos/seed/p4i1a/400/280" },
+              { "id": "p4-i1-2", "name": "pillar4-initiative1-2.jpg", "blob_url": "https://picsum.photos/seed/p4i1b/400/280" }
             ]
           },
           {
@@ -221,10 +196,7 @@
             "guidelines": "Review pricing and promotional effectiveness every week.",
             "checklist_compliance_notes": "Check revenue reports and promotional outcomes.",
             "images": [
-              "https://cdn.example.com/public/p4i2a.jpg"
-            ],
-            "image_signed_url": [
-              "https://picsum.photos/seed/p4i2a/400/280"
+              { "id": "p4-i2-1", "name": "pillar4-initiative2-1.jpg", "blob_url": "https://picsum.photos/seed/p4i2a/400/280" }
             ]
           }
         ]
@@ -248,12 +220,8 @@
             "guidelines": "Ensure all users are trained and actively using approved digital tools.",
             "checklist_compliance_notes": "Review adoption dashboard and user activity.",
             "images": [
-              "https://cdn.example.com/public/p5i1a.jpg",
-              "https://cdn.example.com/public/p5i1b.jpg"
-            ],
-            "image_signed_url": [
-              "https://picsum.photos/seed/p5i1a/400/280",
-              "https://picsum.photos/seed/p5i1b/400/280"
+              { "id": "p5-i1-1", "name": "pillar5-initiative1-1.jpg", "blob_url": "https://picsum.photos/seed/p5i1a/400/280" },
+              { "id": "p5-i1-2", "name": "pillar5-initiative1-2.jpg", "blob_url": "https://picsum.photos/seed/p5i1b/400/280" }
             ]
           },
           {
@@ -269,16 +237,11 @@
             "guidelines": "Dashboards must contain validated and current business data.",
             "checklist_compliance_notes": "Verify data freshness and dashboard availability.",
             "images": [
-              "https://cdn.example.com/public/p5i2a.jpg"
-            ],
-            "image_signed_url": [
-              "https://picsum.photos/seed/p5i2a/400/280"
+              { "id": "p5-i2-1", "name": "pillar5-initiative2-1.jpg", "blob_url": "https://picsum.photos/seed/p5i2a/400/280" }
             ]
           }
         ]
       }
-    ],
-    "image_url": "https://cdn.example.com/public/national-cover.jpg",
-    "image_signed_url": "https://picsum.photos/seed/national-cover/800/320"
+    ]
   }
 }

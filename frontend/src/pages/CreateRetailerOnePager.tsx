@@ -34,6 +34,7 @@ import {
 import { getNationalOnePager } from "@/services/createFormApi";
 import { isRetailerEditState } from "@/services/onePagerApi";
 import type { OnePagerListItem } from "@/types/onePager";
+import { useAppSelector } from "@/redux/hooks";
 
 /**
  * Create-modal Import From National handoff.
@@ -112,6 +113,7 @@ export function CreateRetailerOnePager() {
   // recordId stays null on import (new retailer draft). Scope stays locked on import.
   const navigate = useNavigate();
   const location = useLocation();
+  const currentUser = useAppSelector((state) => state.user.currentUser);
   const { setBackHandler, setHeaderTitle } =
     useOutletContext<FormLayoutContext>();
 
@@ -172,12 +174,12 @@ export function CreateRetailerOnePager() {
         ? JSON.stringify(restored.payload)
         : editedForm
           ? JSON.stringify(
-              buildRetailerOnePagerPayload(
-                editedForm.values,
-                editedForm.scoringMode,
-                editedForm.pillars,
-              ),
-            )
+            buildRetailerOnePagerPayload(
+              editedForm.values,
+              editedForm.scoringMode,
+              editedForm.pillars,
+            ),
+          )
           : null,
   );
   const [unsavedOpen, setUnsavedOpen] = useState(false);
@@ -273,6 +275,10 @@ export function CreateRetailerOnePager() {
     setSavingDraft(true);
     setSaveError(null);
     const payload = buildRetailerOnePagerPayload(values, scoringMode, pillars);
+    payload.created_by = currentUser.email;
+    payload.campaign_focus = payload.campaign;
+    payload.retailer = payload.target_retailer
+    payload.pager_type = "retailer";
     // TODO: When backend is live, saveRetailerDraft becomes the real HTTP call.
     // Keep toast + homepage redirect UX for action-bar Save Draft; only swap service.
     const result = await saveRetailerDraft(payload, recordId);
@@ -304,6 +310,10 @@ export function CreateRetailerOnePager() {
 
     setSaveError(null);
     const payload = buildRetailerOnePagerPayload(values, scoringMode, pillars);
+    payload.created_by = currentUser.email;
+    payload.campaign_focus = payload.campaign;
+    payload.retailer = payload.target_retailer
+    payload.pager_type = "retailer";
     // TODO: Preview route is FE-only handoff via location.state today.
     // Next: persist draft then open /create/retailer/preview/:id from backend id.
     // Publish happens on the preview page (not here).

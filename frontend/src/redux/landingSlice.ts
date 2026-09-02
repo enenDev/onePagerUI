@@ -6,6 +6,7 @@ import {
   archiveOnePager as archiveOnePagerRequest,
   restoreOnePager as restoreOnePagerRequest,
   submitOnePagerSearch,
+  updateOnePagerStatus as updateOnePagerRequest,
 } from "@/services/onePagerApi";
 import {
   createEmptyFilters,
@@ -47,7 +48,10 @@ const initialState: LandingState = {
   listLoading: false,
   error: null,
 };
-
+export interface PagerUpdateArgs{
+  pagerId: string;
+  user:string;
+}
 export const fetchMetadata = createAsyncThunk(
   "landing/fetchMetadata",
   async () => getMetadata(),
@@ -65,8 +69,8 @@ export const fetchOnePagers = createAsyncThunk(
  */
 export const deleteOnePager = createAsyncThunk(
   "landing/deleteOnePager",
-  async (pagerId: string) => {
-    const result = await deleteOnePagerRequest(pagerId);
+  async (args:PagerUpdateArgs) => {
+    const result = await deleteOnePagerRequest(args.pagerId,args.user);
     if (!result.ok) {
       throw new Error(result.error);
     }
@@ -74,14 +78,24 @@ export const deleteOnePager = createAsyncThunk(
   },
 );
 
+export const updateOnePagerStatus = createAsyncThunk(
+  "landing/updateOnePagerStatus",
+  async (args:{pagerId: string,updatedBy:string, newStatus:string}) => {
+    const result = await updateOnePagerRequest(args.pagerId,args.updatedBy,args.newStatus);
+    if (!result.ok) {
+      throw new Error(result.error);
+    }
+    return result.pager_id;
+  },
+);
 /**
  * Mock archive → set item status ARCHIVED in landing.items.
  * TODO: Swap for POST /api/one-pagers/:id/archive; keep status patch or refetch.
  */
 export const archiveOnePager = createAsyncThunk(
   "landing/archiveOnePager",
-  async (pagerId: string) => {
-    const result = await archiveOnePagerRequest(pagerId);
+  async (args:PagerUpdateArgs) => {
+    const result = await archiveOnePagerRequest(args);
     if (!result.ok) {
       throw new Error(result.error);
     }
@@ -95,8 +109,8 @@ export const archiveOnePager = createAsyncThunk(
  */
 export const restoreOnePager = createAsyncThunk(
   "landing/restoreOnePager",
-  async (pagerId: string) => {
-    const result = await restoreOnePagerRequest(pagerId);
+  async (args:PagerUpdateArgs) => {
+    const result = await restoreOnePagerRequest(args);
     if (!result.ok) {
       throw new Error(result.error);
     }
@@ -111,7 +125,7 @@ function syncDependentFilters(state: LandingState) {
     state.filters.retailer = [];
     state.filters.channel = [];
     state.filters.category = [];
-    state.filters.campaign = [];
+    state.filters.campaign_focus = [];
     return;
   }
 

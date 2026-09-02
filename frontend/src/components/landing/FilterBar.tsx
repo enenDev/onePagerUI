@@ -15,9 +15,9 @@ import type { FilterKey, FilterOption } from "@/types/onePager";
 import { createEmptyFilters } from "@/types/onePager";
 
 const FILTER_FIELDS: { key: FilterKey; label: string }[] = [
-  { key: "market", label: "Market" },
-  { key: "retailer", label: "Retailer" },
+  { key: "market", label: "Market" },  
   { key: "channel", label: "Channel" },
+  { key: "retailer", label: "Retailer" },
   { key: "category", label: "Category" },
   { key: "campaign", label: "Campaign" },
 ];

@@ -16,7 +16,7 @@ type UseCoverImageUploadArgs = {
 const UPLOAD_FAILED_MESSAGE = "Upload failed. Please try again.";
 
 /**
- * Cover pick → upload → store signed URL for preview and public URL for save.
+ * Cover pick → upload → signed URL for preview, public URL for save.
  * Keeps previous cover if the new upload fails. No delete API on replace/clear.
  */
 export function useCoverImageUpload({ patch }: UseCoverImageUploadArgs) {

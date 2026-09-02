@@ -4,9 +4,9 @@ import type {
   ScoringMode,
 } from "@/components/form/pillars";
 import createFormMetadataMock from "@/services/mocks/createFormMetadata.json";
-import nationalOnePagerMock from "@/services/mocks/nationalOnePager.json";
-import { upsertLandingCardFromPayload } from "@/services/landingListStore";
+
 import type { FilterMetadata } from "@/types/onePager";
+import ApiBase from "@/components/auth/apiBase";
 
 export type FilterOption = {
   label: string;
@@ -118,8 +118,6 @@ export async function addCampaign(
   campaignName: string,
   existingCampaigns: FilterOption[] = [],
 ): Promise<AddCampaignResult> {
-  await delay(400);
-
   const trimmed = campaignName.trim();
   if (!market) {
     return { ok: false, error: "Select a market before adding a campaign." };
@@ -138,18 +136,35 @@ export async function addCampaign(
       error: "This campaign already exists for the selected market.",
     };
   }
+  try {
+    await ApiBase.post('api/v1/campaigns', {
+      market: market,
+      campaign_name: trimmed,
+      created_by: "gowtham.gunasekaran@unilver.com",
+      user_id: "gowtham.gunasekaran@unilver.com",
+    })
+    return { ok: true, campaign: { label: trimmed, value: trimmed } };
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    throw error;
+  }
 
-  return { ok: true, campaign: { label: trimmed, value: trimmed } };
 }
 
 /**
- * Image fields on the national create payload (form / GET / preview).
+ * Image fields on the national create/save payload.
  *
- * Cover: root `image_url` (public, DB) + `image_signed_url` (display).
- * Initiative: `images` (public URL strings) + `image_signed_url` (display strings).
- * Same index = same photo. Save Draft / Publish must strip signed URLs —
- * use `toPublicImageSavePayload`. See `frontend/src/services/imageUploadApi.ts`.
+ * `blob_url` holds the URL from `uploadImage` (mock or real). Keep this field name
+ * when swapping FastAPI — do not POST raw `blob:` object URLs as final storage.
+ * Cover/initiative picks call `uploadImage` on file select; form state already has URLs
+ * before Save Draft / Publish. See `frontend/src/services/imageUploadApi.ts`.
  */
+export type NationalImagePayload = {
+  id?: string;
+  name: string;
+  blob_url: string;
+};
+
 export type NationalInitiativePayload = {
   initiative_number: number;
   priority_level: "P1" | "P2" | "P3";
@@ -189,6 +204,8 @@ export type NationalOnePagerCreatePayload = {
   category: string;
   campaign: string;
   channel: string;
+  created_by?: string;
+  pager_type?: string;
   title: string;
   business_outcome_statement: string;
   /** Public cover URL for DB. `null` when none. Sent on draft/publish. */
@@ -197,12 +214,25 @@ export type NationalOnePagerCreatePayload = {
   image_signed_url?: string | null;
   scoring_mode: ScoringMode;
   pillars: NationalPillarPayload[];
+  status?: string;
+  published_at?: string;
+  published_by?: string;
+  campaign_focus?: string;
 };
 
-export function mapInitiativeImageFields(images: PillarDraft["initiatives"][number]["images"]) {
+export function mapInitiativeImageFields(
+  images: PillarDraft["initiatives"][number]["images"],
+) {
+  const publicUrls: string[] = [];
+  const signedUrls: string[] = [];
+  for (const image of images) {
+    if (!image.publicUrl && !image.blobUrl) continue;
+    publicUrls.push(image.publicUrl);
+    signedUrls.push(image.blobUrl);
+  }
   return {
-    images: images.map((image) => image.publicUrl).filter(Boolean),
-    image_signed_url: images.map((image) => image.blobUrl).filter(Boolean),
+    images: publicUrls,
+    image_signed_url: signedUrls,
   };
 }
 
@@ -278,14 +308,14 @@ export type OnePagerRecordStatus = "draft" | "published";
 
 /** Response shape the real backend should return for save/publish. */
 export type NationalOnePagerMutationResult =
-  | { ok: true; id: string; status: OnePagerRecordStatus }
+  | { ok: true; id: string; status: OnePagerRecordStatus, error?: string }
   | { ok: false; error: string };
 
-type StoredNationalRecord = {
-  id: string;
-  status: OnePagerRecordStatus;
-  payload: NationalOnePagerCreatePayload;
-};
+// type StoredNationalRecord = {
+//   id: string;
+//   status: OnePagerRecordStatus;
+//   payload: NationalOnePagerCreatePayload;
+// };
 
 /**
  * In-memory mock DB for national one-pagers.
@@ -297,38 +327,38 @@ type StoredNationalRecord = {
  * - Landing Active/Drafts lists should read from the same backend source, not only sample data.
  * - Required-field validation belongs on the backend; FE already gates via `getNationalSubmitBlockers`.
  */
-const nationalRecords = new Map<string, StoredNationalRecord>();
+// const nationalRecords = new Map<string, StoredNationalRecord>();
 
-function createRecordId(status: OnePagerRecordStatus) {
-  const prefix = status === "draft" ? "draft" : "published";
-  return `${prefix}-${crypto.randomUUID()}`;
-}
+// function createRecordId(status: OnePagerRecordStatus) {
+//   const prefix = status === "draft" ? "draft" : "published";
+//   return `${prefix}-${crypto.randomUUID()}`;
+// }
 
-function upsertNationalRecord(
-  payload: NationalOnePagerCreatePayload,
-  status: OnePagerRecordStatus,
-  id?: string | null,
-): NationalOnePagerMutationResult {
-  const existing = id ? nationalRecords.get(id) : undefined;
-  const nextId = existing?.id ?? createRecordId(status);
+// function upsertNationalRecord(
+//   payload: NationalOnePagerCreatePayload,
+//   status: OnePagerRecordStatus,
+//   id?: string | null,
+// ): NationalOnePagerMutationResult {
+//   const existing = id ? nationalRecords.get(id) : undefined;
+//   const nextId = existing?.id ?? createRecordId(status);
 
-  nationalRecords.set(nextId, {
-    id: nextId,
-    status,
-    payload: structuredClone(payload),
-  });
+//   nationalRecords.set(nextId, {
+//     id: nextId,
+//     status,
+//     payload: structuredClone(payload),
+//   });
 
-  // TODO: Remove FE landing upsert when FastAPI list returns saved/published
-  // rows with image_signed_url. Keep card image_signed_url field name.
-  upsertLandingCardFromPayload({
-    pager_id: nextId,
-    pager_type: "national",
-    record_status: status,
-    payload,
-  });
+//   // TODO: Remove FE landing upsert when FastAPI list returns saved/published
+//   // rows with permanent cover_image_url. Keep card cover_image_url field name.
+//   upsertLandingCardFromPayload({
+//     pager_id: nextId,
+//     pager_type: "national",
+//     record_status: status,
+//     payload,
+//   });
 
-  return { ok: true, id: nextId, status };
-}
+//   return { ok: true, id: nextId, status };
+// }
 
 /**
  * Mock POST save-draft — swap implementation body for real HTTP call.
@@ -337,18 +367,25 @@ function upsertNationalRecord(
  * - Endpoint (example): POST /api/national-one-pagers/draft
  * - Body: `NationalOnePagerCreatePayload` (+ id when updating existing draft)
  * - Response: `{ id, status: "draft" }` (keep `NationalOnePagerMutationResult` shape)
- * - Payload public image URLs come from `uploadImage` (`public_url`) into form
- *   state. POST body must be `toPublicImageSavePayload(payload)` (no signed URLs).
+ * - Payload image URLs come from `uploadImage` into form state before this call.
  * - Remove `delay` + `upsertNationalRecord` in-memory path.
  */
 export async function saveNationalDraft(
   payload: NationalOnePagerCreatePayload,
   id?: string | null,
 ): Promise<NationalOnePagerMutationResult> {
-  await delay(400);
-  // TODO: POST toPublicImageSavePayload(payload) (public image_url / images only).
-  void toPublicImageSavePayload(payload);
-  return upsertNationalRecord(payload, "draft", id);
+  try {
+    if (id) {
+      const { data } = await ApiBase.patch(`api/v1/pagers/${id}`, { ...toPublicImageSavePayload(payload), pager_id: id || "" })
+      return { ok: true, id: data?.pager_id || "", status: "draft" };
+    }
+    const { data } = await ApiBase.post('api/v1/pagers', { ...toPublicImageSavePayload(payload), pager_id: id || "" })
+    return { ok: true, id: data?.pager_id || "", status: "draft" };
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    throw error;
+  }
+  // return upsertNationalRecord(payload, "draft", id);
 }
 
 /**
@@ -366,10 +403,19 @@ export async function publishNationalOnePager(
   payload: NationalOnePagerCreatePayload,
   id?: string | null,
 ): Promise<NationalOnePagerMutationResult> {
-  await delay(500);
-  // TODO: POST toPublicImageSavePayload(payload) (public image_url / images only).
-  void toPublicImageSavePayload(payload);
-  return upsertNationalRecord(payload, "published", id);
+  try {
+    if (id) {
+      const { data } = await ApiBase.patch(`api/v1/pagers/${id}`, { ...toPublicImageSavePayload(payload), pager_id: id || "" })
+      return { ok: true, id: data?.pager_id || "", status: "draft" };
+    }
+    const { data } = await ApiBase.post('api/v1/pagers', { ...toPublicImageSavePayload(payload), pager_id: id || "" })
+    
+    return { ok: true, id: data?.pager_id || "", status: "published" };
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    throw error;
+  }
+  // return upsertNationalRecord(payload, "published", id);
 }
 
 export type NationalOnePagerRecord = {
@@ -389,11 +435,12 @@ export type NationalOnePagerRecord = {
 export async function getNationalOnePager(
   id: string,
 ): Promise<NationalOnePagerRecord | null> {
-  // TODO: GET /api/national-one-pagers/:id; keep NationalOnePagerRecord.
-  await delay(300);
-  const record = structuredClone(
-    nationalOnePagerMock,
-  ) as NationalOnePagerRecord;
-  record.id = id;
-  return record;
+  try {
+    const { data } = await ApiBase.get(`api/v1/pagers/${id}`)
+    return { payload: data as NationalOnePagerCreatePayload, id, status: data?.status || "" } as NationalOnePagerRecord;
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    throw error;
+  }
+
 }

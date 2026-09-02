@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button";
 import { PageContainer } from "@/components/layout/PageContainer";
 import type { FormLayoutContext } from "@/layouts/MainLayout";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-import { archiveOnePager, deleteOnePager } from "@/redux/landingSlice";
+import { deleteOnePager, fetchOnePagers, archiveOnePager } from "@/redux/landingSlice";
 import {
   publishNationalOnePager,
   type NationalOnePagerCreatePayload,
@@ -49,6 +49,7 @@ export function PreviewNationalOnePager() {
   // Next: GET /api/national-one-pagers/:id (or draft snapshot) and render read-only preview;
   // Confirm Publish calls POST publish. Keep payload field names + on-page toast UX.
   const location = useLocation();
+  const { filters } = useAppSelector((state) => state.landing);
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const owner = useAppSelector((state) => state.user.currentUser.id);
@@ -120,9 +121,11 @@ export function PreviewNationalOnePager() {
     setError(null);
     // TODO: Confirm Publish → real FastAPI POST /api/national-one-pagers/publish.
     // Temporary: publishNationalOnePager mock upsert with NationalOnePagerCreatePayload + optional id.
-    // Keep response { id, status: "published" }. Then replace-navigate to /track/:id
-    // (do not stay on preview). Toast message travels in location.state.publishedToast.
-    const result = await publishNationalOnePager(payload, recordId ?? state.recordId);
+    // Keep response { id, status: "published" }. Stay on this page (no home redirect).
+    const result = await publishNationalOnePager(
+      { ...payload, status: "PUBLISHED", published_by: owner },
+      recordId ?? state.recordId,
+    );
     setPublishing(false);
 
     if (!result.ok) {
@@ -145,7 +148,8 @@ export function PreviewNationalOnePager() {
     setDeleting(true);
     setDeleteError(null);
     try {
-      await dispatch(deleteOnePager(id)).unwrap();
+      await dispatch(deleteOnePager({ pagerId: id, user: owner })).unwrap();
+      void dispatch(fetchOnePagers(filters));
       setDeleteOpen(false);
       navigate("/home");
     } catch (err) {
@@ -166,7 +170,7 @@ export function PreviewNationalOnePager() {
     setArchiving(true);
     setArchiveError(null);
     try {
-      await dispatch(archiveOnePager(id)).unwrap();
+      await dispatch(archiveOnePager({ pagerId: id, user: owner })).unwrap();
       setArchiveOpen(false);
       navigate("/home");
     } catch (err) {
@@ -187,7 +191,7 @@ export function PreviewNationalOnePager() {
     setEditPublishedBusy(true);
     setEditPublishedError(null);
     try {
-      await dispatch(archiveOnePager(id)).unwrap();
+      await dispatch(archiveOnePager({ pagerId: id, user: owner })).unwrap();
       setEditPublishedOpen(false);
       goEditCreateAsNew();
     } catch (err) {

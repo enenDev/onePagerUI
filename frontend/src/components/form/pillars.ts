@@ -3,13 +3,9 @@ export type ScoringMode = "UNWEIGHTED" | "WEIGHTED";
 export type InitiativeImage = {
   id: string;
   name: string;
-  /**
-   * Signed URL for display (`<img src>`, PPT). From upload `signed_url` or GET `image_signed_url`.
-   */
+  /** Signed URL for display (`<img src>`, PPT). */
   blobUrl: string;
-  /**
-   * Public URL for DB / draft/publish `images[]`. From upload `public_url` or GET `images`.
-   */
+  /** Public URL for draft/publish `images[]`. */
   publicUrl: string;
   /** Raw file while uploading / before upload completes; null after upload or hydrate. */
   file: File | null;

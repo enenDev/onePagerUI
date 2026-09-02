@@ -18,11 +18,9 @@ export type RetailerFormValues = {
   title: string;
   businessOutcome: string;
   coverImageName: string;
-  /**
-   * Signed cover URL for display (`<img src>`). From upload `signed_url` or GET `image_signed_url`.
-   */
+  /** Signed cover URL for display. */
   coverImageUrl: string;
-  /** Public cover URL for draft/publish `image_url`. From upload `public_url` or GET `image_url`. */
+  /** Public cover URL for draft/publish `image_url`. */
   coverImagePublicUrl: string;
   /** Kept for compatibility; cleared after a successful upload. */
   coverImageFile: File | null;
@@ -48,11 +46,11 @@ export function getRetailerSubmitBlockers(
   pillars: PillarDraft[],
   scoringMode: ScoringMode,
 ): string | null {
-  if (!values.market.trim()) return "Select a Market.";
-  if (!values.targetRetailer.trim()) return "Select a Target Retailer.";
-  if (!values.category.trim()) return "Select a Category.";
-  if (!values.channel.trim()) return "Select a Channel.";
-  if (!values.title.trim()) return "Enter a Title.";
+  if (!values?.market?.trim()) return "Select a Market.";
+  if (!values?.targetRetailer?.trim()) return "Select a Target Retailer.";
+  if (!values?.category?.trim()) return "Select a Category.";
+  if (!values?.channel?.trim()) return "Select a Channel.";
+  if (!values?.title?.trim()) return "Enter a Title.";
 
   return getWeightedPillarWeightBlocker(scoringMode, pillars);
 }

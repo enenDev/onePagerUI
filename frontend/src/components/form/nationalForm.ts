@@ -12,11 +12,9 @@ export type NationalFormValues = {
   title: string;
   businessOutcome: string;
   coverImageName: string;
-  /**
-   * Signed cover URL for display (`<img src>`). From upload `signed_url` or GET `image_signed_url`.
-   */
+  /** Signed cover URL for display. */
   coverImageUrl: string;
-  /** Public cover URL for draft/publish `image_url`. From upload `public_url` or GET `image_url`. */
+  /** Public cover URL for draft/publish `image_url`. */
   coverImagePublicUrl: string;
   /** Kept for compatibility; cleared after a successful upload. */
   coverImageFile: File | null;

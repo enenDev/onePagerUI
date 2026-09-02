@@ -1,14 +1,14 @@
 export const data = {
-  market: "National",
-  category: "Execution Excellence",
-  campaign_focus: "National Growth Program",
-  channel: "All Channels",
+  market: "US",
+  category: "Dish",
+  campaign_focus: "campaign2026",
+  channel: "Value",
   title: "National Execution Excellence One-Pager 2026",
   business_outcome_statement:
     "Improve execution quality, customer engagement, availability, and sales performance across all regions.",
   scoring_mode: "WEIGHTED",
   status: "DRAFT",
-  created_by: "user-001",
+  created_by: "gowtham.gunasekaran@unilever.com",
   pillars: [
     {
       pillar_number: 1,
@@ -26,13 +26,13 @@ export const data = {
           kpi_metric: "Training Completion Rate",
           success_target: "95",
           unit: "%",
-          week_start: "2026-08-10",
-          week_end: "2026-08-31",
+          week_start: "08/01/2026",
+          week_end: "08/31/2026",
           guidelines:
             "All eligible employees must complete the monthly capability session.",
           checklist_compliance_notes:
             "Verify attendance, completion, and manager sign-off.",
-          image_urls: [
+          images: [
             "https://example.com/images/pillar1-initiative1-1.jpg",
             "https://example.com/images/pillar1-initiative1-2.jpg",
             "https://example.com/images/pillar1-initiative1-3.jpg",
@@ -47,17 +47,17 @@ export const data = {
           kpi_metric: "Coaching Completion",
           success_target: "90",
           unit: "%",
-          week_start: "2026-08-10",
-          week_end: "2026-08-31",
+          week_start: "08/01/2026",
+          week_end: "08/31/2026",
           guidelines:
             "Managers should conduct and document at least one coaching session every week.",
           checklist_compliance_notes:
             "Check coaching records and manager confirmation.",
-          image_urls: [
-            "https://example.com/images/pillar1-initiative2-1.jpg",
-            "https://example.com/images/pillar1-initiative2-2.jpg",
-            "https://example.com/images/pillar1-initiative2-3.jpg",
-          ],
+            images:[
+              "https://example.com/images/pillar1-initiative2-1.jpg",
+              "https://example.com/images/pillar1-initiative2-2.jpg",
+              "https://example.com/images/pillar1-initiative2-3.jpg",
+            ],
         },
         {
           initiative_number: 3,
@@ -68,17 +68,17 @@ export const data = {
           kpi_metric: "Onboarding Completion",
           success_target: "100",
           unit: "%",
-          week_start: "2026-08-10",
-          week_end: "2026-08-31",
+          week_start: "08/01/2026",
+          week_end: "08/31/2026",
           guidelines:
             "All new employees must complete the onboarding checklist.",
           checklist_compliance_notes:
             "Verify onboarding documents and completion status.",
-          image_urls: [
-            "https://example.com/images/pillar1-initiative3-1.jpg",
-            "https://example.com/images/pillar1-initiative3-2.jpg",
-            "https://example.com/images/pillar1-initiative3-3.jpg",
-          ],
+            images: [
+              "https://example.com/images/pillar1-initiative3-1.jpg",
+              "https://example.com/images/pillar1-initiative3-2.jpg",
+              "https://example.com/images/pillar1-initiative3-3.jpg",
+            ]
         },
       ],
     },
@@ -98,17 +98,17 @@ export const data = {
           kpi_metric: "Customer Visit Completion",
           success_target: "95",
           unit: "%",
-          week_start: "2026-08-10",
-          week_end: "2026-08-31",
+          week_start: "08/01/2026",
+          week_end: "08/31/2026",
           guidelines:
             "Teams should follow the defined customer engagement checklist.",
           checklist_compliance_notes:
             "Capture visit evidence and customer feedback.",
-          image_urls: [
-            "https://example.com/images/pillar2-initiative1-1.jpg",
-            "https://example.com/images/pillar2-initiative1-2.jpg",
-            "https://example.com/images/pillar2-initiative1-3.jpg",
-          ],
+            images: [
+              "https://example.com/images/pillar2-initiative1-1.jpg",
+              "https://example.com/images/pillar2-initiative1-2.jpg",
+              "https://example.com/images/pillar2-initiative1-3.jpg",
+            ],
         },
         {
           initiative_number: 2,
@@ -118,17 +118,17 @@ export const data = {
           kpi_metric: "Average Resolution Time",
           success_target: "24",
           unit: "Hours",
-          week_start: "2026-08-10",
-          week_end: "2026-08-31",
+          week_start: "08/01/2026",
+          week_end: "08/31/2026",
           guidelines:
             "All customer complaints should be tracked until closure.",
           checklist_compliance_notes:
             "Review open complaints and resolution timestamps.",
-          image_urls: [
-            "https://example.com/images/pillar2-initiative2-1.jpg",
-            "https://example.com/images/pillar2-initiative2-2.jpg",
-            "https://example.com/images/pillar2-initiative2-3.jpg",
-          ],
+            images: [
+              "https://example.com/images/pillar2-initiative1-1.jpg",
+              "https://example.com/images/pillar2-initiative1-2.jpg",
+              "https://example.com/images/pillar2-initiative1-3.jpg",
+            ],
         },
         {
           initiative_number: 3,
@@ -139,17 +139,17 @@ export const data = {
           kpi_metric: "Feedback Collection",
           success_target: "500",
           unit: "Responses",
-          week_start: "2026-08-10",
-          week_end: "2026-08-31",
+          week_start: "08/01/2026",
+          week_end: "08/31/2026",
           guidelines:
             "Collect feedback using approved customer feedback mechanisms.",
           checklist_compliance_notes:
             "Ensure feedback is validated and categorized.",
-          image_urls: [
-            "https://example.com/images/pillar2-initiative3-1.jpg",
-            "https://example.com/images/pillar2-initiative3-2.jpg",
-            "https://example.com/images/pillar2-initiative3-3.jpg",
-          ],
+            images: [
+              "https://example.com/images/pillar2-initiative1-1.jpg",
+              "https://example.com/images/pillar2-initiative1-2.jpg",
+              "https://example.com/images/pillar2-initiative1-3.jpg",
+            ],
         },
       ],
     },
@@ -169,16 +169,16 @@ export const data = {
           kpi_metric: "Process Compliance",
           success_target: "95",
           unit: "%",
-          week_start: "2026-08-10",
-          week_end: "2026-08-31",
+          week_start: "08/01/2026",
+          week_end: "08/31/2026",
           guidelines: "Follow the approved standard operating procedures.",
           checklist_compliance_notes:
             "Validate daily operational checklist completion.",
-          image_urls: [
-            "https://example.com/images/pillar3-initiative1-1.jpg",
-            "https://example.com/images/pillar3-initiative1-2.jpg",
-            "https://example.com/images/pillar3-initiative1-3.jpg",
-          ],
+            images: [
+              "https://example.com/images/pillar2-initiative1-1.jpg",
+              "https://example.com/images/pillar2-initiative1-2.jpg",
+              "https://example.com/images/pillar2-initiative1-3.jpg",
+            ],
         },
         {
           initiative_number: 2,
@@ -189,17 +189,17 @@ export const data = {
           kpi_metric: "Product Availability",
           success_target: "98",
           unit: "%",
-          week_start: "2026-08-10",
-          week_end: "2026-08-31",
+          week_start: "08/01/2026",
+          week_end: "08/31/2026",
           guidelines:
             "Monitor inventory daily and address stock-out risks proactively.",
           checklist_compliance_notes:
             "Verify inventory reports and replenishment actions.",
-          image_urls: [
-            "https://example.com/images/pillar3-initiative2-1.jpg",
-            "https://example.com/images/pillar3-initiative2-2.jpg",
-            "https://example.com/images/pillar3-initiative2-3.jpg",
-          ],
+            images: [
+              "https://example.com/images/pillar2-initiative1-1.jpg",
+              "https://example.com/images/pillar2-initiative1-2.jpg",
+              "https://example.com/images/pillar2-initiative1-3.jpg",
+            ],
         },
         {
           initiative_number: 3,
@@ -210,15 +210,15 @@ export const data = {
           kpi_metric: "Audit Completion",
           success_target: "100",
           unit: "%",
-          week_start: "2026-08-10",
-          week_end: "2026-08-31",
+          week_start: "08/01/2026",
+          week_end: "08/31/2026",
           guidelines:
             "Complete the approved quality audit checklist every week.",
           checklist_compliance_notes: "Record findings and corrective actions.",
-          image_urls: [
-            "https://example.com/images/pillar3-initiative3-1.jpg",
-            "https://example.com/images/pillar3-initiative3-2.jpg",
-            "https://example.com/images/pillar3-initiative3-3.jpg",
+          images: [
+            "https://example.com/images/pillar2-initiative1-1.jpg",
+            "https://example.com/images/pillar2-initiative1-2.jpg",
+            "https://example.com/images/pillar2-initiative1-3.jpg",
           ],
         },
       ],
@@ -239,15 +239,15 @@ export const data = {
           kpi_metric: "Sales Conversion Rate",
           success_target: "15",
           unit: "%",
-          week_start: "2026-08-10",
-          week_end: "2026-08-31",
+          week_start: "08/01/2026",
+          week_end: "08/31/2026",
           guidelines:
             "Focus on priority accounts and high-potential opportunities.",
           checklist_compliance_notes: "Review conversion performance weekly.",
-          image_urls: [
-            "https://example.com/images/pillar4-initiative1-1.jpg",
-            "https://example.com/images/pillar4-initiative1-2.jpg",
-            "https://example.com/images/pillar4-initiative1-3.jpg",
+          images: [
+            "https://example.com/images/pillar2-initiative1-1.jpg",
+            "https://example.com/images/pillar2-initiative1-2.jpg",
+            "https://example.com/images/pillar2-initiative1-3.jpg",
           ],
         },
         {
@@ -259,16 +259,16 @@ export const data = {
           kpi_metric: "New Opportunities",
           success_target: "50",
           unit: "Opportunities",
-          week_start: "2026-08-10",
-          week_end: "2026-08-31",
+          week_start: "08/01/2026",
+          week_end: "08/31/2026",
           guidelines: "Prioritize high-value prospects and strategic accounts.",
           checklist_compliance_notes:
             "Validate opportunity pipeline and next actions.",
-          image_urls: [
-            "https://example.com/images/pillar4-initiative2-1.jpg",
-            "https://example.com/images/pillar4-initiative2-2.jpg",
-            "https://example.com/images/pillar4-initiative2-3.jpg",
-          ],
+            images: [
+              "https://example.com/images/pillar2-initiative1-1.jpg",
+              "https://example.com/images/pillar2-initiative1-2.jpg",
+              "https://example.com/images/pillar2-initiative1-3.jpg",
+            ],
         },
         {
           initiative_number: 3,
@@ -279,17 +279,17 @@ export const data = {
           kpi_metric: "Revenue Growth",
           success_target: "10",
           unit: "%",
-          week_start: "2026-08-10",
-          week_end: "2026-08-31",
+          week_start: "08/01/2026",
+          week_end: "08/31/2026",
           guidelines:
             "Review pricing and promotional effectiveness every week.",
           checklist_compliance_notes:
             "Check revenue reports and promotional outcomes.",
-          image_urls: [
-            "https://example.com/images/pillar4-initiative3-1.jpg",
-            "https://example.com/images/pillar4-initiative3-2.jpg",
-            "https://example.com/images/pillar4-initiative3-3.jpg",
-          ],
+            images: [
+              "https://example.com/images/pillar2-initiative1-1.jpg",
+              "https://example.com/images/pillar2-initiative1-2.jpg",
+              "https://example.com/images/pillar2-initiative1-3.jpg",
+            ],
         },
       ],
     },
@@ -309,17 +309,17 @@ export const data = {
           kpi_metric: "Digital Adoption",
           success_target: "90",
           unit: "%",
-          week_start: "2026-08-10",
-          week_end: "2026-08-31",
+          week_start: "08/01/2026",
+          week_end: "08/31/2026",
           guidelines:
             "Ensure all users are trained and actively using approved digital tools.",
           checklist_compliance_notes:
             "Review adoption dashboard and user activity.",
-          image_urls: [
-            "https://example.com/images/pillar5-initiative1-1.jpg",
-            "https://example.com/images/pillar5-initiative1-2.jpg",
-            "https://example.com/images/pillar5-initiative1-3.jpg",
-          ],
+            images: [
+              "https://example.com/images/pillar2-initiative1-1.jpg",
+              "https://example.com/images/pillar2-initiative1-2.jpg",
+              "https://example.com/images/pillar2-initiative1-3.jpg",
+            ],
         },
         {
           initiative_number: 2,
@@ -330,13 +330,13 @@ export const data = {
           kpi_metric: "Dashboard Availability",
           success_target: "100",
           unit: "%",
-          week_start: "2026-08-10",
-          week_end: "2026-08-31",
+          week_start: "08/01/2026",
+          week_end: "08/31/2026",
           guidelines:
             "Dashboards must contain validated and current business data.",
           checklist_compliance_notes:
             "Verify data freshness and dashboard availability.",
-          image_urls: [
+          images: [
             "https://example.com/images/pillar5-initiative2-1.jpg",
             "https://example.com/images/pillar5-initiative2-2.jpg",
             "https://example.com/images/pillar5-initiative2-3.jpg",
@@ -351,17 +351,17 @@ export const data = {
           kpi_metric: "System Availability",
           success_target: "99.9",
           unit: "%",
-          week_start: "2026-08-10",
-          week_end: "2026-08-31",
+          week_start: "08/01/2026",
+          week_end: "08/31/2026",
           guidelines:
             "Monitor critical applications and resolve incidents within agreed SLAs.",
           checklist_compliance_notes:
             "Review incidents, SLA compliance, and system availability.",
-          image_urls: [
-            "https://example.com/images/pillar5-initiative3-1.jpg",
-            "https://example.com/images/pillar5-initiative3-2.jpg",
-            "https://example.com/images/pillar5-initiative3-3.jpg",
-          ],
+            images: [
+              "https://example.com/images/pillar2-initiative1-1.jpg",
+              "https://example.com/images/pillar2-initiative1-2.jpg",
+              "https://example.com/images/pillar2-initiative1-3.jpg",
+            ],
         },
       ],
     },

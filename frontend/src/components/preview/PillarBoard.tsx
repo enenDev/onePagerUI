@@ -52,9 +52,9 @@ function PreviewSection({
   children: string;
 }) {
   return (
-    <div className="min-w-0 space-y-1">
+    <div className="min-w-0 space-y-0.5">
       <p className="text-xs font-semibold text-primary">{label}</p>
-      <p className="text-sm leading-snug break-all text-foreground/90 [overflow-wrap:anywhere]">
+      <p className="text-xs leading-snug break-all text-foreground/90 [overflow-wrap:anywhere]">
         {children || "—"}
       </p>
     </div>
@@ -72,7 +72,11 @@ function InitiativeBlock({
     initiative.week_start,
     initiative.week_end,
   );
-  const images = (initiative.image_signed_url ?? []).filter(Boolean);
+  const images = (
+    initiative.image_signed_url?.length
+      ? initiative.image_signed_url
+      : (initiative.images ?? [])
+  ).filter(Boolean);
 
   return (
     <div className="flex min-w-0 flex-col gap-3">
@@ -80,13 +84,13 @@ function InitiativeBlock({
         {statusDot}
         <span
           className={cn(
-            "shrink-0 rounded-preview-badge px-1.5 py-0.5 text-xs font-semibold",
+            "shrink-0 rounded-preview-badge px-1.5 py-0.5 text-[10px] font-semibold",
             PRIORITY_CLASS[initiative.priority_level] ?? PRIORITY_CLASS.P1,
           )}
         >
           {initiative.priority_level}
         </span>
-        <span className="inline-flex max-w-full truncate rounded-preview-badge bg-preview-dept px-1.5 py-0.5 text-xs font-medium text-preview-priority-fg">
+        <span className="inline-flex max-w-full truncate rounded-preview-badge bg-preview-dept px-1.5 py-0.5 text-[10px] font-medium text-preview-priority-fg">
           {initiative.accountable_function_department || "—"}
         </span>
       </div>
@@ -102,7 +106,7 @@ function InitiativeBlock({
       </PreviewSection>
 
       {dateLabel ? (
-        <span className="inline-flex w-fit rounded-full bg-preview-date px-2.5 py-0.5 text-xs font-medium text-preview-date-fg">
+        <span className="inline-flex w-fit rounded-full bg-preview-date px-2.5 py-0.5 text-[10px] font-medium text-preview-date-fg">
           {dateLabel}
         </span>
       ) : null}
@@ -113,11 +117,11 @@ function InitiativeBlock({
             Photo Blueprint
           </p>
           <div className="grid grid-cols-3 gap-1.5">
-            {images.slice(0, 3).map((src) => (
+            {images.slice(0, 3).map((image, indexKey) => (
               <img
-                key={src}
-                src={src}
-                alt="Initiative photo"
+                key={indexKey}
+                src={image}
+                alt={image || "Initiative photo"}
                 className="h-14 w-full rounded-md object-cover"
               />
             ))}
@@ -149,11 +153,11 @@ export function PillarBoard({ pillars, scoringMode, track }: PillarBoardProps) {
             <article
               key={pillar.pillar_number}
               className={cn(
-                "flex min-w-0 flex-col gap-4 overflow-hidden rounded-preview-card px-2 py-4 shadow-preview-card",
+                "flex min-w-0 flex-col gap-4 overflow-hidden rounded-preview-card p-4 shadow-preview-card",
                 theme.card,
               )}
             >
-              <div className="flex min-w-0 flex-col gap-1">
+              <div className="flex min-w-0 flex-col gap-1 min-h-20">
                 <div className="flex min-w-0 items-center gap-1.5">
                   {track ? (
                     <span className="inline-flex shrink-0">
@@ -183,6 +187,9 @@ export function PillarBoard({ pillars, scoringMode, track }: PillarBoardProps) {
                     >
                       {pillar.pillar_name}
                     </h3>
+                    {/* <span className="inline-flex w-fit self-end rounded-full bg-brand-soft px-2.5 py-0.5 text-xs font-semibold text-primary">
+                  {targetCount} {targetCount === 1 ? "Target" : "Targets"}
+                </span> */}
                     {showWeight ? (
                       <p
                         className={cn(

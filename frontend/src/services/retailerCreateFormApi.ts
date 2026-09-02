@@ -12,11 +12,10 @@ import {
   type NationalPillarPayload,
   type OnePagerRecordStatus,
 } from "@/services/createFormApi";
-import { upsertLandingCardFromPayload } from "@/services/landingListStore";
+import ApiBase from "@/components/auth/apiBase";
 
 export type { FilterOption, MarketScopedOptions };
 
-const delay = (ms = 250) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export type RetailerOnePagerCreatePayload = {
   market: string;
@@ -25,16 +24,25 @@ export type RetailerOnePagerCreatePayload = {
   campaign: string;
   channel: string;
   title: string;
+  created_by?: string;
+  pager_type?: string;
   business_outcome_statement: string;
   image_url: string | null;
   image_signed_url?: string | null;
   scoring_mode: ScoringMode;
   pillars: NationalPillarPayload[];
+  status?:string;
+  published_at?: string;
+  published_by?: string;  
+  campaign_focus?: string;
+  retailer?: string;
 };
 
 /**
- * Builds the retailer create payload from form state (both URL kinds).
- * Save Draft / Publish must strip signed URLs via `toPublicImageSavePayload`.
+ * Builds the create/save/publish request body from retailer form state.
+ * Image URLs must already be uploaded into form state (`uploadImage`).
+ * Keep field names (`target_retailer`, `cover_image.blob_url`, pillar/initiative shape)
+ * stable when swapping to FastAPI.
  */
 export function buildRetailerOnePagerPayload(
   values: RetailerFormValues,
@@ -81,14 +89,14 @@ export function buildRetailerOnePagerPayload(
 }
 
 export type RetailerOnePagerMutationResult =
-  | { ok: true; id: string; status: OnePagerRecordStatus }
+  | { ok: true; id: string; status: OnePagerRecordStatus,error?: string }
   | { ok: false; error: string };
 
-type StoredRetailerRecord = {
-  id: string;
-  status: OnePagerRecordStatus;
-  payload: RetailerOnePagerCreatePayload;
-};
+// type StoredRetailerRecord = {
+//   id: string;
+//   status: OnePagerRecordStatus;
+//   payload: RetailerOnePagerCreatePayload;
+// };
 
 /**
  * In-memory mock DB for retailer one-pagers.
@@ -98,38 +106,38 @@ type StoredRetailerRecord = {
  * - GET-by-id for edit is getOnePagerById in onePagerApi (common fetch + pager_type).
  * - Landing lists should read from the same backend source.
  */
-const retailerRecords = new Map<string, StoredRetailerRecord>();
+// const retailerRecords = new Map<string, StoredRetailerRecord>();
 
-function createRecordId(status: OnePagerRecordStatus) {
-  const prefix = status === "draft" ? "retailer-draft" : "retailer-published";
-  return `${prefix}-${crypto.randomUUID()}`;
-}
+// function createRecordId(status: OnePagerRecordStatus) {
+//   const prefix = status === "draft" ? "retailer-draft" : "retailer-published";
+//   return `${prefix}-${crypto.randomUUID()}`;
+// }
 
-function upsertRetailerRecord(
-  payload: RetailerOnePagerCreatePayload,
-  status: OnePagerRecordStatus,
-  id?: string | null,
-): RetailerOnePagerMutationResult {
-  const existing = id ? retailerRecords.get(id) : undefined;
-  const nextId = existing?.id ?? createRecordId(status);
+// function upsertRetailerRecord(
+//   payload: RetailerOnePagerCreatePayload,
+//   status: OnePagerRecordStatus,
+//   id?: string | null,
+// ): RetailerOnePagerMutationResult {
+//   const existing = id ? retailerRecords.get(id) : undefined;
+//   const nextId = existing?.id ?? createRecordId(status);
 
-  retailerRecords.set(nextId, {
-    id: nextId,
-    status,
-    payload: structuredClone(payload),
-  });
+//   retailerRecords.set(nextId, {
+//     id: nextId,
+//     status,
+//     payload: structuredClone(payload),
+//   });
 
-  // TODO: Remove FE landing upsert when FastAPI list returns saved/published
-  // rows with image_signed_url. Keep card image_signed_url field name.
-  upsertLandingCardFromPayload({
-    pager_id: nextId,
-    pager_type: "retailer",
-    record_status: status,
-    payload,
-  });
+//   // TODO: Remove FE landing upsert when FastAPI list returns saved/published
+//   // rows with permanent cover_image_url. Keep card cover_image_url field name.
+//   upsertLandingCardFromPayload({
+//     pager_id: nextId,
+//     pager_type: "retailer",
+//     record_status: status,
+//     payload,
+//   });
 
-  return { ok: true, id: nextId, status };
-}
+//   return { ok: true, id: nextId, status };
+// }
 
 /**
  * Mock POST save-draft for retailer one-pagers.
@@ -142,10 +150,17 @@ export async function saveRetailerDraft(
   payload: RetailerOnePagerCreatePayload,
   id?: string | null,
 ): Promise<RetailerOnePagerMutationResult> {
-  await delay(400);
-  // TODO: POST toPublicImageSavePayload(payload) (public image_url / images only).
-  void toPublicImageSavePayload(payload);
-  return upsertRetailerRecord(payload, "draft", id);
+  try {
+    if (id) {
+      const { data } = await ApiBase.patch(`api/v1/pagers/${id}`, { ...toPublicImageSavePayload(payload), pager_id: id || "" })
+      return { ok: true, id: data?.pager_id || "", status: "draft" };
+    }
+    const {data} = await ApiBase.post('api/v1/pagers', { ...toPublicImageSavePayload(payload), pager_id: id || "" })
+    return { ok: true, id: data?.pager_id || "", status: "draft" };
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    throw error;
+  }
 }
 
 /**
@@ -158,8 +173,15 @@ export async function publishRetailerOnePager(
   payload: RetailerOnePagerCreatePayload,
   id?: string | null,
 ): Promise<RetailerOnePagerMutationResult> {
-  await delay(500);
-  // TODO: POST toPublicImageSavePayload(payload) (public image_url / images only).
-  void toPublicImageSavePayload(payload);
-  return upsertRetailerRecord(payload, "published", id);
+  try {
+    if (id) {
+      const { data } = await ApiBase.patch(`api/v1/pagers/${id}`, { ...toPublicImageSavePayload(payload), pager_id: id || "" })
+      return { ok: true, id: data?.pager_id || "", status: "draft" };
+    }
+    const { data } = await ApiBase.post('api/v1/pagers', { ...toPublicImageSavePayload(payload), pager_id: id || "" })
+    return { ok: true, id: data?.pager_id || "", status: "published" };
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    throw error;
+  }
 }

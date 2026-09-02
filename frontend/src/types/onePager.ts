@@ -45,6 +45,7 @@ export interface FilterPayload {
   channel: string[];
   category: string[];
   campaign: string[];
+  campaign_focus?: string[];
 }
 
 /** Clone UI filter state into the array-only API request body. */
@@ -71,13 +72,18 @@ export interface OnePagerListItem {
   title: string;
   business_outcome_statement: string;
   /**
-   * Signed cover URL for landing card display. Null when none — card uses assets fallback.
+   * Signed cover URL for landing card display.
    */
-  image_signed_url: string | null;
+  image_signed_url?: string | null;
+  /**
+   * Legacy list field. Prefer image_signed_url when the API sends both.
+   */
+  cover_image_url?: string | null;
   scoring_mode: ScoringMode;
   status: OnePagerStatus;
   created_by: string;
   published_at: string;
+  updated_at?: string;
   pillars: unknown[];
 }
 

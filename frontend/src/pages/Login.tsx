@@ -11,8 +11,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { loginWithSso } from "@/services/authApi";
-import perfectStoreLogo from "@/assets/Perfect_Store_Hero_Logo.svg?raw";
+import perfectStoreLogo from "@/assets/Perfect Store_Hero_Logo_DarkBG 1.svg?raw";
 import unileverBrandLogo from "@/assets/Unilever_Brand_Logo.svg";
+import darkBg from "@/assets/Dark_Background.svg";
 
 export const Login = () => {
   const navigate = useNavigate();
@@ -36,27 +37,25 @@ export const Login = () => {
   };
 
   return (
-    <div className="relative flex min-h-svh flex-col overflow-hidden bg-primary">
-      {/* Put the file at frontend/public/login-bg.jpg (Vite serves public/ at /). */}
+    <div className="relative flex min-h-svh flex-col overflow-hidden">
       <img
-        src="/login-bg.jpg"
+        src={darkBg}
         alt=""
         aria-hidden
-        className="pointer-events-none absolute inset-0 size-full object-cover"
+        className="pointer-events-none absolute inset-0 size-full object-cover z-[-99]"
       />
-
       <img
         src={unileverBrandLogo}
         alt="Unilever"
-        className="absolute top-6 left-6 z-10 h-7 w-auto object-contain md:top-8 md:left-8"
+        className="absolute top-6 left-6 h-7 w-auto object-contain md:top-8 md:left-8"
       />
 
-      <div className="relative z-10 flex flex-1 items-center justify-center px-4 py-16">
+      <div className="flex flex-1 items-center justify-center px-4 py-16">
         <div className="w-full max-w-[400px] rounded-xl bg-white px-8 py-10 text-center shadow-[0_8px_32px_rgba(0,0,0,0.18)]">
           <div
             role="img"
             aria-label="Perfect Store"
-            className="mx-auto flex h-10 w-fit justify-center text-primary [&_svg]:h-10 [&_svg]:w-auto"
+            className="mx-auto flex h-18 w-fit justify-center text-primary [&_svg]:h-20 [&_svg]:w-auto"
             dangerouslySetInnerHTML={{
               __html: perfectStoreLogo.replaceAll(
                 'fill="white"',

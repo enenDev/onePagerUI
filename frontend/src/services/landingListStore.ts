@@ -11,7 +11,7 @@ import type {
 /**
  * In-memory landing list (session). Seeded from mocks/landingOnePagers.json.
  * TODO: Remove when FastAPI list/search owns cards. Save/publish should not
- * mutate a FE list — Home will refetch image_signed_url from the API.
+ * mutate a FE list — Home will refetch cover_image_url from the API.
  */
 export const landingList: OnePagerListItem[] = structuredClone(
   landingOnePagersMock,
@@ -53,8 +53,8 @@ type UpsertLandingCardArgs = {
 
 /**
  * After mock save-draft / publish: keep Home cards in sync, including cover.
- * TODO: Delete when list API returns saved/published rows with
- * image_signed_url. Do not rely on blob: URLs after form unmount revokes them.
+ * TODO: Delete when list API returns saved/published rows with permanent
+ * cover_image_url. Do not rely on blob: URLs after form unmount revokes them.
  */
 export function upsertLandingCardFromPayload({
   pager_id,
@@ -63,6 +63,7 @@ export function upsertLandingCardFromPayload({
   payload,
 }: UpsertLandingCardArgs) {
   const image_signed_url = payload.image_signed_url ?? null;
+  const cover_image_url = payload.image_url ?? null;
   const retailer =
     pager_type === "retailer"
       ? (payload as RetailerOnePagerCreatePayload).target_retailer
@@ -79,6 +80,7 @@ export function upsertLandingCardFromPayload({
     title: payload.title,
     business_outcome_statement: payload.business_outcome_statement,
     image_signed_url,
+    cover_image_url,
     scoring_mode: payload.scoring_mode,
     status: recordStatusToListStatus(record_status),
     // Same mock id as user.currentUser until FastAPI list returns created_by.

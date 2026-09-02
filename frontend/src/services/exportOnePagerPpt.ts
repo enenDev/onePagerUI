@@ -20,7 +20,7 @@
  *                      business_outcome_statement
  *   -----------------------------------------------------------------------------------
  *   | Pillar 1 col | Pillar 2 col | Pillar 3 col | Pillar 4 col | Pillar 5 col |
- *   | icon + name / pts (weighted) | …            |              |              |
+ *   | icon + name  | …            |              |              |              |
  *   | description  |              |              |              |              |
  *   | P1 / P2 / P3 initiative slots (empty slots stay blank so the grid does not shift)
  *
@@ -79,8 +79,8 @@
 import PptxGenJS from "pptxgenjs";
 
 import { PILLAR_ICON_BY_NUMBER } from "@/assets/pillars/pillarIcons";
-import perfectStoreLogo from "@/assets/Perfect_Store_Hero_Logo.svg";
-import unileverBrandLogo from "@/assets/Unilever_Brand_Logo.svg";
+import perfectStoreLogo from "@/assets/Perfect Store_Hero_Logo_DarkBG 1.svg";
+import unileverBrandLogo from "@/assets/UnileverLogo.svg";
 import {
   composeNationalPreviewTitle,
   composeRetailerPreviewTitle,
@@ -251,10 +251,10 @@ function collectImageUrls(payload: ExportPayload): string[] {
   ]);
   for (const pillar of payload.pillars) {
     for (const initiative of pillar.initiatives) {
-      for (const url of initiative.image_signed_url?.slice(
-        0,
-        MAX_INITIATIVE_IMAGES,
-      ) || []) {
+      const displayUrls = initiative.image_signed_url?.length
+        ? initiative.image_signed_url
+        : (initiative.images ?? []);
+      for (const url of displayUrls.slice(0, MAX_INITIATIVE_IMAGES)) {
         if (url) urls.add(url);
       }
     }
@@ -281,17 +281,17 @@ function addHeader(
 
   const storeLogo = images.get(perfectStoreLogo);
   if (storeLogo) {
-    slide.addImage({ data: storeLogo, x: 0.12, y: 0.18, w: 1.55, h: 0.34 });
+    slide.addImage({ data: storeLogo, x: 0.8, y: 0.18, w: 0.55, h: 0.34 });
   }
 
   const unilever = images.get(unileverBrandLogo);
   if (unilever) {
     slide.addImage({
       data: unilever,
-      x: SLIDE_W - 1.22,
+      x: SLIDE_W - 0.8,
       y: 0.22,
-      w: 1.05,
-      h: 0.26,
+      w: 0.42,
+      h: 0.3,
     });
   }
 
@@ -320,7 +320,7 @@ function addHeader(
       y: barY,
       w: barW,
       h: barH,
-      rectRadius: barH / 2,
+      rectRadius: 0.05,
       fill: { color: "FFFFFF", transparency: 45 },
       line: { type: "none" },
     });
@@ -547,7 +547,11 @@ function addInitiative(
   const imageW =
     (innerW - imageGap * (MAX_INITIATIVE_IMAGES - 1)) / MAX_INITIATIVE_IMAGES;
   const imageH = 0.34;
-  const urls = (initiative.image_signed_url ?? [])
+  const urls = (
+    initiative.image_signed_url?.length
+      ? initiative.image_signed_url
+      : (initiative.images ?? [])
+  )
     .filter(Boolean)
     .slice(0, MAX_INITIATIVE_IMAGES);
 
@@ -617,7 +621,7 @@ function addColumn(
   });
 
   const pad = 0.08;
-  const icon = 0.32;
+  const icon = 0.28;
   const titleH = 0.18;
   const scoreH = showWeight ? 0.12 : 0;
   const stackH = titleH + scoreH;
@@ -636,7 +640,7 @@ function addColumn(
   } else {
     slide.addShape(pptx.ShapeType.ellipse, {
       x: x + pad,
-      y: iconY,
+      y: y + pad,
       w: icon,
       h: icon,
       fill: { color: theme.title },
@@ -647,6 +651,7 @@ function addColumn(
   const titleX = x + pad + icon + 0.05;
   const titleW = w - pad * 2 - icon - 0.05;
   const textY = y + pad + (headerH - stackH) / 2;
+
   slide.addText(pillar.pillar_name, {
     x: titleX,
     y: textY,
@@ -659,21 +664,6 @@ function addColumn(
     valign: "middle",
     margin: 0,
   });
-  if (showWeight) {
-    slide.addText(`${pillar.pillar_weight}pts`, {
-      x: titleX,
-      y: textY + titleH,
-      w: titleW,
-      h: scoreH,
-      fontSize: 7,
-      fontFace: "Arial",
-      color: theme.title,
-      align: "left",
-      valign: "top",
-      margin: 0,
-      wrap: false,
-    });
-  }
 
   slide.addText(pillar.pillar_description || "", {
     x: x + pad,

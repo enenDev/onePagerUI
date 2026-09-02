@@ -1,62 +1,70 @@
+/* Regular */
 @font-face {
-  font-family: "Unilever Desire";
-  src: url("./assets/fonts/UnileverDesire-Light.otf") format("opentype");
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Unilever Desire";
-  src: url("./assets/fonts/UnileverDesire-LightItalic.otf") format("opentype");
-  font-weight: 300;
-  font-style: italic;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Unilever Desire";
-  src: url("./assets/fonts/UnileverDesire-Regular.otf") format("opentype");
+  font-family: 'Unilever Desire';
+  src: url('./assets/fonts/UnileverDesire-Regular.otf') format('opentype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
+/* Regular Italic */
 @font-face {
-  font-family: "Unilever Desire";
-  src: url("./assets/fonts/UnileverDesire-RegularItalic.otf") format("opentype");
+  font-family: 'Unilever Desire';
+  src: url('./assets/fonts/UnileverDesire-RegularItalic.otf') format('opentype');
   font-weight: 400;
   font-style: italic;
   font-display: swap;
 }
 
+/* Light */
 @font-face {
-  font-family: "Unilever Desire";
-  src: url("./assets/fonts/UnileverDesire-SemiBold.otf") format("opentype");
+  font-family: 'Unilever Desire';
+  src: url('./assets/fonts/UnileverDesire-Light.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Light Italic */
+@font-face {
+  font-family: 'Unilever Desire';
+  src: url('./assets/fonts/UnileverDesire-LightItalic.otf') format('opentype');
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* SemiBold */
+@font-face {
+  font-family: 'Unilever Desire';
+  src: url('./assets/fonts/UnileverDesire-SemiBold.otf') format('opentype');
   font-weight: 600;
   font-style: normal;
   font-display: swap;
 }
 
+/* SemiBold Italic */
 @font-face {
-  font-family: "Unilever Desire";
-  src: url("./assets/fonts/UnileverDesire-SemiBoldItalic.otf") format("opentype");
+  font-family: 'Unilever Desire';
+  src: url('./assets/fonts/UnileverDesire-SemiBoldItalic.otf') format('opentype');
   font-weight: 600;
   font-style: italic;
   font-display: swap;
 }
 
+/* Bold */
 @font-face {
-  font-family: "Unilever Desire";
-  src: url("./assets/fonts/UnileverDesire-Bold.otf") format("opentype");
+  font-family: 'Unilever Desire';
+  src: url('./assets/fonts/UnileverDesire-Bold.otf') format('opentype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
+/* Bold Italic */
 @font-face {
-  font-family: "Unilever Desire";
-  src: url("./assets/fonts/UnileverDesire-BoldItalic.otf") format("opentype");
+  font-family: 'Unilever Desire';
+  src: url('./assets/fonts/UnileverDesire-BoldItalic.otf') format('opentype');
   font-weight: 700;
   font-style: italic;
   font-display: swap;

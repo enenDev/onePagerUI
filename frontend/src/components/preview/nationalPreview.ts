@@ -80,7 +80,7 @@ export function composeNationalPreviewTitle(
   >,
 ) {
   return ["National", payload.channel, payload.category, payload.campaign, payload.market]
-    .map((part) => part.trim())
+    .map((part) => (part||"").trim())
     .filter(Boolean)
     .join("-");
 }
@@ -101,7 +101,7 @@ export function composeRetailerPreviewTitle(payload: {
     payload.campaign,
     payload.market,
   ]
-    .map((part) => part.trim())
+    .map((part) => (part||"").trim())
     .filter(Boolean)
     .join("-");
 }

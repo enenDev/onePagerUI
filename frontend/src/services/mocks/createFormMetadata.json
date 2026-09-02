@@ -1,38 +1,34 @@
 {
   "accountableDepartments": [
-    { "label": "CSP & Brand Operations", "value": "CSP & Brand Operations" },
-    { "label": "Trade Marketing / Merchandising", "value": "Trade Marketing / Merchandising" },
-    { "label": "CBD Accounts Team", "value": "CBD Accounts Team" },
-    { "label": "Digital Commerce Team", "value": "Digital Commerce Team" },
-    { "label": "Supply Chain Operations", "value": "Supply Chain Operations" },
-    { "label": "Customer Business Development (CBD)", "value": "Customer Business Development (CBD)" },
-    { "label": "Human Resources", "value": "Human Resources" },
-    { "label": "Sales", "value": "Sales" }
+    { "label": "CSP", "value": "CSP" },
+    { "label": "CBD", "value": "CBD" },
+    { "label": "DRT", "value": "DRT" },
+    { "label": "CO", "value": "CO" },
+    { "label": "MKTG", "value": "MKTG" }
+
   ],
   "kpisByPillarNumber": {
     "1": [
-      { "label": "Value Sales", "value": "Value Sales" },
-      { "label": "Brand Consideration", "value": "Brand Consideration" },
-      { "label": "Share of Voice", "value": "Share of Voice" }
+      { "label": "Linear Share of Shelf", "value": "Linear Share of Shelf" },
+      { "label": "SPI", "value": "SPI" },
+      { "label": "Share at eye-level", "value": "Share at eye-level" },
+      { "label": "TDP Weighted Distribution Average (Share of Assortment)", "value": "TDP Weighted Distribution Average (Share of Assortment)" }
     ],
     "2": [
-      { "label": "Display Compliance", "value": "Display Compliance" },
-      { "label": "Promo Uplift", "value": "Promo Uplift" },
-      { "label": "Shopper Engagement Rate", "value": "Shopper Engagement Rate" }
+      { "label": "Share of POSM at Home Shelf", "value": "Share of POSM at Home Shelf" },
+      { "label": "Unmissable asset design score", "value": "Unmissable asset design score" }
     ],
     "3": [
-      { "label": "Store Coverage", "value": "Store Coverage" },
-      { "label": "Distribution Points", "value": "Distribution Points" },
-      { "label": "New Store Openings", "value": "New Store Openings" }
+      { "label": "Share of Extra Display", "value": "Share of Extra Display" },
+      { "label": "Promo Execution", "value": "Promo Execution" }
     ],
     "4": [
-      { "label": "Digital Adoption", "value": "Digital Adoption" },
-      { "label": "Sales Conversion Rate", "value": "Sales Conversion Rate" },
-      { "label": "Online Availability", "value": "Online Availability" }
+      { "label": "Content Compliance", "value": "Content Compliance" },
+      { "label": "First-Page Search Result", "value": "First-Page Search Result" }
     ],
     "5": [
-      { "label": "Product Availability", "value": "Product Availability" },
-      { "label": "Process Compliance", "value": "Process Compliance" }
+      { "label": "OSA", "value": "OSA" },
+      { "label": "OLA", "value": "OLA" }
     ]
   }
 }

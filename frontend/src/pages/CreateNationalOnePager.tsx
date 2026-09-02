@@ -28,6 +28,7 @@ import {
   saveNationalDraft,
 } from "@/services/createFormApi";
 import { isNationalEditState } from "@/services/onePagerApi";
+import { useAppSelector } from "@/redux/hooks";
 
 function isFormDirty(
   values: NationalFormValues,
@@ -87,6 +88,7 @@ export function CreateNationalOnePager() {
   const { setBackHandler, setHeaderTitle } =
     useOutletContext<FormLayoutContext>();
 
+  const currentUser = useAppSelector((state) => state.user.currentUser);
   const restored = isPreviewReturnState(location.state) ? location.state : null;
   const edited =
     !restored && isNationalEditState(location.state) ? location.state : null;
@@ -211,6 +213,9 @@ export function CreateNationalOnePager() {
     const payload = buildNationalOnePagerPayload(values, scoringMode, pillars);
     // TODO: When backend is live, `saveNationalDraft` becomes the real HTTP call.
     // Keep toast + homepage redirect UX for action-bar Save Draft; only swap service.
+    payload.created_by = currentUser.email;
+    payload.campaign_focus = payload.campaign;
+    payload.pager_type = "national";
     const result = await saveNationalDraft(payload, recordId);
     setSavingDraft(false);
 
@@ -240,6 +245,9 @@ export function CreateNationalOnePager() {
 
     setSaveError(null);
     const payload = buildNationalOnePagerPayload(values, scoringMode, pillars);
+    payload.created_by = currentUser.email;
+    payload.campaign_focus = payload.campaign;
+    payload.pager_type = "national";
     // TODO: Preview route is FE-only handoff via location.state today.
     // Next: persist draft (or preview snapshot) then open /create/national/preview/:id
     // from backend id. Keep NationalPreviewLocationState field names until then.

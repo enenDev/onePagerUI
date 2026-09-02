@@ -1,11 +1,9 @@
-import homepageMetadataMock from "@/services/mocks/homepageMetadata.json";
+import ApiBase from "@/components/auth/apiBase";
 import type {
   FilterKey,
   FilterMetadata,
   FilterOption,
 } from "@/types/onePager";
-
-const delay = (ms = 250) => new Promise((resolve) => setTimeout(resolve, ms));
 
 type DependentFilterKey = Exclude<FilterKey, "market">;
 
@@ -30,17 +28,56 @@ export function unionMarketScopedOptions(
   return options;
 }
 
-/**
- * TODO: Replace with real FastAPI GET metadata endpoint.
- * Temporary: dummy from `mocks/homepageMetadata.json`
- * (markets flat + dependents keyed by market).
- * Shared by homepage filters AND create/edit strategy dropdowns
- * (Market, Retailer, Channel, Category, Campaign) via `landing.metadata`.
- * Initiative departments/KPIs stay on getCreateFormMetadata.
- * Next: GET /api/metadata (or /api/filters) returning the same FilterMetadata shape
- * (`market` + `optionsByMarket`). Keep FilterPayload search body array-only.
- */
+// 1. Define the API response structure to eliminate implicit 'any'
+interface RawMetadataInput {
+  [marketKey: string]: {
+    [categoryKey in DependentFilterKey]?: string[];
+  };
+}
+
+// 2. Type-safe data transformer with exact existing logic
+const transformData = (input: RawMetadataInput): FilterMetadata => {
+  const market: FilterOption[] = [];
+  const optionsByMarket: FilterMetadata["optionsByMarket"] = {};
+
+  Object.keys(input).forEach((marketKey) => {
+    market.push({ label: marketKey, value: marketKey });
+    
+    // Cast empty object to bypass strict initialization checks safely
+    optionsByMarket[marketKey] = {} as FilterMetadata["optionsByMarket"][string];
+    
+    Object.keys(input[marketKey]).forEach((categoryKey) => {
+      const depKey = categoryKey as DependentFilterKey;
+      const items = input[marketKey][depKey];
+
+      if (items) {
+        optionsByMarket[marketKey][depKey] = items.map((item) => ({
+          label: item,
+          value: item,
+        }));
+      }
+    });
+  });
+
+  return {
+    market,
+    optionsByMarket,
+  };
+};
+
 export async function getMetadata(): Promise<FilterMetadata> {
-  await delay();
-  return structuredClone(homepageMetadataMock) as FilterMetadata;
+  try {
+    // Explicitly fallback to unknown/any for runtime parsing if ApiBase isn't generic
+    const { data } = await ApiBase.get("api/v1/metadata");
+    const marketData = transformData(data as RawMetadataInput);
+    return marketData;
+  } catch (error) {
+    // Fixed: standard error object type checking for lint rules that ban error.message directly on 'unknown'
+    if (error instanceof Error) {
+      console.error("Error fetching data:", error.message);
+    } else {
+      console.error("Error fetching data:", error);
+    }
+    throw error;
+  }
 }

@@ -24,6 +24,7 @@ import {
 import type { RetailerOnePagerCreatePayload } from "@/services/retailerCreateFormApi";
 import type { OnePagerStatus } from "@/types/onePager";
 import { cn } from "@/lib/utils";
+import { formatPublishedAt } from "./nationalPreview";
 
 const STATUS_BADGE: Record<
   OnePagerStatus,
@@ -281,10 +282,14 @@ export function NationalPreviewDocument({
           >
             {statusBadge.label}
           </Badge>
-          <p className="text-xs text-muted-foreground">
-            <span className="font-semibold text-foreground">Published:</span>{" "}
-            {moreOptionsEnabled ? publishedAt : "DD MMM YYYY, HH:MM"}
-          </p>
+          {status === "PUBLISHED" && (
+            <p className="text-xs text-muted-foreground">
+              <span className="font-semibold text-foreground">Published:</span>{" "}
+              {moreOptionsEnabled
+                ? formatPublishedAt(new Date(publishedAt))
+                : "NA"}
+            </p>
+          )}
           <p className="text-xs text-muted-foreground">
             <span className="font-semibold text-foreground">Owner:</span>{" "}
             {owner}
