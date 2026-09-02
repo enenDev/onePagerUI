@@ -13,9 +13,11 @@ export type NationalFormValues = {
   businessOutcome: string;
   coverImageName: string;
   /**
-   * Cover image URL from `uploadImage` (same value goes to payload `cover_image.blob_url`).
+   * Signed cover URL for display (`<img src>`). From upload `signed_url` or GET `image_signed_url`.
    */
   coverImageUrl: string;
+  /** Public cover URL for draft/publish `image_url`. From upload `public_url` or GET `image_url`. */
+  coverImagePublicUrl: string;
   /** Kept for compatibility; cleared after a successful upload. */
   coverImageFile: File | null;
 };
@@ -29,6 +31,7 @@ export const emptyNationalFormValues: NationalFormValues = {
   businessOutcome: "",
   coverImageName: "",
   coverImageUrl: "",
+  coverImagePublicUrl: "",
   coverImageFile: null,
 };
 

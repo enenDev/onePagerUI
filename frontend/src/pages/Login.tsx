@@ -36,14 +36,22 @@ export const Login = () => {
   };
 
   return (
-    <div className="relative flex min-h-svh flex-col bg-primary">
+    <div className="relative flex min-h-svh flex-col overflow-hidden bg-primary">
+      {/* Put the file at frontend/public/login-bg.jpg (Vite serves public/ at /). */}
+      <img
+        src="/login-bg.jpg"
+        alt=""
+        aria-hidden
+        className="pointer-events-none absolute inset-0 size-full object-cover"
+      />
+
       <img
         src={unileverBrandLogo}
         alt="Unilever"
-        className="absolute top-6 left-6 h-7 w-auto object-contain md:top-8 md:left-8"
+        className="absolute top-6 left-6 z-10 h-7 w-auto object-contain md:top-8 md:left-8"
       />
 
-      <div className="flex flex-1 items-center justify-center px-4 py-16">
+      <div className="relative z-10 flex flex-1 items-center justify-center px-4 py-16">
         <div className="w-full max-w-[400px] rounded-xl bg-white px-8 py-10 text-center shadow-[0_8px_32px_rgba(0,0,0,0.18)]">
           <div
             role="img"

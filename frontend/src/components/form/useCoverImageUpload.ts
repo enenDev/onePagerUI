@@ -5,6 +5,7 @@ import { uploadImage } from "@/services/imageUploadApi";
 type CoverImageFields = {
   coverImageName: string;
   coverImageUrl: string;
+  coverImagePublicUrl: string;
   coverImageFile: File | null;
 };
 
@@ -15,8 +16,8 @@ type UseCoverImageUploadArgs = {
 const UPLOAD_FAILED_MESSAGE = "Upload failed. Please try again.";
 
 /**
- * Cover pick → upload → store returned URL (preview only after success).
- * Keeps previous cover if the new upload fails.
+ * Cover pick → upload → store signed URL for preview and public URL for save.
+ * Keeps previous cover if the new upload fails. No delete API on replace/clear.
  */
 export function useCoverImageUpload({ patch }: UseCoverImageUploadArgs) {
   const [uploading, setUploading] = useState(false);
@@ -28,6 +29,7 @@ export function useCoverImageUpload({ patch }: UseCoverImageUploadArgs) {
       patch({
         coverImageName: "",
         coverImageUrl: "",
+        coverImagePublicUrl: "",
         coverImageFile: null,
       });
       setError(null);
@@ -50,7 +52,8 @@ export function useCoverImageUpload({ patch }: UseCoverImageUploadArgs) {
 
     patch({
       coverImageName: file.name,
-      coverImageUrl: result.url,
+      coverImageUrl: result.signed_url,
+      coverImagePublicUrl: result.public_url,
       coverImageFile: null,
     });
   };

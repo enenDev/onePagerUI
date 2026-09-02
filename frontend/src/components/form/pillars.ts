@@ -4,10 +4,13 @@ export type InitiativeImage = {
   id: string;
   name: string;
   /**
-   * Permanent image URL from `uploadImage` (payload field still named `blob_url`).
-   * May still be a legacy `blob:` URL for unsaved in-memory drafts until re-picked.
+   * Signed URL for display (`<img src>`, PPT). From upload `signed_url` or GET `image_signed_url`.
    */
   blobUrl: string;
+  /**
+   * Public URL for DB / draft/publish `images[]`. From upload `public_url` or GET `images`.
+   */
+  publicUrl: string;
   /** Raw file while uploading / before upload completes; null after upload or hydrate. */
   file: File | null;
 };

@@ -229,28 +229,47 @@ export function AddInitiativeModal({
     ]);
 
     void (async () => {
-      for (const item of batch) {
-        const result = await uploadImage(item.file);
-        setPendingUploads((prev) =>
-          prev.filter((pending) => pending.id !== item.id),
-        );
+      const results = await Promise.all(
+        batch.map(async (item) => ({
+          item,
+          result: await uploadImage(item.file),
+        })),
+      );
 
-        if (!result.ok) {
-          setUploadError(UPLOAD_FAILED_MESSAGE);
-          continue;
-        }
+      setPendingUploads((prev) =>
+        prev.filter((pending) => !batch.some((item) => item.id === pending.id)),
+      );
 
-        setForm((prev) => {
-          if (prev.images.length >= MAX_INITIATIVE_IMAGES) return prev;
-          const nextImage: InitiativeImage = {
+      const succeeded = results.filter(
+        (
+          entry,
+        ): entry is {
+          item: (typeof batch)[number];
+          result: Extract<typeof entry.result, { ok: true }>;
+        } => entry.result.ok,
+      );
+      const failedCount = results.length - succeeded.length;
+
+      if (failedCount > 0) {
+        setUploadError(UPLOAD_FAILED_MESSAGE);
+      }
+
+      if (succeeded.length === 0) return;
+
+      setForm((prev) => {
+        const nextImages = [...prev.images];
+        for (const { item, result } of succeeded) {
+          if (nextImages.length >= MAX_INITIATIVE_IMAGES) break;
+          nextImages.push({
             id: item.id,
             name: item.name,
-            blobUrl: result.url,
+            blobUrl: result.signed_url,
+            publicUrl: result.public_url,
             file: null,
-          };
-          return { ...prev, images: [...prev.images, nextImage] };
-        });
-      }
+          });
+        }
+        return { ...prev, images: nextImages };
+      });
     })();
   };
 

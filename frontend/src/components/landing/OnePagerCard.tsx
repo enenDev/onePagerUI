@@ -29,6 +29,7 @@ import {
   restoreOnePager,
 } from "@/redux/landingSlice";
 import { isCurrentUserOwner } from "@/redux/userSlice";
+import coverFallback from "@/assets/cover-fallback.svg";
 import { exportOnePagerById } from "@/services/exportOnePagerPpt";
 import type { OnePagerListItem, OnePagerStatus } from "@/types/onePager";
 
@@ -228,13 +229,11 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
         {/* Cover inset — grey card bg forms the border around it */}
         <div className="px-3 pt-3">
           <div className="relative h-36 overflow-hidden rounded-lg bg-white">
-            {item.cover_image_url ? (
-              <img
-                src={item.cover_image_url}
-                alt=""
-                className="size-full object-cover"
-              />
-            ) : null}
+            <img
+              src={item.image_signed_url || coverFallback}
+              alt=""
+              className="size-full object-cover"
+            />
           </div>
         </div>
 

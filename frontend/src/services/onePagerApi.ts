@@ -52,20 +52,20 @@ function matchesFilter(item: OnePagerListItem, filters: FilterPayload) {
  * TODO: Replace with real FastAPI list/search endpoint.
  * Temporary: normalize to array-only payload, then filter the in-memory
  * landingList (seeded from mocks/landingOnePagers.json; save/publish upserts
- * cover_image_url into the same list). Used by Submit + Clear all + import picker.
+ * image_signed_url into the same list). Used by Submit + Clear all + import picker.
  * Next: POST /api/one-pagers/search with JSON body from toOnePagerSearchPayload —
  * always `{ market: string[], retailer: string[], channel: string[],
  * category: string[], campaign: string[] }` (never scalar strings).
- * Response cards should include cover_image_url (permanent URL).
+ * Response cards should include image_signed_url (display URL).
  * Prefer server-side Active/Drafts/Archive + All/My if product agrees; today those
  * tabs are filtered on the FE from this full mock list.
  * Keep stable: FilterPayload / toOnePagerSearchPayload array shape,
- * OnePagerListItem[] response (incl. cover_image_url).
+ * OnePagerListItem[] response (incl. image_signed_url).
  */
 export async function submitOnePagerSearch(
   filters: FilterPayload,
 ): Promise<OnePagerListItem[]> {
-  // Backend contract: each dropdown is an array only.
+  // TODO: POST /api/one-pagers/search; cards must include image_signed_url.
   const payload = toOnePagerSearchPayload(filters);
   await delay();
   return landingList.filter((item) => matchesFilter(item, payload));
@@ -166,6 +166,7 @@ function resolvePagerType(id: string): OnePagerType {
 export async function getOnePagerById(
   id: string,
 ): Promise<OnePagerByIdRecord | null> {
+  // TODO: GET /api/one-pagers/:id → mapGetOnePagerResponse. Keep image_url + image_signed_url.
   await delay(300);
   const pagerType = resolvePagerType(id);
   const api = structuredClone(getOnePagerMock) as GetOnePagerApiResponse;
@@ -177,14 +178,23 @@ export async function getOnePagerById(
   // so Track / View / Export match that pager. Real GET will send it on the payload.
   const listing = landingList.find((item) => item.pager_id === id);
   if (listing) {
+    const payload = {
+      ...mapped.payload,
+      scoring_mode: listing.scoring_mode,
+    };
+    if (mapped.pager_type === "retailer") {
+      return {
+        ...mapped,
+        list_status: listing.status,
+        status: listing.status === "DRAFT" ? "draft" : "published",
+        payload: payload as RetailerOnePagerCreatePayload,
+      };
+    }
     return {
       ...mapped,
       list_status: listing.status,
       status: listing.status === "DRAFT" ? "draft" : "published",
-      payload: {
-        ...mapped.payload,
-        scoring_mode: listing.scoring_mode,
-      },
+      payload: payload as NationalOnePagerCreatePayload,
     };
   }
   return mapped;

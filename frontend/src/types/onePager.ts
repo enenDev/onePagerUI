@@ -71,10 +71,9 @@ export interface OnePagerListItem {
   title: string;
   business_outcome_statement: string;
   /**
-   * Cover from create/edit (`cover_image.blob_url`). Null when none.
-   * TODO: Real list API should return a permanent CDN URL, not blob:.
+   * Signed cover URL for landing card display. Null when none — card uses assets fallback.
    */
-  cover_image_url: string | null;
+  image_signed_url: string | null;
   scoring_mode: ScoringMode;
   status: OnePagerStatus;
   created_by: string;

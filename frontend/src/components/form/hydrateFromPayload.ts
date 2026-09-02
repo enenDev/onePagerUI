@@ -6,12 +6,42 @@ import {
   emptyRetailerFormValues,
   type RetailerFormValues,
 } from "@/components/form/retailerForm";
-import type { PillarDraft, ScoringMode } from "@/components/form/pillars";
+import type {
+  InitiativeImage,
+  PillarDraft,
+  ScoringMode,
+} from "@/components/form/pillars";
 import type {
   NationalOnePagerCreatePayload,
   NationalPillarPayload,
 } from "@/services/createFormApi";
 import type { RetailerOnePagerCreatePayload } from "@/services/retailerCreateFormApi";
+
+function fileName(url: string, fallback: string) {
+  const part = url.split("/").pop();
+  return part || fallback;
+}
+
+function toFormImages(
+  publicUrls: string[] = [],
+  signedUrls: string[] = [],
+): InitiativeImage[] {
+  const count = Math.max(publicUrls.length, signedUrls.length);
+  const images: InitiativeImage[] = [];
+  for (let index = 0; index < count; index += 1) {
+    const publicUrl = publicUrls[index] ?? "";
+    const signedUrl = signedUrls[index] ?? publicUrl;
+    if (!publicUrl && !signedUrl) continue;
+    images.push({
+      id: crypto.randomUUID(),
+      name: fileName(signedUrl || publicUrl, `image-${index + 1}`),
+      blobUrl: signedUrl,
+      publicUrl,
+      file: null,
+    });
+  }
+  return images;
+}
 
 export function hydratePillarsFromPayload(
   pillars: NationalPillarPayload[],
@@ -34,14 +64,14 @@ export function hydratePillarsFromPayload(
       week_end: initiative.week_end,
       guidelines: initiative.guidelines,
       checklist_compliance_notes: initiative.checklist_compliance_notes,
-      images: initiative.images.map((image) => ({
-        id: image.id ?? crypto.randomUUID(),
-        name: image.name,
-        blobUrl: image.blob_url,
-        file: null,
-      })),
+      images: toFormImages(initiative.images, initiative.image_signed_url),
     })),
   }));
+}
+
+function coverName(signedUrl: string | null | undefined, publicUrl: string | null | undefined) {
+  const url = signedUrl || publicUrl || "";
+  return url ? fileName(url, "cover") : "";
 }
 
 export function hydrateNationalFormFromPayload(
@@ -60,8 +90,9 @@ export function hydrateNationalFormFromPayload(
       channel: payload.channel,
       title: payload.title,
       businessOutcome: payload.business_outcome_statement,
-      coverImageName: payload.cover_image?.name ?? "",
-      coverImageUrl: payload.cover_image?.blob_url ?? "",
+      coverImageName: coverName(payload.image_signed_url, payload.image_url),
+      coverImageUrl: payload.image_signed_url ?? "",
+      coverImagePublicUrl: payload.image_url ?? "",
       coverImageFile: null,
     },
     scoringMode: payload.scoring_mode,
@@ -86,8 +117,9 @@ export function hydrateRetailerFormFromPayload(
       channel: payload.channel,
       title: payload.title,
       businessOutcome: payload.business_outcome_statement,
-      coverImageName: payload.cover_image?.name ?? "",
-      coverImageUrl: payload.cover_image?.blob_url ?? "",
+      coverImageName: coverName(payload.image_signed_url, payload.image_url),
+      coverImageUrl: payload.image_signed_url ?? "",
+      coverImagePublicUrl: payload.image_url ?? "",
       coverImageFile: null,
     },
     scoringMode: payload.scoring_mode,

@@ -35,6 +35,7 @@ export function buildRetailerFormSample(): {
     ),
     coverImageName: "",
     coverImageUrl: "",
+    coverImagePublicUrl: "",
     coverImageFile: null,
   };
 

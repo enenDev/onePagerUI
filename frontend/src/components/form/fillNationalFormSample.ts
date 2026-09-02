@@ -31,6 +31,7 @@ export function buildNationalFormSample(): {
     ),
     coverImageName: "",
     coverImageUrl: "",
+    coverImagePublicUrl: "",
     coverImageFile: null,
   };
 

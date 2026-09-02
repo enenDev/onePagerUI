@@ -45,10 +45,15 @@
           "week_end": "2026-08-31",
           "guidelines": "Follow standard execution guidelines.",
           "checklist_compliance_notes": "Verify weekly checklist.",
-          "image_urls": [
-            "https://example.com/images/p1-i1-1.jpg",
-            "https://example.com/images/p1-i1-2.jpg",
-            "https://example.com/images/p1-i1-3.jpg"
+          "images": [
+            "https://cdn.example.com/public/p1-i1-1.jpg",
+            "https://cdn.example.com/public/p1-i1-2.jpg",
+            "https://cdn.example.com/public/p1-i1-3.jpg"
+          ],
+          "image_signed_url": [
+            "https://picsum.photos/seed/p1i10/400/280",
+            "https://picsum.photos/seed/p1i11/400/280",
+            "https://picsum.photos/seed/p1i12/400/280"
           ]
         },
         {
@@ -68,10 +73,15 @@
           "week_end": "2026-08-31",
           "guidelines": "Follow standard execution guidelines.",
           "checklist_compliance_notes": "Verify weekly checklist.",
-          "image_urls": [
-            "https://example.com/images/p1-i2-1.jpg",
-            "https://example.com/images/p1-i2-2.jpg",
-            "https://example.com/images/p1-i2-3.jpg"
+          "images": [
+            "https://cdn.example.com/public/p1-i2-1.jpg",
+            "https://cdn.example.com/public/p1-i2-2.jpg",
+            "https://cdn.example.com/public/p1-i2-3.jpg"
+          ],
+          "image_signed_url": [
+            "https://picsum.photos/seed/p1i20/400/280",
+            "https://picsum.photos/seed/p1i21/400/280",
+            "https://picsum.photos/seed/p1i22/400/280"
           ]
         },
         {
@@ -91,10 +101,15 @@
           "week_end": "2026-08-31",
           "guidelines": "Follow standard execution guidelines.",
           "checklist_compliance_notes": "Verify weekly checklist.",
-          "image_urls": [
-            "https://example.com/images/p1-i3-1.jpg",
-            "https://example.com/images/p1-i3-2.jpg",
-            "https://example.com/images/p1-i3-3.jpg"
+          "images": [
+            "https://cdn.example.com/public/p1-i3-1.jpg",
+            "https://cdn.example.com/public/p1-i3-2.jpg",
+            "https://cdn.example.com/public/p1-i3-3.jpg"
+          ],
+          "image_signed_url": [
+            "https://picsum.photos/seed/p1i30/400/280",
+            "https://picsum.photos/seed/p1i31/400/280",
+            "https://picsum.photos/seed/p1i32/400/280"
           ]
         }
       ]
@@ -125,10 +140,15 @@
           "week_end": "2026-08-31",
           "guidelines": "Follow standard execution guidelines.",
           "checklist_compliance_notes": "Verify weekly checklist.",
-          "image_urls": [
-            "https://example.com/images/p2-i1-1.jpg",
-            "https://example.com/images/p2-i1-2.jpg",
-            "https://example.com/images/p2-i1-3.jpg"
+          "images": [
+            "https://cdn.example.com/public/p2-i1-1.jpg",
+            "https://cdn.example.com/public/p2-i1-2.jpg",
+            "https://cdn.example.com/public/p2-i1-3.jpg"
+          ],
+          "image_signed_url": [
+            "https://picsum.photos/seed/p2i10/400/280",
+            "https://picsum.photos/seed/p2i11/400/280",
+            "https://picsum.photos/seed/p2i12/400/280"
           ]
         },
         {
@@ -148,10 +168,15 @@
           "week_end": "2026-08-31",
           "guidelines": "Follow standard execution guidelines.",
           "checklist_compliance_notes": "Verify weekly checklist.",
-          "image_urls": [
-            "https://example.com/images/p2-i2-1.jpg",
-            "https://example.com/images/p2-i2-2.jpg",
-            "https://example.com/images/p2-i2-3.jpg"
+          "images": [
+            "https://cdn.example.com/public/p2-i2-1.jpg",
+            "https://cdn.example.com/public/p2-i2-2.jpg",
+            "https://cdn.example.com/public/p2-i2-3.jpg"
+          ],
+          "image_signed_url": [
+            "https://picsum.photos/seed/p2i20/400/280",
+            "https://picsum.photos/seed/p2i21/400/280",
+            "https://picsum.photos/seed/p2i22/400/280"
           ]
         },
         {
@@ -171,10 +196,15 @@
           "week_end": "2026-08-31",
           "guidelines": "Follow standard execution guidelines.",
           "checklist_compliance_notes": "Verify weekly checklist.",
-          "image_urls": [
-            "https://example.com/images/p2-i3-1.jpg",
-            "https://example.com/images/p2-i3-2.jpg",
-            "https://example.com/images/p2-i3-3.jpg"
+          "images": [
+            "https://cdn.example.com/public/p2-i3-1.jpg",
+            "https://cdn.example.com/public/p2-i3-2.jpg",
+            "https://cdn.example.com/public/p2-i3-3.jpg"
+          ],
+          "image_signed_url": [
+            "https://picsum.photos/seed/p2i30/400/280",
+            "https://picsum.photos/seed/p2i31/400/280",
+            "https://picsum.photos/seed/p2i32/400/280"
           ]
         }
       ]
@@ -205,10 +235,15 @@
           "week_end": "2026-08-31",
           "guidelines": "Follow standard execution guidelines.",
           "checklist_compliance_notes": "Verify weekly checklist.",
-          "image_urls": [
-            "https://example.com/images/p3-i1-1.jpg",
-            "https://example.com/images/p3-i1-2.jpg",
-            "https://example.com/images/p3-i1-3.jpg"
+          "images": [
+            "https://cdn.example.com/public/p3-i1-1.jpg",
+            "https://cdn.example.com/public/p3-i1-2.jpg",
+            "https://cdn.example.com/public/p3-i1-3.jpg"
+          ],
+          "image_signed_url": [
+            "https://picsum.photos/seed/p3i10/400/280",
+            "https://picsum.photos/seed/p3i11/400/280",
+            "https://picsum.photos/seed/p3i12/400/280"
           ]
         },
         {
@@ -228,10 +263,15 @@
           "week_end": "2026-08-31",
           "guidelines": "Follow standard execution guidelines.",
           "checklist_compliance_notes": "Verify weekly checklist.",
-          "image_urls": [
-            "https://example.com/images/p3-i2-1.jpg",
-            "https://example.com/images/p3-i2-2.jpg",
-            "https://example.com/images/p3-i2-3.jpg"
+          "images": [
+            "https://cdn.example.com/public/p3-i2-1.jpg",
+            "https://cdn.example.com/public/p3-i2-2.jpg",
+            "https://cdn.example.com/public/p3-i2-3.jpg"
+          ],
+          "image_signed_url": [
+            "https://picsum.photos/seed/p3i20/400/280",
+            "https://picsum.photos/seed/p3i21/400/280",
+            "https://picsum.photos/seed/p3i22/400/280"
           ]
         },
         {
@@ -251,10 +291,15 @@
           "week_end": "2026-08-31",
           "guidelines": "Follow standard execution guidelines.",
           "checklist_compliance_notes": "Verify weekly checklist.",
-          "image_urls": [
-            "https://example.com/images/p3-i3-1.jpg",
-            "https://example.com/images/p3-i3-2.jpg",
-            "https://example.com/images/p3-i3-3.jpg"
+          "images": [
+            "https://cdn.example.com/public/p3-i3-1.jpg",
+            "https://cdn.example.com/public/p3-i3-2.jpg",
+            "https://cdn.example.com/public/p3-i3-3.jpg"
+          ],
+          "image_signed_url": [
+            "https://picsum.photos/seed/p3i30/400/280",
+            "https://picsum.photos/seed/p3i31/400/280",
+            "https://picsum.photos/seed/p3i32/400/280"
           ]
         }
       ]
@@ -285,10 +330,15 @@
           "week_end": "2026-08-31",
           "guidelines": "Follow standard execution guidelines.",
           "checklist_compliance_notes": "Verify weekly checklist.",
-          "image_urls": [
-            "https://example.com/images/p4-i1-1.jpg",
-            "https://example.com/images/p4-i1-2.jpg",
-            "https://example.com/images/p4-i1-3.jpg"
+          "images": [
+            "https://cdn.example.com/public/p4-i1-1.jpg",
+            "https://cdn.example.com/public/p4-i1-2.jpg",
+            "https://cdn.example.com/public/p4-i1-3.jpg"
+          ],
+          "image_signed_url": [
+            "https://picsum.photos/seed/p4i10/400/280",
+            "https://picsum.photos/seed/p4i11/400/280",
+            "https://picsum.photos/seed/p4i12/400/280"
           ]
         },
         {
@@ -308,10 +358,15 @@
           "week_end": "2026-08-31",
           "guidelines": "Follow standard execution guidelines.",
           "checklist_compliance_notes": "Verify weekly checklist.",
-          "image_urls": [
-            "https://example.com/images/p4-i2-1.jpg",
-            "https://example.com/images/p4-i2-2.jpg",
-            "https://example.com/images/p4-i2-3.jpg"
+          "images": [
+            "https://cdn.example.com/public/p4-i2-1.jpg",
+            "https://cdn.example.com/public/p4-i2-2.jpg",
+            "https://cdn.example.com/public/p4-i2-3.jpg"
+          ],
+          "image_signed_url": [
+            "https://picsum.photos/seed/p4i20/400/280",
+            "https://picsum.photos/seed/p4i21/400/280",
+            "https://picsum.photos/seed/p4i22/400/280"
           ]
         },
         {
@@ -331,10 +386,15 @@
           "week_end": "2026-08-31",
           "guidelines": "Follow standard execution guidelines.",
           "checklist_compliance_notes": "Verify weekly checklist.",
-          "image_urls": [
-            "https://example.com/images/p4-i3-1.jpg",
-            "https://example.com/images/p4-i3-2.jpg",
-            "https://example.com/images/p4-i3-3.jpg"
+          "images": [
+            "https://cdn.example.com/public/p4-i3-1.jpg",
+            "https://cdn.example.com/public/p4-i3-2.jpg",
+            "https://cdn.example.com/public/p4-i3-3.jpg"
+          ],
+          "image_signed_url": [
+            "https://picsum.photos/seed/p4i30/400/280",
+            "https://picsum.photos/seed/p4i31/400/280",
+            "https://picsum.photos/seed/p4i32/400/280"
           ]
         }
       ]
@@ -365,10 +425,15 @@
           "week_end": "2026-08-31",
           "guidelines": "Follow standard execution guidelines.",
           "checklist_compliance_notes": "Verify weekly checklist.",
-          "image_urls": [
-            "https://example.com/images/p5-i1-1.jpg",
-            "https://example.com/images/p5-i1-2.jpg",
-            "https://example.com/images/p5-i1-3.jpg"
+          "images": [
+            "https://cdn.example.com/public/p5-i1-1.jpg",
+            "https://cdn.example.com/public/p5-i1-2.jpg",
+            "https://cdn.example.com/public/p5-i1-3.jpg"
+          ],
+          "image_signed_url": [
+            "https://picsum.photos/seed/p5i10/400/280",
+            "https://picsum.photos/seed/p5i11/400/280",
+            "https://picsum.photos/seed/p5i12/400/280"
           ]
         },
         {
@@ -388,10 +453,15 @@
           "week_end": "2026-08-31",
           "guidelines": "Follow standard execution guidelines.",
           "checklist_compliance_notes": "Verify weekly checklist.",
-          "image_urls": [
-            "https://example.com/images/p5-i2-1.jpg",
-            "https://example.com/images/p5-i2-2.jpg",
-            "https://example.com/images/p5-i2-3.jpg"
+          "images": [
+            "https://cdn.example.com/public/p5-i2-1.jpg",
+            "https://cdn.example.com/public/p5-i2-2.jpg",
+            "https://cdn.example.com/public/p5-i2-3.jpg"
+          ],
+          "image_signed_url": [
+            "https://picsum.photos/seed/p5i20/400/280",
+            "https://picsum.photos/seed/p5i21/400/280",
+            "https://picsum.photos/seed/p5i22/400/280"
           ]
         },
         {
@@ -411,13 +481,19 @@
           "week_end": "2026-08-31",
           "guidelines": "Follow standard execution guidelines.",
           "checklist_compliance_notes": "Verify weekly checklist.",
-          "image_urls": [
-            "https://example.com/images/p5-i3-1.jpg",
-            "https://example.com/images/p5-i3-2.jpg",
-            "https://example.com/images/p5-i3-3.jpg"
+          "images": [
+            "https://cdn.example.com/public/p5-i3-1.jpg",
+            "https://cdn.example.com/public/p5-i3-2.jpg",
+            "https://cdn.example.com/public/p5-i3-3.jpg"
+          ],
+          "image_signed_url": [
+            "https://picsum.photos/seed/p5i30/400/280",
+            "https://picsum.photos/seed/p5i31/400/280",
+            "https://picsum.photos/seed/p5i32/400/280"
           ]
         }
       ]
     }
-  ]
+  ],
+  "image_signed_url": "https://picsum.photos/seed/national-hero/800/320"
 }

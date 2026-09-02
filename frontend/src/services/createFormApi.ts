@@ -143,19 +143,13 @@ export async function addCampaign(
 }
 
 /**
- * Image fields on the national create/save payload.
+ * Image fields on the national create payload (form / GET / preview).
  *
- * `blob_url` holds the URL from `uploadImage` (mock or real). Keep this field name
- * when swapping FastAPI — do not POST raw `blob:` object URLs as final storage.
- * Cover/initiative picks call `uploadImage` on file select; form state already has URLs
- * before Save Draft / Publish. See `frontend/src/services/imageUploadApi.ts`.
+ * Cover: root `image_url` (public, DB) + `image_signed_url` (display).
+ * Initiative: `images` (public URL strings) + `image_signed_url` (display strings).
+ * Same index = same photo. Save Draft / Publish must strip signed URLs —
+ * use `toPublicImageSavePayload`. See `frontend/src/services/imageUploadApi.ts`.
  */
-export type NationalImagePayload = {
-  id?: string;
-  name: string;
-  blob_url: string;
-};
-
 export type NationalInitiativePayload = {
   initiative_number: number;
   priority_level: "P1" | "P2" | "P3";
@@ -168,7 +162,10 @@ export type NationalInitiativePayload = {
   week_end: string;
   guidelines: string;
   checklist_compliance_notes: string;
-  images: NationalImagePayload[];
+  /** Public URLs persisted in DB. Sent on draft/publish. */
+  images: string[];
+  /** Signed URLs for UI / PPT. GET + form state only — omit on save. */
+  image_signed_url?: string[];
   /** GET-by-id RAG. `null` = Clear. View/Edit ignore this. */
   initiative_track?: "red" | "amber" | "green" | null;
   /** GET-by-id UUID — required for Track PATCH. View/Edit ignore this. */
@@ -194,21 +191,33 @@ export type NationalOnePagerCreatePayload = {
   channel: string;
   title: string;
   business_outcome_statement: string;
-  cover_image: NationalImagePayload | null;
+  /** Public cover URL for DB. `null` when none. Sent on draft/publish. */
+  image_url: string | null;
+  /** Signed cover URL for display. GET + form/preview only — omit on save. */
+  image_signed_url?: string | null;
   scoring_mode: ScoringMode;
   pillars: NationalPillarPayload[];
 };
 
+export function mapInitiativeImageFields(images: PillarDraft["initiatives"][number]["images"]) {
+  return {
+    images: images.map((image) => image.publicUrl).filter(Boolean),
+    image_signed_url: images.map((image) => image.blobUrl).filter(Boolean),
+  };
+}
+
 /**
- * Builds the create/save/publish request body from form state.
- * Image URLs must already be uploaded (`uploadImage`) into form state — this
- * builder only maps `coverImageUrl` / initiative `blobUrl` into `blob_url`.
+ * Builds the in-memory create payload from form state (both URL kinds).
+ * Preview / PPT / hydrate use signed URLs. Call `toPublicImageSavePayload`
+ * before POST draft/publish so the body has public URLs only.
  */
 export function buildNationalOnePagerPayload(
   values: NationalFormValues,
   scoringMode: ScoringMode,
   pillars: PillarDraft[],
 ): NationalOnePagerCreatePayload {
+  const image_url = values.coverImagePublicUrl || null;
+  const image_signed_url = values.coverImageUrl || null;
   return {
     market: values.market,
     category: values.category,
@@ -216,12 +225,8 @@ export function buildNationalOnePagerPayload(
     channel: values.channel,
     title: values.title.trim(),
     business_outcome_statement: values.businessOutcome.trim(),
-    cover_image: values.coverImageUrl
-      ? {
-          name: values.coverImageName,
-          blob_url: values.coverImageUrl,
-        }
-      : null,
+    image_url,
+    image_signed_url,
     scoring_mode: scoringMode,
     pillars: pillars.map((pillar) => ({
       pillar_number: pillar.pillar_number,
@@ -241,12 +246,30 @@ export function buildNationalOnePagerPayload(
         week_end: initiative.week_end,
         guidelines: initiative.guidelines,
         checklist_compliance_notes: initiative.checklist_compliance_notes,
-        images: initiative.images.map((image) => ({
-          id: image.id,
-          name: image.name,
-          blob_url: image.blobUrl,
-        })),
+        ...mapInitiativeImageFields(initiative.images),
       })),
+    })),
+  };
+}
+
+/** Drop signed URLs so the draft/publish body matches the API (public only). */
+export function toPublicImageSavePayload<
+  T extends {
+    image_url: string | null;
+    image_signed_url?: string | null;
+    pillars: NationalPillarPayload[];
+  },
+>(payload: T): Omit<T, "image_signed_url"> {
+  const { image_signed_url: _coverSigned, ...rest } = payload;
+  return {
+    ...rest,
+    image_url: payload.image_url,
+    pillars: payload.pillars.map((pillar) => ({
+      ...pillar,
+      initiatives: pillar.initiatives.map((initiative) => {
+        const { image_signed_url: _signed, ...initiativeRest } = initiative;
+        return initiativeRest;
+      }),
     })),
   };
 }
@@ -296,7 +319,7 @@ function upsertNationalRecord(
   });
 
   // TODO: Remove FE landing upsert when FastAPI list returns saved/published
-  // rows with permanent cover_image_url. Keep card cover_image_url field name.
+  // rows with image_signed_url. Keep card image_signed_url field name.
   upsertLandingCardFromPayload({
     pager_id: nextId,
     pager_type: "national",
@@ -314,7 +337,8 @@ function upsertNationalRecord(
  * - Endpoint (example): POST /api/national-one-pagers/draft
  * - Body: `NationalOnePagerCreatePayload` (+ id when updating existing draft)
  * - Response: `{ id, status: "draft" }` (keep `NationalOnePagerMutationResult` shape)
- * - Payload image URLs come from `uploadImage` into form state before this call.
+ * - Payload public image URLs come from `uploadImage` (`public_url`) into form
+ *   state. POST body must be `toPublicImageSavePayload(payload)` (no signed URLs).
  * - Remove `delay` + `upsertNationalRecord` in-memory path.
  */
 export async function saveNationalDraft(
@@ -322,6 +346,8 @@ export async function saveNationalDraft(
   id?: string | null,
 ): Promise<NationalOnePagerMutationResult> {
   await delay(400);
+  // TODO: POST toPublicImageSavePayload(payload) (public image_url / images only).
+  void toPublicImageSavePayload(payload);
   return upsertNationalRecord(payload, "draft", id);
 }
 
@@ -341,6 +367,8 @@ export async function publishNationalOnePager(
   id?: string | null,
 ): Promise<NationalOnePagerMutationResult> {
   await delay(500);
+  // TODO: POST toPublicImageSavePayload(payload) (public image_url / images only).
+  void toPublicImageSavePayload(payload);
   return upsertNationalRecord(payload, "published", id);
 }
 
@@ -361,6 +389,7 @@ export type NationalOnePagerRecord = {
 export async function getNationalOnePager(
   id: string,
 ): Promise<NationalOnePagerRecord | null> {
+  // TODO: GET /api/national-one-pagers/:id; keep NationalOnePagerRecord.
   await delay(300);
   const record = structuredClone(
     nationalOnePagerMock,

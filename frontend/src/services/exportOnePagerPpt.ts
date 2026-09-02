@@ -251,9 +251,11 @@ function collectImageUrls(payload: ExportPayload): string[] {
   ]);
   for (const pillar of payload.pillars) {
     for (const initiative of pillar.initiatives) {
-      for (const image of initiative?.images?.slice(0, MAX_INITIATIVE_IMAGES) ||
-        []) {
-        if (image) urls.add(image);
+      for (const url of initiative.image_signed_url?.slice(
+        0,
+        MAX_INITIATIVE_IMAGES,
+      ) || []) {
+        if (url) urls.add(url);
       }
     }
   }
@@ -545,7 +547,7 @@ function addInitiative(
   const imageW =
     (innerW - imageGap * (MAX_INITIATIVE_IMAGES - 1)) / MAX_INITIATIVE_IMAGES;
   const imageH = 0.34;
-  const urls = (initiative.images ?? [])
+  const urls = (initiative.image_signed_url ?? [])
     .filter(Boolean)
     .slice(0, MAX_INITIATIVE_IMAGES);
 

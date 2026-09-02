@@ -3,13 +3,14 @@ import type {
   PillarDraft,
   ScoringMode,
 } from "@/components/form/pillars";
-import type {
-  FilterOption,
-  MarketScopedOptions,
-  NationalImagePayload,
-  NationalInitiativePayload,
-  NationalPillarPayload,
-  OnePagerRecordStatus,
+import {
+  mapInitiativeImageFields,
+  toPublicImageSavePayload,
+  type FilterOption,
+  type MarketScopedOptions,
+  type NationalInitiativePayload,
+  type NationalPillarPayload,
+  type OnePagerRecordStatus,
 } from "@/services/createFormApi";
 import { upsertLandingCardFromPayload } from "@/services/landingListStore";
 
@@ -25,22 +26,23 @@ export type RetailerOnePagerCreatePayload = {
   channel: string;
   title: string;
   business_outcome_statement: string;
-  cover_image: NationalImagePayload | null;
+  image_url: string | null;
+  image_signed_url?: string | null;
   scoring_mode: ScoringMode;
   pillars: NationalPillarPayload[];
 };
 
 /**
- * Builds the create/save/publish request body from retailer form state.
- * Image URLs must already be uploaded into form state (`uploadImage`).
- * Keep field names (`target_retailer`, `cover_image.blob_url`, pillar/initiative shape)
- * stable when swapping to FastAPI.
+ * Builds the retailer create payload from form state (both URL kinds).
+ * Save Draft / Publish must strip signed URLs via `toPublicImageSavePayload`.
  */
 export function buildRetailerOnePagerPayload(
   values: RetailerFormValues,
   scoringMode: ScoringMode,
   pillars: PillarDraft[],
 ): RetailerOnePagerCreatePayload {
+  const image_url = values.coverImagePublicUrl || null;
+  const image_signed_url = values.coverImageUrl || null;
   return {
     market: values.market,
     target_retailer: values.targetRetailer,
@@ -49,12 +51,8 @@ export function buildRetailerOnePagerPayload(
     channel: values.channel,
     title: values.title.trim(),
     business_outcome_statement: values.businessOutcome.trim(),
-    cover_image: values.coverImageUrl
-      ? {
-          name: values.coverImageName,
-          blob_url: values.coverImageUrl,
-        }
-      : null,
+    image_url,
+    image_signed_url,
     scoring_mode: scoringMode,
     pillars: pillars.map((pillar) => ({
       pillar_number: pillar.pillar_number,
@@ -75,11 +73,7 @@ export function buildRetailerOnePagerPayload(
           week_end: initiative.week_end,
           guidelines: initiative.guidelines,
           checklist_compliance_notes: initiative.checklist_compliance_notes,
-          images: initiative.images.map((image) => ({
-            id: image.id,
-            name: image.name,
-            blob_url: image.blobUrl,
-          })),
+          ...mapInitiativeImageFields(initiative.images),
         }),
       ),
     })),
@@ -126,7 +120,7 @@ function upsertRetailerRecord(
   });
 
   // TODO: Remove FE landing upsert when FastAPI list returns saved/published
-  // rows with permanent cover_image_url. Keep card cover_image_url field name.
+  // rows with image_signed_url. Keep card image_signed_url field name.
   upsertLandingCardFromPayload({
     pager_id: nextId,
     pager_type: "retailer",
@@ -149,6 +143,8 @@ export async function saveRetailerDraft(
   id?: string | null,
 ): Promise<RetailerOnePagerMutationResult> {
   await delay(400);
+  // TODO: POST toPublicImageSavePayload(payload) (public image_url / images only).
+  void toPublicImageSavePayload(payload);
   return upsertRetailerRecord(payload, "draft", id);
 }
 
@@ -163,5 +159,7 @@ export async function publishRetailerOnePager(
   id?: string | null,
 ): Promise<RetailerOnePagerMutationResult> {
   await delay(500);
+  // TODO: POST toPublicImageSavePayload(payload) (public image_url / images only).
+  void toPublicImageSavePayload(payload);
   return upsertRetailerRecord(payload, "published", id);
 }
