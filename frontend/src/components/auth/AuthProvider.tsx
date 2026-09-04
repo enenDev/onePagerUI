@@ -10,6 +10,7 @@ import { onAuthStateChanged, type User } from "firebase/auth";
 
 import { auth } from "@/config/firebaseConfig";
 import {
+  clearSsoRedirectPending,
   completeSsoRedirect,
   FIREBASE_TOKEN_KEY,
 } from "@/services/authService";
@@ -22,6 +23,11 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+async function storeUser(currentUser: User) {
+  const token = await currentUser.getIdToken();
+  localStorage.setItem(FIREBASE_TOKEN_KEY, token);
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -30,42 +36,56 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let cancelled = false;
 
-    // TODO: Remove this 8s fallback once Firebase API key / iframe is stable.
-    // Keep onAuthStateChanged writing firebaseToken; not a FastAPI call.
     const timeoutId = window.setTimeout(() => {
       if (!cancelled) {
+        setRedirectError(
+          (prev) => prev ?? "Sign-in is taking too long. Please try again.",
+        );
         setLoading(false);
       }
-    }, 8000);
+    }, 20000);
 
-    void completeSsoRedirect().then((errorMessage) => {
-      if (!cancelled && errorMessage) {
-        setRedirectError(errorMessage);
-      }
-    });
+    const finish = (nextUser: User | null) => {
+      window.clearTimeout(timeoutId);
+      setUser(nextUser);
+      setLoading(false);
+    };
 
     const unsubscribe = onAuthStateChanged(
       auth,
       async (currentUser) => {
+        if (cancelled || !currentUser) return;
+        await storeUser(currentUser);
         if (cancelled) return;
-        window.clearTimeout(timeoutId);
-        if (currentUser) {
-          const token = await currentUser.getIdToken();
-          localStorage.setItem(FIREBASE_TOKEN_KEY, token);
-          setUser(currentUser);
-        } else {
-          localStorage.removeItem(FIREBASE_TOKEN_KEY);
-          setUser(null);
-        }
-        setLoading(false);
+        clearSsoRedirectPending();
+        finish(currentUser);
       },
       (error) => {
         if (cancelled) return;
-        window.clearTimeout(timeoutId);
         setRedirectError(error.message);
-        setLoading(false);
+        finish(null);
       },
     );
+
+    void (async () => {
+      const errorMessage = await completeSsoRedirect();
+      if (cancelled) return;
+      if (errorMessage) {
+        setRedirectError(errorMessage);
+      }
+      await auth.authStateReady();
+      if (cancelled) return;
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        await storeUser(currentUser);
+        if (cancelled) return;
+        finish(currentUser);
+      } else {
+        localStorage.removeItem(FIREBASE_TOKEN_KEY);
+        finish(null);
+      }
+      clearSsoRedirectPending();
+    })();
 
     return () => {
       cancelled = true;

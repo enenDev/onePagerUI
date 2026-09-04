@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { loginWithSso } from "@/services/authApi";
+import { isSsoRedirectPending } from "@/services/authService";
 import perfectStoreLogo from "@/assets/Perfect Store_Hero_Logo_DarkBG 1.svg?raw";
 import unileverBrandLogo from "@/assets/Unilever_Brand_Logo.svg";
 import darkBg from "@/assets/Dark_Background.svg";
@@ -41,9 +42,11 @@ export const Login = () => {
 
   if (loading) {
     return (
-      <div className="flex min-h-svh items-center justify-center">
+      <div className="flex min-h-svh items-center justify-center gap-2 text-sm text-muted-foreground">
         <Loader2 className="size-6 animate-spin text-primary" aria-hidden />
-        <span className="sr-only">Loading…</span>
+        <span>
+          {isSsoRedirectPending() ? "Signing you in…" : "Loading…"}
+        </span>
       </div>
     );
   }
