@@ -1,5 +1,10 @@
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getApp, getApps, initializeApp } from "firebase/app";
+import {
+  browserLocalPersistence,
+  browserPopupRedirectResolver,
+  getAuth,
+  initializeAuth,
+} from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_REACT_APP_FIREBASE_API_KEY,
@@ -8,6 +13,17 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_REACT_APP_FIREBASE_APP_ID,
 };
 
-const app = initializeApp(firebaseConfig);
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
-export const auth = getAuth(app);
+function createAuth() {
+  try {
+    return initializeAuth(app, {
+      persistence: browserLocalPersistence,
+      popupRedirectResolver: browserPopupRedirectResolver,
+    });
+  } catch {
+    return getAuth(app);
+  }
+}
+
+export const auth = createAuth();

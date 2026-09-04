@@ -13,6 +13,7 @@ import {
   clearSsoRedirectPending,
   completeSsoRedirect,
   FIREBASE_TOKEN_KEY,
+  isSsoRedirectPending,
 } from "@/services/authService";
 
 type AuthContextValue = {
@@ -47,7 +48,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const finish = (nextUser: User | null) => {
       window.clearTimeout(timeoutId);
-      setUser(nextUser);
+      // Never wipe a signed-in user with null — identitytoolkit can 200
+      // after getRedirectResult returns empty, then onAuthStateChanged fires.
+      if (nextUser) {
+        setUser(nextUser);
+      }
       setLoading(false);
     };
 
@@ -63,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       (error) => {
         if (cancelled) return;
         setRedirectError(error.message);
-        finish(null);
+        setLoading(false);
       },
     );
 
@@ -75,16 +80,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       await auth.authStateReady();
       if (cancelled) return;
-      const currentUser = auth.currentUser;
+
+      let currentUser = auth.currentUser;
+      if (!currentUser) {
+        await new Promise((resolve) => window.setTimeout(resolve, 500));
+        if (cancelled) return;
+        currentUser = auth.currentUser;
+      }
+
       if (currentUser) {
         await storeUser(currentUser);
         if (cancelled) return;
         finish(currentUser);
+        clearSsoRedirectPending();
       } else {
-        localStorage.removeItem(FIREBASE_TOKEN_KEY);
-        finish(null);
+        window.clearTimeout(timeoutId);
+        setLoading(false);
+        if (isSsoRedirectPending()) {
+          setRedirectError(
+            (prev) =>
+              prev ??
+              "Microsoft sign-in finished, but Firebase did not give this app a session. Allow cookies for firebaseapp.com, or try Edge / another Chrome profile.",
+          );
+        }
       }
-      clearSsoRedirectPending();
     })();
 
     return () => {

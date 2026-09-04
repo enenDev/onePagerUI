@@ -1,4 +1,5 @@
 import {
+  browserPopupRedirectResolver,
   getRedirectResult,
   signInWithRedirect,
   signOut,
@@ -40,7 +41,7 @@ export function clearSsoRedirectPending() {
  */
 export async function loginUser(): Promise<void> {
   markSsoRedirectPending();
-  await signInWithRedirect(auth, samlProvider);
+  await signInWithRedirect(auth, samlProvider, browserPopupRedirectResolver);
 }
 
 // StrictMode mounts twice; Firebase gives the redirect result only once.
@@ -59,7 +60,7 @@ export function completeSsoRedirect(): Promise<string | null> {
 
 async function readRedirectResult(): Promise<string | null> {
   try {
-    const result = await getRedirectResult(auth);
+    const result = await getRedirectResult(auth, browserPopupRedirectResolver);
     if (result?.user) {
       const token = await result.user.getIdToken();
       localStorage.setItem(FIREBASE_TOKEN_KEY, token);
