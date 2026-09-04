@@ -37,6 +37,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let cancelled = false;
 
+    // REVERT WHEN: SSO session is reliable (hosted UI or Vite proxy working).
+    // Temporary: 20s cap so Login is not stuck on "Signing you in…".
     const timeoutId = window.setTimeout(() => {
       if (!cancelled) {
         setRedirectError(
@@ -83,6 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       let currentUser = auth.currentUser;
       if (!currentUser) {
+        // REVERT WHEN: getRedirectResult reliably returns the user (drop the 500ms wait).
         await new Promise((resolve) => window.setTimeout(resolve, 500));
         if (cancelled) return;
         currentUser = auth.currentUser;
@@ -97,6 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         window.clearTimeout(timeoutId);
         setLoading(false);
         if (isSsoRedirectPending()) {
+          // REVERT WHEN: local/prod same-origin auth works — this copy is a cookie-block hint.
           setRedirectError(
             (prev) =>
               prev ??
