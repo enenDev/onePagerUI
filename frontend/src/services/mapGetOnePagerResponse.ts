@@ -123,7 +123,9 @@ function mapPillar(pillar: GetOnePagerApiPillar): NationalPillarPayload {
   };
 }
 
-function mapSharedPayload(api: GetOnePagerApiResponse): NationalOnePagerCreatePayload {
+function mapSharedPayload(
+  api: GetOnePagerApiResponse,
+): NationalOnePagerCreatePayload {
   return {
     market: api.market,
     category: api.category,
@@ -149,7 +151,8 @@ export function mapGetOnePagerResponse(
   const publishedAt = formatApiPublishedAt(api.published_at);
   const shared = {
     id: api.pager_id,
-    status: listStatus === "DRAFT" ? ("draft" as const) : ("published" as const),
+    status:
+      listStatus === "DRAFT" ? ("draft" as const) : ("published" as const),
     created_by: api.created_by,
     list_status: listStatus,
     published_at: publishedAt,

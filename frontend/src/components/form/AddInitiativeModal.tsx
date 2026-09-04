@@ -12,7 +12,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Textarea } from "@/components/ui/textarea";
-import { MAX_INITIATIVE_IMAGES, type InitiativeDraft, type InitiativeImage } from "@/components/form/pillars";
+import {
+  MAX_INITIATIVE_IMAGES,
+  type InitiativeDraft,
+  type InitiativeImage,
+} from "@/components/form/pillars";
 import { CharCount } from "@/components/form/CharCount";
 import { FIELD_LIMITS } from "@/components/form/fieldLimits";
 import type { FilterOption } from "@/services/createFormApi";
@@ -67,8 +71,7 @@ const emptyForm = (): FormState => ({
 
 function initiativeToForm(initiative: InitiativeDraft): FormState {
   return {
-    accountable_function_department:
-      initiative.accountable_function_department,
+    accountable_function_department: initiative.accountable_function_department,
     initiative_description: initiative.initiative_description,
     kpi_metric: initiative.kpi_metric,
     success_target: initiative.success_target,
@@ -137,7 +140,8 @@ export function AddInitiativeModal({
     new Set(initialInitiative?.images?.map((image) => image.id) ?? []),
   );
   const atImageLimit =
-    (form?.images?.length || 0) + pendingUploads.length >= MAX_INITIATIVE_IMAGES;
+    (form?.images?.length || 0) + pendingUploads.length >=
+    MAX_INITIATIVE_IMAGES;
   const imagesBusy = pendingUploads.length > 0;
 
   // Radix can leave body pointer-events stuck after the dialog unmounts

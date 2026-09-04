@@ -28,6 +28,8 @@ const MainLayout = () => {
   const [headerTitle, setHeaderTitleState] = useState<string | null>(null);
 
   useEffect(() => {
+    // TODO: After GET /api/me exists, keep this dispatch. It should run only
+    // when RequireAuth has a Firebase user so ApiBase can send the token.
     void dispatch(fetchCurrentUser());
   }, [dispatch]);
 

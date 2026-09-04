@@ -63,10 +63,7 @@ export function buildRetailerFormSample(): {
         unit: clipToLimit(initiative.unit, FIELD_LIMITS.unit),
         week_start: initiative.week_start,
         week_end: initiative.week_end,
-        guidelines: clipToLimit(
-          initiative.guidelines,
-          FIELD_LIMITS.guidelines,
-        ),
+        guidelines: clipToLimit(initiative.guidelines, FIELD_LIMITS.guidelines),
         checklist_compliance_notes: clipToLimit(
           initiative.checklist_compliance_notes,
           FIELD_LIMITS.checklistNotes,

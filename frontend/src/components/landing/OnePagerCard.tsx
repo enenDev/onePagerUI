@@ -24,12 +24,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { deleteOnePager, fetchOnePagers } from "@/redux/landingSlice";
-import {
-  archiveOnePager,
-  restoreOnePager,
-} from "@/redux/landingSlice";
+import { archiveOnePager, restoreOnePager } from "@/redux/landingSlice";
 import { isCurrentUserOwner } from "@/redux/userSlice";
-import coverFallback from "@/assets/Dark_Background.svg";
 import { exportOnePagerById } from "@/services/exportOnePagerPpt";
 import { type OnePagerListItem, type OnePagerStatus } from "@/types/onePager";
 import { formatPublishedAt } from "../preview/nationalPreview";
@@ -38,12 +34,7 @@ type OnePagerCardProps = {
   item: OnePagerListItem;
 };
 
-type CardMenuAction =
-  | "export"
-  | "archive"
-  | "restore"
-  | "edit"
-  | "delete";
+type CardMenuAction = "export" | "archive" | "restore" | "edit" | "delete";
 
 function menuActionsForStatus(status: OnePagerStatus): CardMenuAction[] {
   if (status === "PUBLISHED") {
@@ -107,7 +98,9 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
     setDeleting(true);
     setDeleteError(null);
     try {
-      await dispatch(deleteOnePager({ pagerId: item.pager_id, user: currentUser.email })).unwrap();
+      await dispatch(
+        deleteOnePager({ pagerId: item.pager_id, user: currentUser.email }),
+      ).unwrap();
       void dispatch(fetchOnePagers(filters));
       setDeleteOpen(false);
     } catch (err) {
@@ -124,7 +117,9 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
     setArchiving(true);
     setArchiveError(null);
     try {
-      await dispatch(archiveOnePager({ pagerId: item.pager_id, user: currentUser.email })).unwrap();
+      await dispatch(
+        archiveOnePager({ pagerId: item.pager_id, user: currentUser.email }),
+      ).unwrap();
       setArchiveOpen(false);
     } catch (err) {
       setArchiveError(
@@ -140,7 +135,9 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
     setRestoring(true);
     setRestoreError(null);
     try {
-      await dispatch(restoreOnePager({ pagerId: item.pager_id, user: currentUser.email })).unwrap();
+      await dispatch(
+        restoreOnePager({ pagerId: item.pager_id, user: currentUser.email }),
+      ).unwrap();
       setRestoreOpen(false);
     } catch (err) {
       setRestoreError(
@@ -156,7 +153,9 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
     setEditPublishedBusy(true);
     setEditPublishedError(null);
     try {
-      await dispatch(archiveOnePager({ pagerId: item.pager_id, user: currentUser.email })).unwrap();
+      await dispatch(
+        archiveOnePager({ pagerId: item.pager_id, user: currentUser.email }),
+      ).unwrap();
       setEditPublishedOpen(false);
       goEditCreateAsNew();
     } catch (err) {
@@ -236,7 +235,7 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
               src={
                 item.image_signed_url ||
                 item.cover_image_url ||
-                coverFallback
+                "./Placeholder.png"
               }
               alt=""
               className="size-full object-cover"
@@ -268,9 +267,15 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
           <div className="space-y-1 text-xs text-muted-foreground">
             <p>
               <span className="font-semibold text-foreground">
-                {(item.published_at && item.status === "PUBLISHED") ? "Published:" : "Last Updated:"}</span>{" "}
-              {(item.published_at && item.status === "PUBLISHED") ? formatPublishedAt(new Date(item.published_at)) :
-                (item.updated_at && item.status !== "PUBLISHED") ? formatPublishedAt(new Date(item.updated_at)) : "NA"}
+                {item.published_at && item.status === "PUBLISHED"
+                  ? "Published:"
+                  : "Last Updated:"}
+              </span>{" "}
+              {item.published_at && item.status === "PUBLISHED"
+                ? formatPublishedAt(new Date(item.published_at))
+                : item.updated_at && item.status !== "PUBLISHED"
+                  ? formatPublishedAt(new Date(item.updated_at))
+                  : "NA"}
             </p>
             <p>
               <span className="font-semibold text-foreground">Owner:</span>{" "}
@@ -370,9 +375,7 @@ function CardMenuItem({
         <DropdownMenuItem
           disabled={!isOwner}
           title={
-            isOwner
-              ? undefined
-              : "Only the owner can archive this one-pager"
+            isOwner ? undefined : "Only the owner can archive this one-pager"
           }
           className={itemClassName}
           onClick={() => {
@@ -390,9 +393,7 @@ function CardMenuItem({
         <DropdownMenuItem
           disabled={!isOwner}
           title={
-            isOwner
-              ? undefined
-              : "Only the owner can restore this one-pager"
+            isOwner ? undefined : "Only the owner can restore this one-pager"
           }
           className={itemClassName}
           onClick={() => {
@@ -409,9 +410,7 @@ function CardMenuItem({
       menuItem = (
         <DropdownMenuItem
           disabled={!isOwner}
-          title={
-            isOwner ? undefined : "Only the owner can edit this one-pager"
-          }
+          title={isOwner ? undefined : "Only the owner can edit this one-pager"}
           className={itemClassName}
           onClick={onEdit}
         >
@@ -426,9 +425,7 @@ function CardMenuItem({
           variant="destructive"
           disabled={!isOwner}
           title={
-            isOwner
-              ? undefined
-              : "Only the owner can delete this one-pager"
+            isOwner ? undefined : "Only the owner can delete this one-pager"
           }
           className={itemClassName}
           onClick={onDelete}

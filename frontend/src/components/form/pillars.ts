@@ -76,7 +76,6 @@ export function pillarsMissingInitiatives(pillars: PillarDraft[]): string[] {
     .map((pillar) => pillar.pillar_name);
 }
 
-
 export function createDefaultPillars(): PillarDraft[] {
   return DEFAULT_PILLARS.map((pillar) => ({
     pillar_number: pillar.pillar_number,

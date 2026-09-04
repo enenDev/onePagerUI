@@ -3,14 +3,10 @@ import type { CurrentUser } from "@/redux/userSlice";
 const delay = (ms = 200) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
- * TODO: Replace with GET /api/me (or the auth session after login).
- * Temporary: delay then the mock user from userSlice initialState.
- * No login API yet — do not keep a second copy of id / email / initials /
- * user_type here.
- * Keep { id, name, email, initials, user_type }: id is created_by / owner checks,
- * name is the header profile label, email is header + Track PATCH updated_by,
- * initials are the header avatar, user_type drives create / My / Drafts access
- * (map server role → FE union).
+ * TODO: Replace mock with GET /api/me via ApiBase after Firebase SSO.
+ * Temporary: delay + userSlice initialState (not the Firebase user).
+ * Next: ApiBase.get("/api/me") with the Bearer token already on ApiBase.
+ * Keep { id, name, email, initials, user_type }; map server role → UserType.
  */
 export async function getCurrentUser(): Promise<CurrentUser> {
   await delay();

@@ -56,11 +56,10 @@ export function AppHeader() {
               src={unileverBrandLogo}
               alt=""
               className="size-16 object-contain"
-
             />
           </Link>
           <HeaderDivider />
-          <p className="mt-[5px] font-semibold text-[#ffffff] text-[14px] tracking-[0.2px] whitespace-nowrap" >
+          <p className="mt-[5px] font-semibold text-[#ffffff] text-[14px] tracking-[0.2px] whitespace-nowrap">
             CATEGORY ONE-PAGER APP
           </p>
         </div>

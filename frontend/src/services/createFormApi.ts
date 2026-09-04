@@ -1,8 +1,5 @@
 import type { NationalFormValues } from "@/components/form/nationalForm";
-import type {
-  PillarDraft,
-  ScoringMode,
-} from "@/components/form/pillars";
+import type { PillarDraft, ScoringMode } from "@/components/form/pillars";
 import createFormMetadataMock from "@/services/mocks/createFormMetadata.json";
 
 import type { FilterMetadata } from "@/types/onePager";
@@ -137,18 +134,17 @@ export async function addCampaign(
     };
   }
   try {
-    await ApiBase.post('api/v1/campaigns', {
+    await ApiBase.post("api/v1/campaigns", {
       market: market,
       campaign_name: trimmed,
       created_by: "gowtham.gunasekaran@unilver.com",
       user_id: "gowtham.gunasekaran@unilver.com",
-    })
+    });
     return { ok: true, campaign: { label: trimmed, value: trimmed } };
   } catch (error) {
     console.error("Error fetching data:", error);
     throw error;
   }
-
 }
 
 /**
@@ -308,7 +304,7 @@ export type OnePagerRecordStatus = "draft" | "published";
 
 /** Response shape the real backend should return for save/publish. */
 export type NationalOnePagerMutationResult =
-  | { ok: true; id: string; status: OnePagerRecordStatus, error?: string }
+  | { ok: true; id: string; status: OnePagerRecordStatus; error?: string }
   | { ok: false; error: string };
 
 // type StoredNationalRecord = {
@@ -376,10 +372,16 @@ export async function saveNationalDraft(
 ): Promise<NationalOnePagerMutationResult> {
   try {
     if (id) {
-      const { data } = await ApiBase.patch(`api/v1/pagers/${id}`, { ...toPublicImageSavePayload(payload), pager_id: id || "" })
+      const { data } = await ApiBase.patch(`api/v1/pagers/${id}`, {
+        ...toPublicImageSavePayload(payload),
+        pager_id: id || "",
+      });
       return { ok: true, id: data?.pager_id || "", status: "draft" };
     }
-    const { data } = await ApiBase.post('api/v1/pagers', { ...toPublicImageSavePayload(payload), pager_id: id || "" })
+    const { data } = await ApiBase.post("api/v1/pagers", {
+      ...toPublicImageSavePayload(payload),
+      pager_id: id || "",
+    });
     return { ok: true, id: data?.pager_id || "", status: "draft" };
   } catch (error) {
     console.error("Error fetching data:", error);
@@ -405,11 +407,17 @@ export async function publishNationalOnePager(
 ): Promise<NationalOnePagerMutationResult> {
   try {
     if (id) {
-      const { data } = await ApiBase.patch(`api/v1/pagers/${id}`, { ...toPublicImageSavePayload(payload), pager_id: id || "" })
+      const { data } = await ApiBase.patch(`api/v1/pagers/${id}`, {
+        ...toPublicImageSavePayload(payload),
+        pager_id: id || "",
+      });
       return { ok: true, id: data?.pager_id || "", status: "draft" };
     }
-    const { data } = await ApiBase.post('api/v1/pagers', { ...toPublicImageSavePayload(payload), pager_id: id || "" })
-    
+    const { data } = await ApiBase.post("api/v1/pagers", {
+      ...toPublicImageSavePayload(payload),
+      pager_id: id || "",
+    });
+
     return { ok: true, id: data?.pager_id || "", status: "published" };
   } catch (error) {
     console.error("Error fetching data:", error);
@@ -436,11 +444,14 @@ export async function getNationalOnePager(
   id: string,
 ): Promise<NationalOnePagerRecord | null> {
   try {
-    const { data } = await ApiBase.get(`api/v1/pagers/${id}`)
-    return { payload: data as NationalOnePagerCreatePayload, id, status: data?.status || "" } as NationalOnePagerRecord;
+    const { data } = await ApiBase.get(`api/v1/pagers/${id}`);
+    return {
+      payload: data as NationalOnePagerCreatePayload,
+      id,
+      status: data?.status || "",
+    } as NationalOnePagerRecord;
   } catch (error) {
     console.error("Error fetching data:", error);
     throw error;
   }
-
 }

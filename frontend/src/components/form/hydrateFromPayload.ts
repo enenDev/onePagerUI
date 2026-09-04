@@ -6,7 +6,11 @@ import {
   emptyRetailerFormValues,
   type RetailerFormValues,
 } from "@/components/form/retailerForm";
-import type { PillarDraft, ScoringMode, InitiativeImage } from "@/components/form/pillars";
+import type {
+  PillarDraft,
+  ScoringMode,
+  InitiativeImage,
+} from "@/components/form/pillars";
 import type {
   NationalOnePagerCreatePayload,
   NationalPillarPayload,

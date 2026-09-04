@@ -3,11 +3,9 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { getCurrentUser } from "@/services/userApi";
 
 /**
- * Temporary role labels until GET /api/me returns real role codes.
- * Change `user_type` in initialState below to locally test each role.
- * - user_type_1: full access (CSP)
- * - user_type_2: retailer create / import only
- * - user_type_3: read-only (no create, no My tab, no Drafts)
+ * TODO: initialState is mock until GET /api/me. Keep CurrentUser + UserType.
+ * Map server role → user_type_1 | user_type_2 | user_type_3.
+ * Temporary labels: user_type_1 CSP, user_type_2 retailer, user_type_3 read-only.
  */
 export type UserType = "user_type_1" | "user_type_2" | "user_type_3";
 

@@ -1,5 +1,6 @@
 import { Navigate } from "react-router-dom";
 
+import { RequireAuth } from "../components/auth/RequireAuth";
 import { RequireUserCreateAccess } from "../components/auth/RequireUserCreateAccess";
 import { Home } from "../pages/Home";
 import { Login } from "../pages/Login";
@@ -25,7 +26,11 @@ const routes = [
         element: <Login />,
       },
       {
-        element: <MainLayout />,
+        element: (
+          <RequireAuth>
+            <MainLayout />
+          </RequireAuth>
+        ),
         children: [
           {
             path: "home",

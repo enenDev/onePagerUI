@@ -1,8 +1,5 @@
 import type { RetailerFormValues } from "@/components/form/retailerForm";
-import type {
-  PillarDraft,
-  ScoringMode,
-} from "@/components/form/pillars";
+import type { PillarDraft, ScoringMode } from "@/components/form/pillars";
 import {
   mapInitiativeImageFields,
   toPublicImageSavePayload,
@@ -15,7 +12,6 @@ import {
 import ApiBase from "@/components/auth/apiBase";
 
 export type { FilterOption, MarketScopedOptions };
-
 
 export type RetailerOnePagerCreatePayload = {
   market: string;
@@ -31,9 +27,9 @@ export type RetailerOnePagerCreatePayload = {
   image_signed_url?: string | null;
   scoring_mode: ScoringMode;
   pillars: NationalPillarPayload[];
-  status?:string;
+  status?: string;
   published_at?: string;
-  published_by?: string;  
+  published_by?: string;
   campaign_focus?: string;
   retailer?: string;
 };
@@ -89,7 +85,7 @@ export function buildRetailerOnePagerPayload(
 }
 
 export type RetailerOnePagerMutationResult =
-  | { ok: true; id: string; status: OnePagerRecordStatus,error?: string }
+  | { ok: true; id: string; status: OnePagerRecordStatus; error?: string }
   | { ok: false; error: string };
 
 // type StoredRetailerRecord = {
@@ -152,10 +148,16 @@ export async function saveRetailerDraft(
 ): Promise<RetailerOnePagerMutationResult> {
   try {
     if (id) {
-      const { data } = await ApiBase.patch(`api/v1/pagers/${id}`, { ...toPublicImageSavePayload(payload), pager_id: id || "" })
+      const { data } = await ApiBase.patch(`api/v1/pagers/${id}`, {
+        ...toPublicImageSavePayload(payload),
+        pager_id: id || "",
+      });
       return { ok: true, id: data?.pager_id || "", status: "draft" };
     }
-    const {data} = await ApiBase.post('api/v1/pagers', { ...toPublicImageSavePayload(payload), pager_id: id || "" })
+    const { data } = await ApiBase.post("api/v1/pagers", {
+      ...toPublicImageSavePayload(payload),
+      pager_id: id || "",
+    });
     return { ok: true, id: data?.pager_id || "", status: "draft" };
   } catch (error) {
     console.error("Error fetching data:", error);
@@ -175,10 +177,16 @@ export async function publishRetailerOnePager(
 ): Promise<RetailerOnePagerMutationResult> {
   try {
     if (id) {
-      const { data } = await ApiBase.patch(`api/v1/pagers/${id}`, { ...toPublicImageSavePayload(payload), pager_id: id || "" })
+      const { data } = await ApiBase.patch(`api/v1/pagers/${id}`, {
+        ...toPublicImageSavePayload(payload),
+        pager_id: id || "",
+      });
       return { ok: true, id: data?.pager_id || "", status: "draft" };
     }
-    const { data } = await ApiBase.post('api/v1/pagers', { ...toPublicImageSavePayload(payload), pager_id: id || "" })
+    const { data } = await ApiBase.post("api/v1/pagers", {
+      ...toPublicImageSavePayload(payload),
+      pager_id: id || "",
+    });
     return { ok: true, id: data?.pager_id || "", status: "published" };
   } catch (error) {
     console.error("Error fetching data:", error);

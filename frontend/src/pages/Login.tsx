@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 
+import { useAuth } from "@/components/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -16,7 +17,7 @@ import unileverBrandLogo from "@/assets/Unilever_Brand_Logo.svg";
 import darkBg from "@/assets/Dark_Background.svg";
 
 export const Login = () => {
-  const navigate = useNavigate();
+  const { user, loading, redirectError } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const accessInstructionsUrl =
     import.meta.env.VITE_ACCESS_INSTRUCTIONS_URL?.trim() ?? "";
@@ -28,13 +29,30 @@ export const Login = () => {
     setSubmitting(true);
     try {
       await loginWithSso();
-      navigate("/home");
-    } catch {
-      setError("Login failed. Please try again.");
-    } finally {
+    } catch (err) {
+      const message =
+        err instanceof Error && err.message.trim()
+          ? err.message
+          : "Login failed. Please try again.";
+      setError(message);
       setSubmitting(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-svh items-center justify-center">
+        <Loader2 className="size-6 animate-spin text-primary" aria-hidden />
+        <span className="sr-only">Loading…</span>
+      </div>
+    );
+  }
+
+  if (user) {
+    return <Navigate to="/home" replace />;
+  }
+
+  const displayError = error ?? redirectError;
 
   return (
     <div className="relative flex min-h-svh flex-col overflow-hidden">
@@ -85,9 +103,9 @@ export const Login = () => {
             )}
           </Button>
 
-          {error ? (
+          {displayError ? (
             <p className="mt-3 text-sm text-destructive" role="alert">
-              {error}
+              {displayError}
             </p>
           ) : null}
 
