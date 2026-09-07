@@ -78,6 +78,10 @@ export async function getMetadata(): Promise<FilterMetadata> {
     } else {
       console.error("Error fetching data:", error);
     }
+    if (import.meta.env.DEV) {
+      const mock = await import("@/services/mocks/homepageMetadata.json");
+      return mock.default as FilterMetadata;
+    }
     throw error;
   }
 }
