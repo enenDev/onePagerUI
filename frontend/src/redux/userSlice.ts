@@ -3,8 +3,12 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { getCurrentUser } from "@/services/userApi";
 
 /**
- * TODO: initialState is mock until GET /api/me. Keep CurrentUser + UserType.
- * Map server role → user_type_1 | user_type_2 | user_type_3.
+ * TODO: currentUser is populated from the signed-in Firebase user via
+ * fetchCurrentUser → getCurrentUser (name/email/id/initials real; role from
+ * ID-token claims or defaulted). initialState below is only a neutral
+ * placeholder shown for the brief moment before that fetch resolves — do NOT
+ * put real user data here. Replace getCurrentUser with GET /api/me later and
+ * keep CurrentUser + UserType + this thunk shape stable.
  * Temporary labels: user_type_1 CSP, user_type_2 retailer, user_type_3 read-only.
  */
 export type UserType = "user_type_1" | "user_type_2" | "user_type_3";
@@ -22,12 +26,13 @@ interface UserState {
   currentUser: CurrentUser;
 }
 
+// Neutral placeholder until fetchCurrentUser populates the real Firebase user.
 const initialState: UserState = {
   currentUser: {
-    id: "gowtham.gunasekaran@unilever.com",
-    email: "gowtham.gunasekaran@unilever.com",
-    name:"Gowtham,Gunasekaran",
-    initials: "GG",
+    id: "",
+    email: "",
+    name: "User",
+    initials: "U",
     user_type: "user_type_1",
   },
 };

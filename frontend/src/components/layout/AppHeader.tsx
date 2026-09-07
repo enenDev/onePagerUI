@@ -31,9 +31,13 @@ export function AppHeader() {
   );
 
   const handleLogout = () => {
-    void logout().then(() => {
-      navigate("/login");
-    });
+    // Always land on /login even if signOut fails; logout() already clears the
+    // stored token, so the user is effectively signed out locally.
+    void logout()
+      .catch(() => {})
+      .finally(() => {
+        navigate("/login");
+      });
   };
 
   return (

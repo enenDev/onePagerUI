@@ -9,7 +9,7 @@ import {
 import { onAuthStateChanged, type User } from "firebase/auth";
 
 import { auth } from "@/config/firebaseConfig";
-import { FIREBASE_TOKEN_KEY } from "@/services/authService";
+import { FIREBASE_TOKEN_KEY, getAuthErrorMessage } from "@/services/authService";
 
 type AuthContextValue = {
   user: User | null;
@@ -39,19 +39,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       auth,
       async (currentUser) => {
         if (cancelled) return;
-        if (currentUser) {
-          await storeUser(currentUser);
+        try {
+          if (currentUser) {
+            await storeUser(currentUser);
+            if (cancelled) return;
+            setUser(currentUser);
+          } else {
+            setUser(null);
+            localStorage.removeItem(FIREBASE_TOKEN_KEY);
+          }
+        } catch (error) {
+          // getIdToken can fail (e.g. network); still surface the signed-in
+          // user — ApiBase refreshes the token on the next request.
           if (cancelled) return;
-          setUser(currentUser);
-        } else {
-          setUser(null);
-          localStorage.removeItem(FIREBASE_TOKEN_KEY);
+          setRedirectError(getAuthErrorMessage(error));
+          if (currentUser) setUser(currentUser);
+        } finally {
+          if (!cancelled) setLoading(false);
         }
-        setLoading(false);
       },
       (error) => {
         if (cancelled) return;
-        setRedirectError(error.message);
+        setRedirectError(getAuthErrorMessage(error));
         setLoading(false);
       },
     );

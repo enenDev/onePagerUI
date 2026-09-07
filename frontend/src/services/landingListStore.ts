@@ -1,7 +1,7 @@
 import type { NationalOnePagerCreatePayload } from "@/services/createFormApi";
 import type { RetailerOnePagerCreatePayload } from "@/services/retailerCreateFormApi";
 import landingOnePagersMock from "@/services/mocks/landingOnePagers.json";
-import { userSlice } from "@/redux/userSlice";
+import { getCurrentUserId } from "@/services/currentUserRef";
 import type {
   OnePagerListItem,
   OnePagerStatus,
@@ -83,8 +83,9 @@ export function upsertLandingCardFromPayload({
     cover_image_url,
     scoring_mode: payload.scoring_mode,
     status: recordStatusToListStatus(record_status),
-    // Same mock id as user.currentUser until FastAPI list returns created_by.
-    created_by: userSlice.getInitialState().currentUser.id,
+    // Stamp the logged-in user's id so new mock cards show under "My
+    // One-Pagers". TODO: Remove when FastAPI list returns created_by.
+    created_by: getCurrentUserId(),
     published_at: formatPublishedAt(new Date()),
     pillars: [],
   };

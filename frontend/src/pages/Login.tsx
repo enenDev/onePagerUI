@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { loginWithSso } from "@/services/authApi";
+import { getAuthErrorMessage } from "@/services/authService";
 import perfectStoreLogo from "@/assets/Perfect Store_Hero_Logo_DarkBG 1.svg?raw";
 import unileverBrandLogo from "@/assets/Unilever_Brand_Logo.svg";
 import darkBg from "@/assets/Dark_Background.svg";
@@ -29,12 +30,14 @@ export const Login = () => {
     setSubmitting(true);
     try {
       await loginWithSso();
+      // On success the AuthProvider user updates and this page redirects to
+      // /home; leave `submitting` true until then.
     } catch (err) {
-      const message =
-        err instanceof Error && err.message.trim()
-          ? err.message
-          : "Login failed. Please try again.";
-      setError(message);
+      // null = user closed/cancelled the popup: reset silently, no error shown.
+      const message = getAuthErrorMessage(err);
+      if (message) {
+        setError(message);
+      }
       setSubmitting(false);
     }
   };
