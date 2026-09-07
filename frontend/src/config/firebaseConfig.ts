@@ -12,9 +12,10 @@ const firebaseConfig = {
   // VITE_REACT_APP_FIREBASE_AUTH_DOMAIN (the UI host), including in prod builds.
   // Temporary (local only): DEV uses window.location.host with Vite proxy.
   // Do not use localhost authDomain in production. Keep apiKey/projectId/appId from .env.
-  authDomain: import.meta.env.DEV
-    ? window.location.host
-    : import.meta.env.VITE_REACT_APP_FIREBASE_AUTH_DOMAIN,
+  // Use the Firebase-hosted authDomain so /__/auth/handler is HTTPS.
+  // DEV window.location.host (http://localhost:5173) makes the SDK call
+  // https://localhost:5173/__/auth/handler, which Vite cannot serve.
+  authDomain: import.meta.env.VITE_REACT_APP_FIREBASE_AUTH_DOMAIN,
   projectId: import.meta.env.VITE_REACT_APP_FIREBASE_PROJECT_ID,
   appId: import.meta.env.VITE_REACT_APP_FIREBASE_APP_ID,
 };
