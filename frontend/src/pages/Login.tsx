@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { loginWithSso } from "@/services/authApi";
-import { isSsoRedirectPending } from "@/services/authService";
+import { canEnterWithoutUser, isSsoRedirectPending } from "@/services/authService";
 import perfectStoreLogo from "@/assets/Perfect Store_Hero_Logo_DarkBG 1.svg?raw";
 import unileverBrandLogo from "@/assets/Unilever_Brand_Logo.svg";
 import darkBg from "@/assets/Dark_Background.svg";
@@ -51,7 +51,9 @@ export const Login = () => {
     );
   }
 
-  if (user) {
+  // TEMP / REVERT: after an SSO attempt, go to /home even if no Firebase user
+  // came back, so deploy + feature testing can continue.
+  if (user || canEnterWithoutUser()) {
     return <Navigate to="/home" replace />;
   }
 

@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 
 import { Loading } from "@/components/common/Loading";
+import { canEnterWithoutUser } from "@/services/authService";
 
 import { useAuth } from "./AuthProvider";
 
@@ -18,7 +19,8 @@ export function RequireAuth({ children }: RequireAuthProps) {
     return <Loading className="min-h-svh" label="Loading…" />;
   }
 
-  if (!user) {
+  // TEMP / REVERT: allow entry after an SSO attempt even without a Firebase user.
+  if (!user && !canEnterWithoutUser()) {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 

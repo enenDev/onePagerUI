@@ -35,6 +35,18 @@ export function clearSsoRedirectPending() {
   sessionStorage.removeItem(SSO_PENDING_KEY);
 }
 
+// TEMP / REVERT: Firebase is not returning a user after SSO yet. To unblock
+// deploy + testing of /home and other features, allow entering the app once an
+// SSO attempt has happened (isSsoRedirectPending) even without a Firebase user.
+// This does NOT affect the real happy path (a real user still works normally),
+// and /login stays reachable on first visit so SSO can still be tested.
+// REMOVE this flag + its two uses (RequireAuth, Login) once SSO returns a user.
+export const TEMP_ALLOW_ENTRY_WITHOUT_USER = true;
+
+export function canEnterWithoutUser() {
+  return TEMP_ALLOW_ENTRY_WITHOUT_USER && isSsoRedirectPending();
+}
+
 /**
  * Starts Azure AD SAML via Firebase. The page leaves; do not read the
  * result here. `completeSsoRedirect` + AuthProvider handle the return.
