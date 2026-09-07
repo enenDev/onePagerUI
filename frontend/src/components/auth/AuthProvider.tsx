@@ -9,12 +9,7 @@ import {
 import { onAuthStateChanged, type User } from "firebase/auth";
 
 import { auth } from "@/config/firebaseConfig";
-import {
-  clearSsoRedirectPending,
-  completeSsoRedirect,
-  FIREBASE_TOKEN_KEY,
-  isSsoRedirectPending,
-} from "@/services/authService";
+import { FIREBASE_TOKEN_KEY } from "@/services/authService";
 
 type AuthContextValue = {
   user: User | null;
@@ -37,33 +32,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let cancelled = false;
 
-    const timeoutId = window.setTimeout(() => {
-      if (!cancelled) {
-        setRedirectError(
-          (prev) => prev ?? "Sign-in is taking too long. Please try again.",
-        );
-        setLoading(false);
-      }
-    }, 20000);
-
-    const finish = (nextUser: User | null) => {
-      window.clearTimeout(timeoutId);
-      // Never wipe a signed-in user with null — identitytoolkit can 200
-      // after getRedirectResult returns empty, then onAuthStateChanged fires.
-      if (nextUser) {
-        setUser(nextUser);
-      }
-      setLoading(false);
-    };
-
+    // SSO uses signInWithPopup, so the credential arrives on the same page and
+    // onAuthStateChanged fires with the user. On reload, browserLocalPersistence
+    // restores the session and this fires again with the stored user.
     const unsubscribe = onAuthStateChanged(
       auth,
       async (currentUser) => {
-        if (cancelled || !currentUser) return;
-        await storeUser(currentUser);
         if (cancelled) return;
-        clearSsoRedirectPending();
-        finish(currentUser);
+        if (currentUser) {
+          await storeUser(currentUser);
+          if (cancelled) return;
+          setUser(currentUser);
+        } else {
+          setUser(null);
+          localStorage.removeItem(FIREBASE_TOKEN_KEY);
+        }
+        setLoading(false);
       },
       (error) => {
         if (cancelled) return;
@@ -72,43 +56,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
     );
 
-    void (async () => {
-      const errorMessage = await completeSsoRedirect();
-      if (cancelled) return;
-      if (errorMessage) {
-        setRedirectError(errorMessage);
-      }
-      await auth.authStateReady();
-      if (cancelled) return;
-
-      let currentUser = auth.currentUser;
-      if (!currentUser) {
-        await new Promise((resolve) => window.setTimeout(resolve, 500));
-        if (cancelled) return;
-        currentUser = auth.currentUser;
-      }
-
-      if (currentUser) {
-        await storeUser(currentUser);
-        if (cancelled) return;
-        finish(currentUser);
-        clearSsoRedirectPending();
-      } else {
-        window.clearTimeout(timeoutId);
-        setLoading(false);
-        if (isSsoRedirectPending()) {
-          setRedirectError(
-            (prev) =>
-              prev ??
-              "Microsoft sign-in finished, but Firebase did not give this app a session. Allow cookies for firebaseapp.com, or try Edge / another Chrome profile.",
-          );
-        }
-      }
-    })();
-
     return () => {
       cancelled = true;
-      window.clearTimeout(timeoutId);
       unsubscribe();
     };
   }, []);
