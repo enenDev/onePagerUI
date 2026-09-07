@@ -59,6 +59,34 @@ import type { PagerUpdateArgs } from "@/redux/landingSlice";
  * Keep stable: FilterPayload / toOnePagerSearchPayload array shape,
  * OnePagerListItem[] response (incl. cover_image_url).
  */
+function matchesFilter(item: OnePagerListItem, filters: FilterPayload) {
+  if (filters.market.length > 0 && !filters.market.includes(item.market)) {
+    return false;
+  }
+  if (
+    filters.retailer.length > 0 &&
+    !filters.retailer.includes(item.retailer)
+  ) {
+    return false;
+  }
+  if (filters.channel.length > 0 && !filters.channel.includes(item.channel)) {
+    return false;
+  }
+  if (
+    filters.category.length > 0 &&
+    !filters.category.includes(item.category)
+  ) {
+    return false;
+  }
+  if (
+    filters.campaign.length > 0 &&
+    !filters.campaign.includes(item.campaign_focus)
+  ) {
+    return false;
+  }
+  return true;
+}
+
 export async function submitOnePagerSearch(
   filters: FilterPayload,
 ): Promise<OnePagerListItem[]> {
@@ -78,6 +106,10 @@ export async function submitOnePagerSearch(
     }));
   } catch (error) {
     console.error("Error fetching data:", error);
+    if (import.meta.env.DEV) {
+      const { landingList } = await import("@/services/landingListStore");
+      return landingList.filter((item) => matchesFilter(item, filters));
+    }
     throw error;
   }
 }
