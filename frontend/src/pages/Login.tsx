@@ -52,7 +52,6 @@ export const Login = () => {
   }
 
   if (user) {
-    // KEEP: after SSO, send /home. Do not revert to always staying on /login.
     return <Navigate to="/home" replace />;
   }
 

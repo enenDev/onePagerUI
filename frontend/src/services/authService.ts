@@ -41,7 +41,6 @@ export function clearSsoRedirectPending() {
  */
 export async function loginUser(): Promise<void> {
   markSsoRedirectPending();
-  // KEEP: resolver required with initializeAuth. Do not remove the 3rd argument.
   await signInWithRedirect(auth, samlProvider, browserPopupRedirectResolver);
 }
 
@@ -61,7 +60,6 @@ export function completeSsoRedirect(): Promise<string | null> {
 
 async function readRedirectResult(): Promise<string | null> {
   try {
-    // KEEP: same resolver as loginUser. Singleton completeSsoRedirect — do not revert.
     const result = await getRedirectResult(auth, browserPopupRedirectResolver);
     if (result?.user) {
       const token = await result.user.getIdToken();
