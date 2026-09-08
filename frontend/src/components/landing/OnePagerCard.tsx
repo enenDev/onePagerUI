@@ -25,7 +25,7 @@ import {
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { deleteOnePager, fetchOnePagers } from "@/redux/landingSlice";
 import { archiveOnePager, restoreOnePager } from "@/redux/landingSlice";
-import { isCurrentUserOwner } from "@/redux/userSlice";
+import { canModifyOnePagers, isCurrentUserOwner } from "@/redux/userSlice";
 import { exportOnePagerById } from "@/services/exportOnePagerPpt";
 import { type OnePagerListItem, type OnePagerStatus } from "@/types/onePager";
 import { formatPublishedAt } from "../preview/nationalPreview";
@@ -59,7 +59,12 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
     item.status === "PUBLISHED"
       ? `/track/${item.pager_id}`
       : `/view/${item.pager_id}`;
-  const actions = menuActionsForStatus(item.status);
+  // Read-only users (user_type_3) can only view + export — drop every other
+  // card action (archive / restore / edit / delete).
+  const canModify = canModifyOnePagers(currentUser.user_type);
+  const actions = menuActionsForStatus(item.status).filter(
+    (action) => canModify || action === "export",
+  );
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);

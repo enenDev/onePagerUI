@@ -78,6 +78,11 @@ type NationalPreviewDocumentProps = {
   canEdit?: boolean;
   /** Delete stays visible for non-owners but is disabled. */
   canDelete?: boolean;
+  /**
+   * Read-only role gate (user_type_3). When false, archive / restore / edit /
+   * delete are hidden entirely; Track + Export stay available. Defaults true.
+   */
+  canModify?: boolean;
   /** Landing / GET list status. Create-publish preview stays Active. */
   status?: OnePagerStatus;
   /** When set, pillar board shows owner-gated RAG dots (Track page). */
@@ -108,6 +113,7 @@ export function NationalPreviewDocument({
   moreOptionsEnabled = false,
   canEdit = true,
   canDelete = true,
+  canModify = true,
   status = "PUBLISHED",
   track,
 }: NationalPreviewDocumentProps) {
@@ -117,9 +123,9 @@ export function NationalPreviewDocument({
         label: "STATUS",
         className: "bg-slate-200 text-slate-600 hover:bg-slate-200",
       };
-  const showArchive = status === "PUBLISHED" && Boolean(onArchive);
-  const showRestore = status === "ARCHIVED" && Boolean(onRestore);
-  const showEdit = status === "PUBLISHED" || status === "DRAFT";
+  const showArchive = canModify && status === "PUBLISHED" && Boolean(onArchive);
+  const showRestore = canModify && status === "ARCHIVED" && Boolean(onRestore);
+  const showEdit = canModify && (status === "PUBLISHED" || status === "DRAFT");
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-start justify-between gap-6">
@@ -248,23 +254,25 @@ export function NationalPreviewDocument({
                 ) : null}
                 {/* TODO: Real FastAPI DELETE is dispatched by parents via onDelete.
                     Keep destructive styling + owner-disabled behavior. */}
-                <DropdownMenuItem
-                  variant="destructive"
-                  disabled={!canDelete}
-                  title={
-                    canDelete
-                      ? undefined
-                      : "Only the owner can delete this one-pager"
-                  }
-                  className="cursor-pointer rounded-none px-3 py-2"
-                  onClick={() => {
-                    if (!canDelete) return;
-                    onDelete?.();
-                  }}
-                >
-                  <Trash2 className="size-4" />
-                  Delete
-                </DropdownMenuItem>
+                {canModify ? (
+                  <DropdownMenuItem
+                    variant="destructive"
+                    disabled={!canDelete}
+                    title={
+                      canDelete
+                        ? undefined
+                        : "Only the owner can delete this one-pager"
+                    }
+                    className="cursor-pointer rounded-none px-3 py-2"
+                    onClick={() => {
+                      if (!canDelete) return;
+                      onDelete?.();
+                    }}
+                  >
+                    <Trash2 className="size-4" />
+                    Delete
+                  </DropdownMenuItem>
+                ) : null}
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (

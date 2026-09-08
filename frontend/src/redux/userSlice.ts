@@ -80,6 +80,15 @@ export function canCreateRetailerOnePager(userType: UserType) {
   return userType === "user_type_1" || userType === "user_type_2";
 }
 
+/**
+ * Read-only users (user_type_3) can only view + export one-pagers — never
+ * archive / restore / edit / delete. Modify actions stay owner-gated on top of
+ * this for the other roles.
+ */
+export function canModifyOnePagers(userType: UserType) {
+  return userType !== "user_type_3";
+}
+
 /** Home “My One-Pagers” scope tab (hidden for read-only). */
 export function canSeeMyOnePagersTab(userType: UserType) {
   return userType !== "user_type_3";

@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import type { FormLayoutContext } from "@/layouts/MainLayout";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { archiveOnePager, deleteOnePager } from "@/redux/landingSlice";
-import { isCurrentUserOwner } from "@/redux/userSlice";
+import { canModifyOnePagers, isCurrentUserOwner } from "@/redux/userSlice";
 import { exportOnePagerPpt } from "@/services/exportOnePagerPpt";
 import {
   getOnePagerById,
@@ -139,6 +139,8 @@ export function TrackOnePager() {
   const isOwner = record
     ? isCurrentUserOwner(record.created_by, currentUser.id)
     : false;
+  // Read-only users (user_type_3) can only view + export.
+  const canModify = canModifyOnePagers(currentUser.user_type);
   const canUpdate = isOwner;
 
   const goEditCreateAsNew = () => {
@@ -278,6 +280,7 @@ export function TrackOnePager() {
             publishedAt={record.published_at}
             status={record.list_status}
             moreOptionsEnabled
+            canModify={canModify}
             canEdit={isOwner}
             canDelete={isOwner}
             onEdit={() => {

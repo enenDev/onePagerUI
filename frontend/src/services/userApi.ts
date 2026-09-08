@@ -54,7 +54,13 @@ export async function getCurrentUser(): Promise<CurrentUser> {
 
   const email = firebaseUser?.email?.trim() || "unknown@unilever.com";
   const name = firebaseUser?.displayName?.trim() || nameFromEmail(email);
-  const id = firebaseUser?.uid || email;
+  // Owner key: MUST equal what the backend stores/returns as `created_by`
+  // (and what create sends via payload.created_by = currentUser.email). The
+  // whole app uses email as the identity for created_by / updated_by / owner
+  // checks, so id = email keeps "My One-Pagers" and owner gating working.
+  // If the backend ever switches created_by to the Firebase uid, change this
+  // to firebaseUser.uid and keep it as the single source of the owner key.
+  const id = email;
   const initials = computeInitials(name, email);
 
   let userType: UserType = "user_type_1";

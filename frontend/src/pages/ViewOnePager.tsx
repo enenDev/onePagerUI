@@ -21,7 +21,7 @@ import {
   archiveOnePager,
   restoreOnePager
 } from "@/redux/landingSlice";
-import { isCurrentUserOwner } from "@/redux/userSlice";
+import { canModifyOnePagers, isCurrentUserOwner } from "@/redux/userSlice";
 import { exportOnePagerPpt } from "@/services/exportOnePagerPpt";
 import {
   getOnePagerById,
@@ -120,6 +120,8 @@ export function ViewOnePager() {
   const isOwner = record
     ? isCurrentUserOwner(record.created_by, currentUser.id)
     : false;
+  // Read-only users (user_type_3) can only view + export.
+  const canModify = canModifyOnePagers(currentUser.user_type);
 
   const goEditCreateAsNew = () => {
     if (!record) return;
@@ -219,6 +221,7 @@ export function ViewOnePager() {
             publishedAt={formatPublishedAt(new Date(record.published_at))}
             status={record.list_status}
             moreOptionsEnabled
+            canModify={canModify}
             canEdit={isOwner}
             canDelete={isOwner}
             onEdit={() => {
