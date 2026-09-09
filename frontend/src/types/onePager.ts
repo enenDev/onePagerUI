@@ -9,7 +9,12 @@ export type FilterKey =
   | "retailer"
   | "channel"
   | "category"
-  | "campaign";
+  | "campaign"
+  | "business_group"
+  | "year";
+
+/** Market-scoped dependent filter keys (exclude market itself + market-independent year). */
+export type MarketScopedFilterKey = Exclude<FilterKey, "market" | "year">;
 
 export interface FilterOption {
   label: string;
@@ -28,6 +33,8 @@ export interface MarketScopedFilterOptions {
   channel: FilterOption[];
   category: FilterOption[];
   campaign: FilterOption[];
+  /** Business Group options (market-dependent), from `business_group`. */
+  business_group: FilterOption[];
   accountableTeam: FilterOption[];
   /** KPI options keyed by pillar_number (1–5), from pillar_kpi_1…pillar_kpi_5. */
   kpisByPillarNumber: Record<number, FilterOption[]>;
@@ -54,6 +61,10 @@ export interface FilterPayload {
   channel: string[];
   category: string[];
   campaign: string[];
+  /** Market-dependent Business Group filter. */
+  business_group: string[];
+  /** Market-independent Year filter (current + next year). */
+  year: string[];
   campaign_focus?: string[];
 }
 
@@ -65,6 +76,8 @@ export function toOnePagerSearchPayload(filters: FilterPayload): FilterPayload {
     channel: [...filters.channel],
     category: [...filters.category],
     campaign: [...filters.campaign],
+    business_group: [...filters.business_group],
+    year: [...filters.year],
   };
 }
 
@@ -78,6 +91,10 @@ export interface OnePagerListItem {
   category: string;
   campaign_focus: string;
   channel: string;
+  /** Business Group (market-dependent). */
+  business_group?: string;
+  /** Plan year, e.g. "2026". */
+  year?: string;
   title: string;
   business_outcome_statement: string;
   /**
@@ -102,6 +119,8 @@ export const emptyFilters: FilterPayload = {
   channel: [],
   category: [],
   campaign: [],
+  business_group: [],
+  year: [],
 };
 
 /** Fresh empty selection — avoid sharing array refs with Redux state. */
@@ -112,5 +131,7 @@ export function createEmptyFilters(): FilterPayload {
     channel: [],
     category: [],
     campaign: [],
+    business_group: [],
+    year: [],
   };
 }

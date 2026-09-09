@@ -1,4 +1,4 @@
-﻿﻿import { useEffect, useRef, useState, type ReactNode } from "react";
+﻿import { useEffect, useRef, useState, type ReactNode } from "react";
 import { CloudUpload, Loader2 } from "lucide-react";
 
 import { AddCampaignModal } from "@/components/form/AddCampaignModal";
@@ -16,7 +16,10 @@ import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Textarea } from "@/components/ui/textarea";
 import { useAppDispatch } from "@/redux/hooks";
 import { appendCampaignOption } from "@/redux/landingSlice";
+import { getYearOptions } from "@/lib/years";
 import type { CreateFormMetadata } from "@/services/createFormApi";
+
+const YEAR_OPTIONS = getYearOptions();
 
 type NationalStrategyFormProps = {
   values: NationalFormValues;
@@ -30,6 +33,8 @@ const STRATEGY_TITLE_KEYS = [
   "category",
   "campaign",
   "channel",
+  "businessGroup",
+  "year",
 ] as const satisfies ReadonlyArray<keyof NationalFormValues>;
 
 export function NationalStrategyForm({
@@ -56,6 +61,7 @@ export function NationalStrategyForm({
   const categoryOptions = scoped?.categories ?? [];
   const campaignOptions = scoped?.campaigns ?? [];
   const channelOptions = scoped?.channels ?? [];
+  const businessGroupOptions = scoped?.businessGroups ?? [];
   const dependentDisabled = !marketSelected || catalogLoading;
   // Tooltip only when Market is empty — not while catalog is still loading.
   const showMarketRequiredTooltip = !marketSelected && !catalogLoading;
@@ -67,10 +73,13 @@ export function NationalStrategyForm({
       category: next.category,
       campaign: next.campaign,
       channel: next.channel,
+      businessGroup: next.businessGroup,
+      year: next.year,
       markets,
       categories: nextScoped?.categories ?? [],
       campaigns: nextScoped?.campaigns ?? [],
       channels: nextScoped?.channels ?? [],
+      businessGroups: nextScoped?.businessGroups ?? [],
     });
   };
 
@@ -81,6 +90,7 @@ export function NationalStrategyForm({
       category: "",
       campaign: "",
       channel: "",
+      businessGroup: "",
     };
     onChange({ ...next, title: titleFromStrategy(next) });
   };
@@ -166,6 +176,31 @@ export function NationalStrategyForm({
                   searchPlaceholder="Search Channel…"
                 />
               </MarketRequiredTooltip>
+            </Field>
+
+            <Field label="Business Group" required>
+              <MarketRequiredTooltip show={showMarketRequiredTooltip}>
+                <SearchableSelect
+                  selectKey={`business-group-${dependentSelectKey}`}
+                  options={businessGroupOptions}
+                  value={values.businessGroup}
+                  onValueChange={(value) => patch({ businessGroup: value })}
+                  disabled={dependentDisabled}
+                  placeholder="Select Business Group"
+                  searchPlaceholder="Search Business Group…"
+                />
+              </MarketRequiredTooltip>
+            </Field>
+
+            <Field label="Year" required>
+              <SearchableSelect
+                options={YEAR_OPTIONS}
+                value={values.year}
+                onValueChange={(value) => patch({ year: value })}
+                disabled={catalogLoading}
+                placeholder="Select Year"
+                searchPlaceholder="Search Year…"
+              />
             </Field>
 
             <div className="space-y-2 sm:col-span-2">
@@ -281,10 +316,13 @@ export function NationalStrategyForm({
               category: next.category,
               campaign: next.campaign,
               channel: next.channel,
+              businessGroup: next.businessGroup,
+              year: next.year,
               markets,
               categories: categoryOptions,
               campaigns: [...campaignOptions, campaign],
               channels: channelOptions,
+              businessGroups: businessGroupOptions,
             }),
           });
         }}

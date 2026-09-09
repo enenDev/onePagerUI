@@ -18,10 +18,13 @@ type NationalTitleInput = {
   category: string;
   campaign: string;
   channel: string;
+  businessGroup: string;
+  year: string;
   markets: FilterOption[];
   categories: FilterOption[];
   campaigns: FilterOption[];
   channels: FilterOption[];
+  businessGroups: FilterOption[];
 };
 
 type RetailerTitleInput = NationalTitleInput & {
@@ -29,29 +32,32 @@ type RetailerTitleInput = NationalTitleInput & {
   retailers: FilterOption[];
 };
 
-/** National: National-Market-Category-Campaign-Channel (empty parts omitted). */
+/**
+ * National: National-Channel-BusinessGroup-Category-Campaign-Year
+ * (empty parts omitted; Year value is already its own label).
+ */
 export function buildNationalOnePagerTitle(input: NationalTitleInput) {
   return joinTitleParts([
     "National",
-    labelFor(input.markets, input.market),
-    labelFor(input.categories, input.category),
-
     labelFor(input.channels, input.channel),
+    labelFor(input.businessGroups, input.businessGroup),
+    labelFor(input.categories, input.category),
     labelFor(input.campaigns, input.campaign),
+    input.year.trim(),
   ]);
 }
 
 /**
- * Retailer: Retailer-Market-Category-Retailer-Campaign-Channel
- * (empty parts omitted; Target Retailer sits after Category).
+ * Retailer: {TargetRetailer}-Channel-BusinessGroup-Category-Campaign-Year
+ * (empty parts omitted; leads with the selected Target Retailer's label).
  */
 export function buildRetailerOnePagerTitle(input: RetailerTitleInput) {
   return joinTitleParts([
-    "Retailer",
-    labelFor(input.markets, input.market),
-    labelFor(input.categories, input.category),
-    labelFor(input.channels, input.channel),
     labelFor(input.retailers, input.targetRetailer),
+    labelFor(input.channels, input.channel),
+    labelFor(input.businessGroups, input.businessGroup),
+    labelFor(input.categories, input.category),
     labelFor(input.campaigns, input.campaign),
+    input.year.trim(),
   ]);
 }

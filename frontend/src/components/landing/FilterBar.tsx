@@ -11,16 +11,27 @@ import {
   toggleFilterValue,
 } from "@/redux/landingSlice";
 import { unionMarketScopedOptions } from "@/services/metadataApi";
-import type { FilterKey, FilterOption } from "@/types/onePager";
+import { getYearOptions } from "@/lib/years";
+import type {
+  FilterKey,
+  FilterOption,
+  MarketScopedFilterKey,
+} from "@/types/onePager";
 import { createEmptyFilters } from "@/types/onePager";
 
-const FILTER_FIELDS: { key: FilterKey; label: string }[] = [
-  { key: "market", label: "Market" },  
-  { key: "channel", label: "Channel" },
-  { key: "retailer", label: "Retailer" },
-  { key: "category", label: "Category" },
-  { key: "campaign", label: "Campaign" },
-];
+/** `independent: true` → not gated by Market selection (e.g. Year). */
+const FILTER_FIELDS: { key: FilterKey; label: string; independent?: boolean }[] =
+  [
+    { key: "market", label: "Market" },
+    { key: "channel", label: "Channel" },
+    { key: "business_group", label: "Business Group" },
+    { key: "retailer", label: "Retailer" },
+    { key: "category", label: "Category" },
+    { key: "campaign", label: "Campaign" },
+    { key: "year", label: "Year", independent: true },
+  ];
+
+const YEAR_OPTIONS = getYearOptions();
 
 type FilterBarProps = {
   onCreateNew: () => void;
@@ -70,10 +81,15 @@ export function FilterBar({
   };
 
   const optionsFor = (key: FilterKey): FilterOption[] => {
+    if (key === "year") return YEAR_OPTIONS;
     if (!metadata) return [];
     if (key === "market") return metadata.market;
     if (!marketSelected) return [];
-    return unionMarketScopedOptions(metadata, filters.market, key);
+    return unionMarketScopedOptions(
+      metadata,
+      filters.market,
+      key as MarketScopedFilterKey,
+    );
   };
 
   return (
@@ -83,8 +99,9 @@ export function FilterBar({
           {FILTER_FIELDS.map((field) => {
             const options = optionsFor(field.key);
             const selected = filters[field.key];
-            const disabled =
-              field.key === "market"
+            const disabled = field.independent
+              ? false
+              : field.key === "market"
                 ? metadataLoading || !metadata
                 : dependentsDisabled;
 
@@ -95,7 +112,9 @@ export function FilterBar({
                 </Label>
                 <MarketRequiredTooltip
                   show={
-                    field.key !== "market" && showMarketRequiredTooltip
+                    field.key !== "market" &&
+                    !field.independent &&
+                    showMarketRequiredTooltip
                   }
                 >
                   <SearchableMultiSelect

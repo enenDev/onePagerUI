@@ -51,6 +51,8 @@ type FormState = {
   unit: string;
   week_start: string;
   week_end: string;
+  week_start_number: string;
+  week_end_number: string;
   guidelines: string;
   checklist_compliance_notes: string;
   images: InitiativeImage[];
@@ -64,6 +66,8 @@ const emptyForm = (): FormState => ({
   unit: "",
   week_start: "",
   week_end: "",
+  week_start_number: "",
+  week_end_number: "",
   guidelines: "",
   checklist_compliance_notes: "",
   images: [],
@@ -78,10 +82,22 @@ function initiativeToForm(initiative: InitiativeDraft): FormState {
     unit: initiative.unit,
     week_start: initiative.week_start,
     week_end: initiative.week_end,
+    week_start_number: initiative.week_start_number ?? "",
+    week_end_number: initiative.week_end_number ?? "",
     guidelines: initiative.guidelines,
     checklist_compliance_notes: initiative.checklist_compliance_notes,
     images: initiative.images,
   };
+}
+
+/** Accept only empty or an integer 1–53 for week-number inputs. */
+function sanitizeWeekNumber(value: string): string | null {
+  const trimmed = value.trim();
+  if (trimmed === "") return "";
+  if (!/^\d{1,2}$/.test(trimmed)) return null;
+  const num = Number(trimmed);
+  if (num < 1 || num > 53) return null;
+  return trimmed;
 }
 
 const DATE_PATTERN = /^(0[1-9]|1[0-2])\/(0[1-9]|[12]\d|3[01])\/\d{4}$/;
@@ -384,6 +400,8 @@ export function AddInitiativeModal({
       unit: form.unit.trim(),
       week_start: form.week_start,
       week_end: form.week_end,
+      week_start_number: form.week_start_number.trim(),
+      week_end_number: form.week_end_number.trim(),
       guidelines: form.guidelines.trim(),
       checklist_compliance_notes: form.checklist_compliance_notes.trim(),
       images: form.images,
@@ -511,34 +529,56 @@ export function AddInitiativeModal({
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <DateField
-            label="Week Start"
-            value={form.week_start}
-            pickerRef={startPickerRef}
-            onChange={(value) => {
-              // If start moves past end, clear end so it cannot stay invalid.
-              const next: Partial<FormState> = { week_start: value };
-              if (
-                form.week_end &&
-                isValidDisplayDate(value) &&
-                isDisplayDateBefore(form.week_end, value)
-              ) {
-                next.week_end = "";
-              }
-              patch(next);
-            }}
-          />
-          <DateField
-            label="Week End"
-            value={form.week_end}
-            pickerRef={endPickerRef}
-            minIso={
-              isValidDisplayDate(form.week_start)
-                ? displayToIso(form.week_start)
-                : undefined
-            }
-            onChange={(value) => patch({ week_end: value })}
-          />
+          <div className="flex items-end gap-2">
+            <div className="flex-1">
+              <DateField
+                label="Week Start"
+                value={form.week_start}
+                pickerRef={startPickerRef}
+                onChange={(value) => {
+                  // If start moves past end, clear end so it cannot stay invalid.
+                  const next: Partial<FormState> = { week_start: value };
+                  if (
+                    form.week_end &&
+                    isValidDisplayDate(value) &&
+                    isDisplayDateBefore(form.week_end, value)
+                  ) {
+                    next.week_end = "";
+                  }
+                  patch(next);
+                }}
+              />
+            </div>
+            <WeekNumberField
+              value={form.week_start_number}
+              onChange={(value) => {
+                const next = sanitizeWeekNumber(value);
+                if (next !== null) patch({ week_start_number: next });
+              }}
+            />
+          </div>
+          <div className="flex items-end gap-2">
+            <div className="flex-1">
+              <DateField
+                label="Week End"
+                value={form.week_end}
+                pickerRef={endPickerRef}
+                minIso={
+                  isValidDisplayDate(form.week_start)
+                    ? displayToIso(form.week_start)
+                    : undefined
+                }
+                onChange={(value) => patch({ week_end: value })}
+              />
+            </div>
+            <WeekNumberField
+              value={form.week_end_number}
+              onChange={(value) => {
+                const next = sanitizeWeekNumber(value);
+                if (next !== null) patch({ week_end_number: next });
+              }}
+            />
+          </div>
         </div>
 
         <div className="space-y-2">
@@ -662,6 +702,29 @@ export function AddInitiativeModal({
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function WeekNumberField({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="w-20 shrink-0 space-y-2">
+      <Label>Week #</Label>
+      <Input
+        value={value}
+        inputMode="numeric"
+        maxLength={2}
+        placeholder="1-53"
+        className="bg-white"
+        onChange={(event) => onChange(event.target.value)}
+        aria-label="Week number (1 to 53)"
+      />
+    </div>
   );
 }
 

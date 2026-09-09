@@ -15,6 +15,8 @@ export type MarketScopedOptions = {
   channels: FilterOption[];
   /** Used by Retailer create (Target Retailer). National form ignores this. */
   retailers: FilterOption[];
+  /** Business Group options (market-dependent) for both forms. */
+  businessGroups: FilterOption[];
   /** Initiative modal — Accountable Function/Department options. */
   accountableTeam: FilterOption[];
   /** Initiative modal — KPI options keyed by pillar_number (1–5). */
@@ -52,6 +54,7 @@ export function composeCreateFormCatalog(
       campaigns: scoped.campaign,
       channels: scoped.channel,
       retailers: scoped.retailer,
+      businessGroups: scoped.business_group,
       accountableTeam: scoped.accountableTeam,
       kpisByPillarNumber: scoped.kpisByPillarNumber,
     };
@@ -137,6 +140,10 @@ export type NationalInitiativePayload = {
   unit: string;
   week_start: string;
   week_end: string;
+  /** Optional ISO-agnostic week number (1–53) alongside week_start date. */
+  week_start_number?: string;
+  /** Optional ISO-agnostic week number (1–53) alongside week_end date. */
+  week_end_number?: string;
   guidelines: string;
   checklist_compliance_notes: string;
   /** Public URLs persisted in DB. Sent on draft/publish. */
@@ -166,6 +173,10 @@ export type NationalOnePagerCreatePayload = {
   category: string;
   campaign: string;
   channel: string;
+  /** Business Group (market-dependent, required by the form). */
+  business_group?: string;
+  /** Plan year, e.g. "2026" (required by the form). */
+  year?: string;
   created_by?: string;
   pager_type?: string;
   title: string;
@@ -215,6 +226,8 @@ export function buildNationalOnePagerPayload(
     category: values.category,
     campaign: values.campaign,
     channel: values.channel,
+    business_group: values.businessGroup,
+    year: values.year,
     title: values.title.trim(),
     business_outcome_statement: values.businessOutcome.trim(),
     image_url,
@@ -236,6 +249,8 @@ export function buildNationalOnePagerPayload(
         unit: initiative.unit,
         week_start: initiative.week_start,
         week_end: initiative.week_end,
+        week_start_number: initiative.week_start_number,
+        week_end_number: initiative.week_end_number,
         guidelines: initiative.guidelines,
         checklist_compliance_notes: initiative.checklist_compliance_notes,
         ...mapInitiativeImageFields(initiative.images),

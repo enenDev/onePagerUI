@@ -25,8 +25,10 @@ export function buildRetailerFormSample(): {
     category: "Hair Care",
     campaign: "Scalp & Shine",
     channel: "Supermarket",
+    businessGroup: "",
+    year: String(new Date().getFullYear()),
     title: clipToLimit(
-      "Retailer-Walmart-Hair Care-Scalp & Shine-US",
+      "Walmart-Supermarket-Hair Care-Scalp & Shine",
       FIELD_LIMITS.title,
     ),
     businessOutcome: clipToLimit(
@@ -63,6 +65,8 @@ export function buildRetailerFormSample(): {
         unit: clipToLimit(initiative.unit, FIELD_LIMITS.unit),
         week_start: initiative.week_start,
         week_end: initiative.week_end,
+        week_start_number: "",
+        week_end_number: "",
         guidelines: clipToLimit(initiative.guidelines, FIELD_LIMITS.guidelines),
         checklist_compliance_notes: clipToLimit(
           initiative.checklist_compliance_notes,

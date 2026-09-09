@@ -62,6 +62,8 @@ export function hydratePillarsFromPayload(
       unit: initiative.unit,
       week_start: initiative.week_start,
       week_end: initiative.week_end,
+      week_start_number: initiative.week_start_number ?? "",
+      week_end_number: initiative.week_end_number ?? "",
       guidelines: initiative.guidelines,
       checklist_compliance_notes: initiative.checklist_compliance_notes,
       images: toFormImages(initiative.images, initiative.image_signed_url),
@@ -83,6 +85,8 @@ export function hydrateNationalFormFromPayload(
       category: payload.category,
       campaign: payload.campaign,
       channel: payload.channel,
+      businessGroup: payload.business_group ?? "",
+      year: payload.year ?? "",
       title: payload.title,
       businessOutcome: payload.business_outcome_statement,
       coverImageName:
@@ -113,6 +117,8 @@ export function hydrateRetailerFormFromPayload(
       category: payload.category,
       campaign: payload.campaign,
       channel: payload.channel,
+      businessGroup: payload.business_group ?? "",
+      year: payload.year ?? "",
       title: payload.title,
       businessOutcome: payload.business_outcome_statement,
       coverImageName:

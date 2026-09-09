@@ -84,7 +84,7 @@ import unileverBrandLogo from "@/assets/UnileverLogo.svg";
 import {
   composeNationalPreviewTitle,
   composeRetailerPreviewTitle,
-  formatPreviewDateRange,
+  formatInitiativeTimeline,
   formatSuccessTarget,
 } from "@/components/preview/nationalPreview";
 import {
@@ -171,11 +171,13 @@ function safeFileName(title: string) {
   return `${base.slice(0, 80)}.pptx`;
 }
 
-function formatTimeline(start: string, end: string) {
-  const label = formatPreviewDateRange(start, end);
-  if (!label) return "";
-  const [from, to] = label.split(" – ");
-  return to ? `w/c ${from} – w/c ${to}` : `w/c ${from}`;
+function formatTimeline(initiative: {
+  week_start: string;
+  week_end: string;
+  week_start_number?: string;
+  week_end_number?: string;
+}) {
+  return formatInitiativeTimeline(initiative);
 }
 
 function blobToDataUrl(blob: Blob) {
@@ -517,12 +519,12 @@ function addInitiative(
   );
   cursor += 0.33;
 
-  const timeline = formatTimeline(initiative.week_start, initiative.week_end);
+  const timeline = formatTimeline(initiative);
   if (timeline) {
     slide.addShape(pptx.ShapeType.roundRect, {
       x: innerX,
       y: cursor,
-      w: Math.min(innerW, 1.7),
+      w: Math.min(innerW, 2.2),
       h: 0.16,
       rectRadius: 0.08,
       fill: { color: "A4F9FF" },
@@ -531,7 +533,7 @@ function addInitiative(
     slide.addText(timeline, {
       x: innerX,
       y: cursor,
-      w: Math.min(innerW, 1.7),
+      w: Math.min(innerW, 2.2),
       h: 0.16,
       align: "center",
       valign: "middle",

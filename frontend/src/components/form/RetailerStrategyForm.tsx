@@ -13,7 +13,10 @@ import { Label } from "@/components/ui/label";
 import { MarketRequiredTooltip } from "@/components/ui/market-required-tooltip";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Textarea } from "@/components/ui/textarea";
+import { getYearOptions } from "@/lib/years";
 import type { CreateFormMetadata } from "@/services/createFormApi";
+
+const YEAR_OPTIONS = getYearOptions();
 
 type RetailerStrategyFormProps = {
   values: RetailerFormValues;
@@ -30,6 +33,8 @@ const STRATEGY_TITLE_KEYS = [
   "campaign",
   "channel",
   "targetRetailer",
+  "businessGroup",
+  "year",
 ] as const satisfies ReadonlyArray<keyof RetailerFormValues>;
 
 /**
@@ -67,6 +72,7 @@ export function RetailerStrategyForm({
   const categoryOptions = scoped?.categories ?? [];
   const campaignOptions = scoped?.campaigns ?? [];
   const channelOptions = scoped?.channels ?? [];
+  const businessGroupOptions = scoped?.businessGroups ?? [];
   const dependentDisabled = !marketSelected || catalogLoading;
   const scopeDisabled = lockScope || catalogLoading;
   const dependentScopeDisabled = lockScope || dependentDisabled;
@@ -83,11 +89,14 @@ export function RetailerStrategyForm({
       campaign: next.campaign,
       channel: next.channel,
       targetRetailer: next.targetRetailer,
+      businessGroup: next.businessGroup,
+      year: next.year,
       markets,
       categories: nextScoped?.categories ?? [],
       campaigns: nextScoped?.campaigns ?? [],
       channels: nextScoped?.channels ?? [],
       retailers: nextScoped?.retailers ?? [],
+      businessGroups: nextScoped?.businessGroups ?? [],
     });
   };
 
@@ -99,6 +108,7 @@ export function RetailerStrategyForm({
       category: "",
       campaign: "",
       channel: "",
+      businessGroup: "",
     };
     onChange({ ...next, title: titleFromStrategy(next) });
   };
@@ -172,6 +182,31 @@ export function RetailerStrategyForm({
                 searchPlaceholder="Search Retailer…"
               />
             </MarketRequiredTooltip>
+          </Field>
+
+          <Field label="Business Group" required>
+            <MarketRequiredTooltip show={showMarketRequiredTooltip}>
+              <SearchableSelect
+                selectKey={`business-group-${dependentSelectKey}`}
+                options={businessGroupOptions}
+                value={values.businessGroup}
+                onValueChange={(value) => patch({ businessGroup: value })}
+                disabled={dependentScopeDisabled}
+                placeholder="Select Business Group"
+                searchPlaceholder="Search Business Group…"
+              />
+            </MarketRequiredTooltip>
+          </Field>
+
+          <Field label="Year" required>
+            <SearchableSelect
+              options={YEAR_OPTIONS}
+              value={values.year}
+              onValueChange={(value) => patch({ year: value })}
+              disabled={scopeDisabled}
+              placeholder="Select Year"
+              searchPlaceholder="Search Year…"
+            />
           </Field>
 
           <div className="space-y-2 sm:col-span-2">

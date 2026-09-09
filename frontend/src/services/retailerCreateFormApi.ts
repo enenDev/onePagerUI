@@ -19,6 +19,10 @@ export type RetailerOnePagerCreatePayload = {
   category: string;
   campaign: string;
   channel: string;
+  /** Business Group (market-dependent, required by the form). */
+  business_group?: string;
+  /** Plan year, e.g. "2026" (required by the form). */
+  year?: string;
   title: string;
   created_by?: string;
   pager_type?: string;
@@ -53,6 +57,8 @@ export function buildRetailerOnePagerPayload(
     category: values.category,
     campaign: values.campaign,
     channel: values.channel,
+    business_group: values.businessGroup,
+    year: values.year,
     title: values.title.trim(),
     business_outcome_statement: values.businessOutcome.trim(),
     image_url,
@@ -75,6 +81,8 @@ export function buildRetailerOnePagerPayload(
           unit: initiative.unit,
           week_start: initiative.week_start,
           week_end: initiative.week_end,
+          week_start_number: initiative.week_start_number,
+          week_end_number: initiative.week_end_number,
           guidelines: initiative.guidelines,
           checklist_compliance_notes: initiative.checklist_compliance_notes,
           ...mapInitiativeImageFields(initiative.images),

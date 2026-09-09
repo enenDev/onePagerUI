@@ -24,6 +24,8 @@ export function buildNationalFormSample(): {
     category: sampleOnePager.category,
     campaign: sampleOnePager.campaign_focus,
     channel: sampleOnePager.channel,
+    businessGroup: "",
+    year: String(new Date().getFullYear()),
     title: clipToLimit(sampleOnePager.title, FIELD_LIMITS.title),
     businessOutcome: clipToLimit(
       sampleOnePager.business_outcome_statement,
@@ -59,6 +61,8 @@ export function buildNationalFormSample(): {
         unit: clipToLimit(initiative.unit, FIELD_LIMITS.unit),
         week_start: initiative.week_start,
         week_end: initiative.week_end,
+        week_start_number: "",
+        week_end_number: "",
         guidelines: clipToLimit(initiative.guidelines, FIELD_LIMITS.guidelines),
         checklist_compliance_notes: clipToLimit(
           initiative.checklist_compliance_notes,

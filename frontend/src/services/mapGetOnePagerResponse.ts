@@ -28,6 +28,8 @@ export type GetOnePagerApiInitiative = {
   unit: string;
   week_start: string;
   week_end: string;
+  week_start_number?: string;
+  week_end_number?: string;
   guidelines: string;
   checklist_compliance_notes: string;
   images: string[];
@@ -54,6 +56,8 @@ export type GetOnePagerApiResponse = {
   channel: string;
   category: string;
   campaign_focus: string;
+  business_group?: string;
+  year?: string;
   business_outcome_statement: string;
   scoring_mode: "WEIGHTED" | "UNWEIGHTED";
   status: string;
@@ -102,6 +106,8 @@ function mapInitiative(
     unit: initiative.unit,
     week_start: initiative.week_start,
     week_end: initiative.week_end,
+    week_start_number: initiative.week_start_number ?? "",
+    week_end_number: initiative.week_end_number ?? "",
     guidelines: initiative.guidelines,
     checklist_compliance_notes: initiative.checklist_compliance_notes,
     images: initiative.images ?? [],
@@ -131,6 +137,8 @@ function mapSharedPayload(
     category: api.category,
     campaign: api.campaign_focus,
     channel: api.channel,
+    business_group: api.business_group ?? "",
+    year: api.year ?? "",
     title: api.title,
     business_outcome_statement: api.business_outcome_statement,
     image_url: api.image_url,

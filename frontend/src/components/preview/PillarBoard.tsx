@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { Info } from "lucide-react";
 
 import {
-  formatPreviewDateRange,
+  formatInitiativeTimeline,
   formatSuccessTarget,
 } from "@/components/preview/nationalPreview";
 import { TrackStatusDot } from "@/components/track/TrackStatusDot";
@@ -68,10 +68,7 @@ function InitiativeBlock({
   initiative: NationalInitiativePayload;
   statusDot?: ReactNode;
 }) {
-  const dateLabel = formatPreviewDateRange(
-    initiative.week_start,
-    initiative.week_end,
-  );
+  const dateLabel = formatInitiativeTimeline(initiative);
   const images = (
     initiative.image_signed_url?.length
       ? initiative.image_signed_url

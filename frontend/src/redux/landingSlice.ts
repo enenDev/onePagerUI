@@ -14,6 +14,7 @@ import {
   type FilterMetadata,
   type FilterOption,
   type FilterPayload,
+  type MarketScopedFilterKey,
   type OnePagerListItem,
   type OnePagerStatus,
   type ScopeTab,
@@ -25,7 +26,8 @@ const DEPENDENT_FILTER_KEYS = [
   "channel",
   "category",
   "campaign",
-] as const satisfies ReadonlyArray<Exclude<FilterKey, "market">>;
+  "business_group",
+] as const satisfies ReadonlyArray<MarketScopedFilterKey>;
 
 interface LandingState {
   metadata: FilterMetadata | null;
@@ -122,10 +124,12 @@ export const restoreOnePager = createAsyncThunk(
 function syncDependentFilters(state: LandingState) {
   const markets = state.filters.market;
   if (markets.length === 0) {
+    // Clear market-dependent filters; Year is independent and stays.
     state.filters.retailer = [];
     state.filters.channel = [];
     state.filters.category = [];
-    state.filters.campaign_focus = [];
+    state.filters.campaign = [];
+    state.filters.business_group = [];
     return;
   }
 
@@ -188,6 +192,7 @@ const landingSlice = createSlice({
           channel: [],
           category: [],
           campaign: [campaign],
+          business_group: [],
           accountableTeam: [],
           kpisByPillarNumber: {},
         };

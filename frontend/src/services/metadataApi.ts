@@ -1,11 +1,11 @@
 import ApiBase from "@/components/auth/apiBase";
 import type {
-  FilterKey,
   FilterMetadata,
   FilterOption,
+  MarketScopedFilterKey,
 } from "@/types/onePager";
 
-type DependentFilterKey = Exclude<FilterKey, "market">;
+type DependentFilterKey = MarketScopedFilterKey;
 
 /** Union distinct options for a dependent filter across selected markets. */
 export function unionMarketScopedOptions(
@@ -37,6 +37,8 @@ interface RawMarketOptions {
   channel?: string[];
   category?: string[];
   campaign?: string[];
+  /** Business Group options (market-dependent). */
+  business_group?: string[];
   /** Accountable Function/Department options for the initiative modal. */
   accountable_team?: string[];
   /** Per-pillar KPI options (pillar_kpi_1 … pillar_kpi_5). */
@@ -70,6 +72,7 @@ const transformData = (input: RawMetadataInput): FilterMetadata => {
       channel: toOptions(raw.channel),
       category: toOptions(raw.category),
       campaign: toOptions(raw.campaign),
+      business_group: toOptions(raw.business_group),
       accountableTeam: toOptions(raw.accountable_team),
       kpisByPillarNumber,
     };

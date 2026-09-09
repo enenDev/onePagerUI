@@ -9,6 +9,10 @@ export type NationalFormValues = {
   category: string;
   campaign: string;
   channel: string;
+  /** Market-dependent Business Group (required). */
+  businessGroup: string;
+  /** Plan year, e.g. "2026" (required). */
+  year: string;
   title: string;
   businessOutcome: string;
   coverImageName: string;
@@ -25,6 +29,8 @@ export const emptyNationalFormValues: NationalFormValues = {
   category: "",
   campaign: "",
   channel: "",
+  businessGroup: "",
+  year: "",
   title: "",
   businessOutcome: "",
   coverImageName: "",
@@ -40,8 +46,10 @@ export function getNationalSubmitBlockers(
   scoringMode: ScoringMode,
 ): string | null {
   if (!values.market.trim()) return "Select a Market.";
-  if (!values.category.trim()) return "Select a Category.";
   if (!values.channel.trim()) return "Select a Channel.";
+  if (!values.businessGroup.trim()) return "Select a Business Group.";
+  if (!values.category.trim()) return "Select a Category.";
+  if (!values.year.trim()) return "Select a Year.";
   if (!values.title.trim()) return "Enter a Title.";
 
   return getWeightedPillarWeightBlocker(scoringMode, pillars);

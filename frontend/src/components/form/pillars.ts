@@ -21,6 +21,10 @@ export type InitiativeDraft = {
   unit: string;
   week_start: string;
   week_end: string;
+  /** Optional week number (1–53) beside week_start. */
+  week_start_number: string;
+  /** Optional week number (1–53) beside week_end. */
+  week_end_number: string;
   guidelines: string;
   checklist_compliance_notes: string;
   images: InitiativeImage[];

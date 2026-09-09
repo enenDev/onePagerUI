@@ -76,32 +76,40 @@ function formatMonthDay(value: string) {
 export function composeNationalPreviewTitle(
   payload: Pick<
     NationalOnePagerCreatePayload,
-    "channel" | "category" | "campaign" | "market"
+    "channel" | "category" | "campaign" | "business_group" | "year"
   >,
 ) {
-  return ["National", payload.channel, payload.category, payload.campaign, payload.market]
-    .map((part) => (part||"").trim())
+  return [
+    "National",
+    payload.channel,
+    payload.business_group,
+    payload.category,
+    payload.campaign,
+    payload.year,
+  ]
+    .map((part) => (part || "").trim())
     .filter(Boolean)
     .join("-");
 }
 
-/** Retailer preview header title — includes Target Retailer. */
+/** Retailer preview header title — leads with Target Retailer. */
 export function composeRetailerPreviewTitle(payload: {
   target_retailer: string;
   channel: string;
   category: string;
   campaign: string;
-  market: string;
+  business_group?: string;
+  year?: string;
 }) {
   return [
-    "Retailer",
     payload.target_retailer,
     payload.channel,
+    payload.business_group,
     payload.category,
     payload.campaign,
-    payload.market,
+    payload.year,
   ]
-    .map((part) => (part||"").trim())
+    .map((part) => (part || "").trim())
     .filter(Boolean)
     .join("-");
 }
@@ -111,6 +119,53 @@ export function formatPreviewDateRange(start: string, end: string) {
   const to = formatMonthDay(end);
   if (from && to) return `${from} – ${to}`;
   return from || to;
+}
+
+/** Month + day with no ordinal suffix, e.g. "Aug 1". */
+function formatMonthDayShort(value: string) {
+  if (!value) return "";
+  const date = parsePreviewDate(value);
+  if (!date) return value;
+  return `${MONTHS[date.getMonth()]} ${date.getDate()}`;
+}
+
+/** "W30-W33" (or "W30" when equal / only one present; "" when neither). */
+function formatWeekPart(startNumber?: string, endNumber?: string) {
+  const start = (startNumber ?? "").trim();
+  const end = (endNumber ?? "").trim();
+  if (start && end) return start === end ? `W${start}` : `W${start}-W${end}`;
+  const single = start || end;
+  return single ? `W${single}` : "";
+}
+
+/** "Aug 1-Sep 27" (or single date; "" when neither). */
+function formatDatePart(start: string, end: string) {
+  const from = formatMonthDayShort(start);
+  const to = formatMonthDayShort(end);
+  if (from && to) return from === to ? from : `${from}-${to}`;
+  return from || to;
+}
+
+/**
+ * Initiative timeline label combining week numbers and dates:
+ *   both  → "W30-W33 (Aug 1-Sep 27)"
+ *   weeks → "W30-W33"
+ *   dates → "Aug 1-Sep 27"
+ *   none  → ""
+ */
+export function formatInitiativeTimeline(initiative: {
+  week_start: string;
+  week_end: string;
+  week_start_number?: string;
+  week_end_number?: string;
+}) {
+  const weekPart = formatWeekPart(
+    initiative.week_start_number,
+    initiative.week_end_number,
+  );
+  const datePart = formatDatePart(initiative.week_start, initiative.week_end);
+  if (weekPart && datePart) return `${weekPart} (${datePart})`;
+  return weekPart || datePart;
 }
 
 export function formatPublishedAt(date: Date) {
