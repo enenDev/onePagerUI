@@ -288,6 +288,7 @@ export function CreateNationalOnePager() {
           onScoringModeChange={setScoringMode}
           onPillarsChange={setPillars}
           catalog={catalog}
+          market={values.market}
         />
         {saveError ? (
           <p className="text-sm text-destructive">{saveError}</p>

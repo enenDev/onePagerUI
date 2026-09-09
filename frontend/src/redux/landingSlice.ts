@@ -188,6 +188,8 @@ const landingSlice = createSlice({
           channel: [],
           category: [],
           campaign: [campaign],
+          accountableTeam: [],
+          kpisByPillarNumber: {},
         };
         return;
       }

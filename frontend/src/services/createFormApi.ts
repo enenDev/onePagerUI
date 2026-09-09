@@ -1,6 +1,5 @@
 import type { NationalFormValues } from "@/components/form/nationalForm";
 import type { PillarDraft, ScoringMode } from "@/components/form/pillars";
-import createFormMetadataMock from "@/services/mocks/createFormMetadata.json";
 
 import type { FilterMetadata } from "@/types/onePager";
 import ApiBase from "@/components/auth/apiBase";
@@ -16,52 +15,33 @@ export type MarketScopedOptions = {
   channels: FilterOption[];
   /** Used by Retailer create (Target Retailer). National form ignores this. */
   retailers: FilterOption[];
-};
-
-const delay = (ms = 250) => new Promise((resolve) => setTimeout(resolve, ms));
-
-/** Initiative-modal extras only. Strategy dropdowns come from FilterMetadata. */
-export type CreateFormExtras = {
-  accountableDepartments: FilterOption[];
-  /**
-   * KPI options per pillar_number (1–5). Different lists per pillar; mock has 14 total.
-   * TODO: Replace with real KPI catalog from FastAPI; keep this keyed shape.
-   */
+  /** Initiative modal — Accountable Function/Department options. */
+  accountableTeam: FilterOption[];
+  /** Initiative modal — KPI options keyed by pillar_number (1–5). */
   kpisByPillarNumber: Record<number, FilterOption[]>;
 };
 
 /**
- * Form catalog: Market / Retailer / Channel / Category / Campaign are composed
- * from homepage `FilterMetadata` (`landing.metadata`). Departments / KPIs come
- * from getCreateFormMetadata.
+ * Form catalog: every dropdown (strategy Market/Retailer/Channel/Category/
+ * Campaign AND initiative Accountable Team/KPIs) is composed from the single
+ * homepage `FilterMetadata` (`landing.metadata` ← GET api/v1/metadata). All
+ * initiative options are market-scoped, same as the strategy dropdowns.
  */
 export type CreateFormMetadata = {
   markets: FilterOption[];
   /** All dependent dropdown options, keyed by market value. */
   optionsByMarket: Record<string, MarketScopedOptions>;
-} & CreateFormExtras;
-
-function loadCreateFormExtras(): CreateFormExtras {
-  const raw = structuredClone(createFormMetadataMock);
-  const kpisByPillarNumber: Record<number, FilterOption[]> = {};
-  for (const [key, options] of Object.entries(raw.kpisByPillarNumber)) {
-    kpisByPillarNumber[Number(key)] = options as FilterOption[];
-  }
-  return {
-    accountableDepartments: raw.accountableDepartments as FilterOption[],
-    kpisByPillarNumber,
-  };
-}
+};
 
 /**
  * Map homepage filter keys (singular) onto the create-form catalog shape (plural)
- * so strategy forms keep reading `markets` / `categories` / etc.
+ * so strategy forms keep reading `markets` / `categories` / etc. Accountable team
+ * + per-pillar KPIs are carried through per market for the initiative modal.
  */
 export function composeCreateFormCatalog(
   filterMetadata: FilterMetadata | null,
-  extras: CreateFormExtras | null,
 ): CreateFormMetadata | null {
-  if (!filterMetadata || !extras) return null;
+  if (!filterMetadata) return null;
 
   const optionsByMarket: Record<string, MarketScopedOptions> = {};
   for (const [market, scoped] of Object.entries(
@@ -72,31 +52,15 @@ export function composeCreateFormCatalog(
       campaigns: scoped.campaign,
       channels: scoped.channel,
       retailers: scoped.retailer,
+      accountableTeam: scoped.accountableTeam,
+      kpisByPillarNumber: scoped.kpisByPillarNumber,
     };
   }
 
   return {
     markets: filterMetadata.market,
     optionsByMarket,
-    accountableDepartments: extras.accountableDepartments,
-    kpisByPillarNumber: extras.kpisByPillarNumber,
   };
-}
-
-/**
- * Initiative dropdowns only (accountable department + KPIs per pillar).
- * Pillar names stay hardcoded in the app.
- *
- * TODO: Replace with real FastAPI GET for initiative extras
- * (e.g. /api/create-form/metadata). Temporary: dummy from
- * `mocks/createFormMetadata.json`. Do not put Market / Retailer / Channel /
- * Category / Campaign here — those come from getMetadata / landing.metadata.
- * Keep CreateFormExtras shape. Client filters kpisByPillarNumber — do not add
- * per-pillar option round-trips.
- */
-export async function getCreateFormMetadata(): Promise<CreateFormExtras> {
-  await delay();
-  return loadCreateFormExtras();
 }
 
 export type AddCampaignResult =
@@ -104,15 +68,17 @@ export type AddCampaignResult =
   | { ok: false; error: string };
 
 /**
- * TODO: Replace with real FastAPI add-campaign endpoint.
- * - POST body: { market, campaign_name }
- * - On success, FE appends the returned option to `landing.metadata` (no metadata refetch)
- *   and selects it on the form. Keep that UX when swapping the POST.
+ * Add a campaign for a market via the real backend.
+ * - POST body: { market, campaign_name, created_by, user_id } — the last two
+ *   are the signed-in user's email (same identity used for created_by elsewhere).
+ * - On success, FE appends the returned option to `landing.metadata` (no metadata
+ *   refetch) and selects it on the form.
  * - Duplicate check uses the shared catalog already in Redux (passed in as existingCampaigns).
  */
 export async function addCampaign(
   market: string,
   campaignName: string,
+  createdBy: string,
   existingCampaigns: FilterOption[] = [],
 ): Promise<AddCampaignResult> {
   const trimmed = campaignName.trim();
@@ -137,8 +103,8 @@ export async function addCampaign(
     await ApiBase.post("api/v1/campaigns", {
       market: market,
       campaign_name: trimmed,
-      created_by: "gowtham.gunasekaran@unilver.com",
-      user_id: "gowtham.gunasekaran@unilver.com",
+      created_by: createdBy,
+      user_id: createdBy,
     });
     return { ok: true, campaign: { label: trimmed, value: trimmed } };
   } catch (error) {

@@ -16,12 +16,21 @@ export interface FilterOption {
   value: string;
 }
 
-/** Dependent homepage filters for one market (not used by create-form APIs). */
+/**
+ * Dependent options for one market.
+ * - retailer/channel/category/campaign feed the homepage filters + strategy form.
+ * - accountableTeam/kpisByPillarNumber feed the create-form initiative modal
+ *   (Accountable Function/Department + per-pillar KPI Metric). All come from the
+ *   same market object in the metadata response.
+ */
 export interface MarketScopedFilterOptions {
   retailer: FilterOption[];
   channel: FilterOption[];
   category: FilterOption[];
   campaign: FilterOption[];
+  accountableTeam: FilterOption[];
+  /** KPI options keyed by pillar_number (1–5), from pillar_kpi_1…pillar_kpi_5. */
+  kpisByPillarNumber: Record<number, FilterOption[]>;
 }
 
 /**

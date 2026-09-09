@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CharCount } from "@/components/form/CharCount";
 import { FIELD_LIMITS } from "@/components/form/fieldLimits";
+import { useAppSelector } from "@/redux/hooks";
 import { addCampaign, type FilterOption } from "@/services/createFormApi";
 
 type AddCampaignModalProps = {
@@ -32,6 +33,9 @@ export function AddCampaignModal({
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const currentUserEmail = useAppSelector(
+    (state) => state.user.currentUser.email,
+  );
 
   const handleOpenChange = (next: boolean) => {
     if (!next) {
@@ -45,7 +49,12 @@ export function AddCampaignModal({
   const handleAdd = async () => {
     setSaving(true);
     setError(null);
-    const result = await addCampaign(market, name, existingCampaigns);
+    const result = await addCampaign(
+      market,
+      name,
+      currentUserEmail,
+      existingCampaigns,
+    );
     setSaving(false);
 
     if (!result.ok) {

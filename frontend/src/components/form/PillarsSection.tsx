@@ -80,7 +80,9 @@ type PillarsSectionProps = {
   onPillarsChange: (pillars: PillarDraft[]) => void;
   /** Shared create-form catalog (initiative dropdowns). */
   catalog: CreateFormMetadata | null;
-};
+  /** Selected strategy market — scopes initiative Accountable Team + KPI options. */
+  market: string;
+}
 
 export function PillarsSection({
   scoringMode,
@@ -88,6 +90,7 @@ export function PillarsSection({
   onScoringModeChange,
   onPillarsChange,
   catalog,
+  market,
 }: PillarsSectionProps) {
   const [expanded, setExpanded] = useState<number[]>([1]);
   const [activePillarNumber, setActivePillarNumber] = useState<number | null>(
@@ -546,9 +549,13 @@ export function PillarsSection({
           open={activePillarNumber !== null}
           pillarName={activePillar.pillar_name}
           priorityLevel={activePriority}
-          accountableOptions={catalog?.accountableDepartments ?? []}
+          accountableOptions={
+            catalog?.optionsByMarket[market]?.accountableTeam ?? []
+          }
           kpiOptions={
-            catalog?.kpisByPillarNumber[activePillar.pillar_number] ?? []
+            catalog?.optionsByMarket[market]?.kpisByPillarNumber[
+              activePillar.pillar_number
+            ] ?? []
           }
           initialInitiative={editingInitiative}
           onOpenChange={(open) => {

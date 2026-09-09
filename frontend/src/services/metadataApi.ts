@@ -28,12 +28,27 @@ export function unionMarketScopedOptions(
   return options;
 }
 
+/** Number of pillars whose KPI lists arrive as pillar_kpi_1…pillar_kpi_N. */
+const PILLAR_COUNT = 5;
+
 // 1. Define the API response structure to eliminate implicit 'any'
-interface RawMetadataInput {
-  [marketKey: string]: {
-    [categoryKey in DependentFilterKey]?: string[];
-  };
+interface RawMarketOptions {
+  retailer?: string[];
+  channel?: string[];
+  category?: string[];
+  campaign?: string[];
+  /** Accountable Function/Department options for the initiative modal. */
+  accountable_team?: string[];
+  /** Per-pillar KPI options (pillar_kpi_1 … pillar_kpi_5). */
+  [pillarKpiKey: `pillar_kpi_${number}`]: string[] | undefined;
 }
+
+interface RawMetadataInput {
+  [marketKey: string]: RawMarketOptions;
+}
+
+const toOptions = (items: string[] | undefined): FilterOption[] =>
+  (items ?? []).map((item) => ({ label: item, value: item }));
 
 // 2. Type-safe data transformer with exact existing logic
 const transformData = (input: RawMetadataInput): FilterMetadata => {
@@ -42,21 +57,22 @@ const transformData = (input: RawMetadataInput): FilterMetadata => {
 
   Object.keys(input).forEach((marketKey) => {
     market.push({ label: marketKey, value: marketKey });
-    
-    // Cast empty object to bypass strict initialization checks safely
-    optionsByMarket[marketKey] = {} as FilterMetadata["optionsByMarket"][string];
-    
-    Object.keys(input[marketKey]).forEach((categoryKey) => {
-      const depKey = categoryKey as DependentFilterKey;
-      const items = input[marketKey][depKey];
 
-      if (items) {
-        optionsByMarket[marketKey][depKey] = items.map((item) => ({
-          label: item,
-          value: item,
-        }));
-      }
-    });
+    const raw = input[marketKey] ?? {};
+
+    const kpisByPillarNumber: Record<number, FilterOption[]> = {};
+    for (let pillar = 1; pillar <= PILLAR_COUNT; pillar += 1) {
+      kpisByPillarNumber[pillar] = toOptions(raw[`pillar_kpi_${pillar}`]);
+    }
+
+    optionsByMarket[marketKey] = {
+      retailer: toOptions(raw.retailer),
+      channel: toOptions(raw.channel),
+      category: toOptions(raw.category),
+      campaign: toOptions(raw.campaign),
+      accountableTeam: toOptions(raw.accountable_team),
+      kpisByPillarNumber,
+    };
   });
 
   return {

@@ -359,6 +359,7 @@ export function CreateRetailerOnePager() {
               onScoringModeChange={setScoringMode}
               onPillarsChange={setPillars}
               catalog={catalog}
+              market={values.market}
             />
           </>
         )}
