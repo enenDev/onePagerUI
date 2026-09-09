@@ -1,7 +1,7 @@
 import { clipToLimit, FIELD_LIMITS } from "@/components/form/fieldLimits";
 import type { FilterOption } from "@/types/onePager";
 
-function labelFor(options: FilterOption[], value: string="  "): string {
+function labelFor(options: FilterOption[], value: string = "  "): string {
   if (!value?.trim()) return "";
   return options.find((option) => option.value === value)?.label ?? value;
 }
@@ -35,8 +35,9 @@ export function buildNationalOnePagerTitle(input: NationalTitleInput) {
     "National",
     labelFor(input.markets, input.market),
     labelFor(input.categories, input.category),
-    labelFor(input.campaigns, input.campaign),
+
     labelFor(input.channels, input.channel),
+    labelFor(input.campaigns, input.campaign),
   ]);
 }
 
@@ -49,8 +50,8 @@ export function buildRetailerOnePagerTitle(input: RetailerTitleInput) {
     "Retailer",
     labelFor(input.markets, input.market),
     labelFor(input.categories, input.category),
+    labelFor(input.channels, input.channel),
     labelFor(input.retailers, input.targetRetailer),
     labelFor(input.campaigns, input.campaign),
-    labelFor(input.channels, input.channel),
   ]);
 }

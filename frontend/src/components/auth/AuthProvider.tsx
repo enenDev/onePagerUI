@@ -9,7 +9,10 @@ import {
 import { onAuthStateChanged, type User } from "firebase/auth";
 
 import { auth } from "@/config/firebaseConfig";
-import { FIREBASE_TOKEN_KEY, getAuthErrorMessage } from "@/services/authService";
+import {
+  FIREBASE_TOKEN_KEY,
+  getAuthErrorMessage,
+} from "@/services/authService";
 
 type AuthContextValue = {
   user: User | null;

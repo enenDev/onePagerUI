@@ -41,9 +41,8 @@ const MainLayout = () => {
     setHeaderTitleState(title);
   }, []);
 
-  const handle = [...matches]
-    .reverse()
-    .find((match) => match.handle)?.handle as RouteHandle | undefined;
+  const handle = [...matches].reverse().find((match) => match.handle)
+    ?.handle as RouteHandle | undefined;
 
   const headerVariant = handle?.headerVariant ?? "list";
   const title = headerTitle ?? handle?.title;

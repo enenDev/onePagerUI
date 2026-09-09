@@ -18,8 +18,10 @@ export async function uploadImage(file: File): Promise<UploadImageResult> {
       },
     });
     const body = data?.data ?? data;
-    const signed_url = body?.signed_url ?? "";
-    const public_url = body?.public_url ?? "";
+    console.log(body)
+    const obj =body[0]
+    const signed_url = obj?.image_signed_url ?? "";
+    const public_url = obj?.image_name ?? "";
     if (!signed_url || !public_url) {
       return { ok: false, error: "Upload failed. Please try again." };
     }

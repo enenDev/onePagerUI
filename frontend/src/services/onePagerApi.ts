@@ -2,10 +2,6 @@ import type {
   NationalOnePagerCreatePayload,
   OnePagerRecordStatus,
 } from "@/services/createFormApi";
-import {
-  removeLandingCard,
-  updateLandingCardStatus,
-} from "@/services/landingListStore";
 import type { RetailerOnePagerCreatePayload } from "@/services/retailerCreateFormApi";
 import {
   toOnePagerSearchPayload,
@@ -265,7 +261,7 @@ export async function updateOnePagerStatus(
       status: newStatus,
       updated_by: updatedBy,
     });
-    removeLandingCard(trimmed);
+    // removeLandingCard(trimmed);
     return { ok: true, pager_id: trimmed };
   } catch (error) {
     console.error("Error fetching data:", error);
@@ -296,12 +292,12 @@ export async function archiveOnePager(
   });
   // removeLandingCard(trimmed);
   // return { ok: true, pager_id: trimmed }
-  const updated = updateLandingCardStatus(trimmed, "ARCHIVED");
-  if (!updated) {
-    // Card may exist only in Redux (post-publish upsert). Still succeed so FE
-    // can patch landing.items.
-    return { ok: true, pager_id: trimmed, status: "ARCHIVED" };
-  }
+  // const updated = updateLandingCardStatus(trimmed, "ARCHIVED");
+  // if (!updated) {
+  //   // Card may exist only in Redux (post-publish upsert). Still succeed so FE
+  //   // can patch landing.items.
+  //   return { ok: true, pager_id: trimmed, status: "ARCHIVED" };
+  // }
   return { ok: true, pager_id: trimmed, status: "ARCHIVED" };
 }
 
@@ -323,9 +319,9 @@ export async function restoreOnePager(
     status: "DRAFT",
     updated_by: args?.user || "",
   });
-  const updated = updateLandingCardStatus(trimmed, "DRAFT");
-  if (!updated) {
-    return { ok: true, pager_id: trimmed, status: "DRAFT" };
-  }
+  // const updated = updateLandingCardStatus(trimmed, "DRAFT");
+  // if (!updated) {
+  //   return { ok: true, pager_id: trimmed, status: "DRAFT" };
+  // }
   return { ok: true, pager_id: trimmed, status: "DRAFT" };
 }

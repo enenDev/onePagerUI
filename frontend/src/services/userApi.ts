@@ -1,5 +1,5 @@
 import { auth } from "@/config/firebaseConfig";
-import { setCurrentUserId } from "@/services/currentUserRef";
+import { getHighestPrivilegeRole } from "@/lib/utils";
 import type { CurrentUser, UserType } from "@/redux/userSlice";
 
 /** Two-letter avatar initials from a display name, falling back to the email. */
@@ -27,24 +27,43 @@ function nameFromEmail(email: string): string {
 }
 
 function toUserType(claim: unknown): UserType {
-  if (
-    claim === "user_type_1" ||
-    claim === "user_type_2" ||
-    claim === "user_type_3"
-  ) {
-    return claim;
+  // if (
+  //   claim === "user_type_1" ||
+  //   claim === "user_type_2" ||
+  //   claim === "user_type_3"
+  // ) {
+  //   return claim;
+  // }
+  switch (String(claim ?? "").toLocaleLowerCase()) {
+    case "csp":
+      return "user_type_1";
+    case "cbd":
+      return "user_type_2";
+    case "general":
+      return "user_type_3";
+    default:
+      return "user_type_3"; // safe default
   }
   // TODO: Map real AD/backend role strings → UserType here once the role source
   // is finalized (e.g. "CSP" → user_type_1, "retailer" → user_type_2,
   // "read-only" → user_type_3). Until then we fall back to the default below.
-  return "user_type_1";
+  // return "user_type_1";
 }
+
+type FirebaseCustomClaims = {
+  firebase?: {
+    sign_in_attributes?: {
+      role?: string;
+      group?: string[];
+    };
+  };
+};
 
 /**
  * Builds the app's CurrentUser from the signed-in Firebase user.
  *
  * TODO: Role/user_type is read from Firebase ID-token custom claims
- * (`user_type` / `role`) if present, otherwise defaulted to user_type_1.
+ * (`user_type` / `role`) if present, otherwise defaulted to user_type_3.
  * Replace with GET /api/me via ApiBase once the backend owns the profile +
  * role. Keep the returned shape { id, name, email, initials, user_type } and
  * the fetchCurrentUser thunk stable when swapping.
@@ -54,30 +73,35 @@ export async function getCurrentUser(): Promise<CurrentUser> {
 
   const email = firebaseUser?.email?.trim() || "unknown@unilever.com";
   const name = firebaseUser?.displayName?.trim() || nameFromEmail(email);
-  // Owner key: MUST equal what the backend stores/returns as `created_by`
-  // (and what create sends via payload.created_by = currentUser.email). The
-  // whole app uses email as the identity for created_by / updated_by / owner
-  // checks, so id = email keeps "My One-Pagers" and owner gating working.
-  // If the backend ever switches created_by to the Firebase uid, change this
-  // to firebaseUser.uid and keep it as the single source of the owner key.
+  /**
+   * Owner key: MUST equal what the backend stores/returns as `created_by`
+   * (and what create sends via payload.created_by = currentUser.email). The
+   * whole app uses email as the identity for created_by / updated_by / owner
+   * checks, so id = email keeps "My One-Pagers" and owner gating working.
+   * */
   const id = email;
   const initials = computeInitials(name, email);
 
-  let userType: UserType = "user_type_1";
+  let userType: UserType = "user_type_3";
   if (firebaseUser) {
     try {
+      // getting token details
       const tokenResult = await firebaseUser.getIdTokenResult();
-      userType = toUserType(
-        tokenResult.claims.user_type ?? tokenResult.claims.role,
-      );
+      // getting claims from token
+      const claims = tokenResult.claims as FirebaseCustomClaims;
+      // getting highest privilege role and group details
+      const role =
+        getHighestPrivilegeRole(claims.firebase?.sign_in_attributes?.role) ||
+        "general";
+      // enable in case we need conditioning based on groups
+      // const groups = claims.firebase?.sign_in_attributes?.group;
+
+      // finally setting user type as per role
+      userType = toUserType(role);
     } catch {
       // Keep the default user_type if claims can't be read.
     }
   }
-
-  // Keep the decoupled ref in sync so mock stores can read the id without
-  // importing the Redux store (avoids a circular import).
-  setCurrentUserId(id);
 
   return { id, name, email, initials, user_type: userType };
 }

@@ -17,10 +17,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import type { FormLayoutContext } from "@/layouts/MainLayout";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { deleteOnePager, fetchOnePagers } from "@/redux/landingSlice";
-import {
-  archiveOnePager,
-  restoreOnePager
-} from "@/redux/landingSlice";
+import { archiveOnePager, restoreOnePager } from "@/redux/landingSlice";
 import { canModifyOnePagers, isCurrentUserOwner } from "@/redux/userSlice";
 import { exportOnePagerPpt } from "@/services/exportOnePagerPpt";
 import {
@@ -133,7 +130,9 @@ export function ViewOnePager() {
     setDeleting(true);
     setDeleteError(null);
     try {
-      await dispatch(deleteOnePager({ pagerId: record.id, user: currentUser.email })).unwrap();
+      await dispatch(
+        deleteOnePager({ pagerId: record.id, user: currentUser.email }),
+      ).unwrap();
       void dispatch(fetchOnePagers(filters));
       setDeleteOpen(false);
       navigate("/home");
@@ -151,7 +150,9 @@ export function ViewOnePager() {
     setArchiving(true);
     setArchiveError(null);
     try {
-      await dispatch(archiveOnePager({ pagerId: record.id, user: owner })).unwrap();
+      await dispatch(
+        archiveOnePager({ pagerId: record.id, user: owner }),
+      ).unwrap();
       setArchiveOpen(false);
       navigate("/home");
     } catch (err) {
@@ -168,7 +169,9 @@ export function ViewOnePager() {
     setRestoring(true);
     setRestoreError(null);
     try {
-      await dispatch(restoreOnePager({pagerId: record.id, user: currentUser.email })).unwrap();
+      await dispatch(
+        restoreOnePager({ pagerId: record.id, user: currentUser.email }),
+      ).unwrap();
       setRestoreOpen(false);
       navigate("/home");
     } catch (err) {
@@ -185,7 +188,9 @@ export function ViewOnePager() {
     setEditPublishedBusy(true);
     setEditPublishedError(null);
     try {
-      await dispatch(archiveOnePager({ pagerId: record.id, user: owner })).unwrap();
+      await dispatch(
+        archiveOnePager({ pagerId: record.id, user: owner }),
+      ).unwrap();
       setEditPublishedOpen(false);
       goEditCreateAsNew();
     } catch (err) {
@@ -241,11 +246,11 @@ export function ViewOnePager() {
               record.list_status === "DRAFT"
                 ? undefined
                 : () => {
-                  void exportOnePagerPpt({
-                    pagerType: record.pager_type,
-                    payload: record.payload,
-                  });
-                }
+                    void exportOnePagerPpt({
+                      pagerType: record.pager_type,
+                      payload: record.payload,
+                    });
+                  }
             }
             onArchive={
               record.list_status === "PUBLISHED"
