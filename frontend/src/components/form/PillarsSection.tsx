@@ -557,6 +557,7 @@ export function PillarsSection({
               activePillar.pillar_number
             ] ?? []
           }
+          marketSelected={Boolean(market)}
           initialInitiative={editingInitiative}
           onOpenChange={(open) => {
             if (!open) closeInitiativeModal();

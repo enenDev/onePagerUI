@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { MarketRequiredTooltip } from "@/components/ui/market-required-tooltip";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -38,6 +39,8 @@ type AddInitiativeModalProps = {
   accountableOptions: FilterOption[];
   /** From create-form catalog — already scoped to this pillar. */
   kpiOptions: FilterOption[];
+  /** Market-scoped options are empty until a Market is picked on the strategy form. */
+  marketSelected: boolean;
   initialInitiative?: InitiativeDraft | null;
   onOpenChange: (open: boolean) => void;
   onSave: (initiative: Omit<InitiativeDraft, "initiative_number">) => void;
@@ -138,6 +141,7 @@ export function AddInitiativeModal({
   priorityLevel,
   accountableOptions,
   kpiOptions,
+  marketSelected,
   initialInitiative = null,
   onOpenChange,
   onSave,
@@ -485,13 +489,19 @@ export function AddInitiativeModal({
             <Label>
               KPI Metric <span className="text-destructive">*</span>
             </Label>
-            <SearchableSelect
-              options={kpiOptions}
-              value={form.kpi_metric}
-              onValueChange={(value) => patch({ kpi_metric: value })}
-              placeholder="Select KPI Metric"
-              searchPlaceholder="Search KPI…"
-            />
+            <MarketRequiredTooltip
+              show={!marketSelected}
+              message="Select a Market on the form first to load KPI options."
+            >
+              <SearchableSelect
+                options={kpiOptions}
+                value={form.kpi_metric}
+                onValueChange={(value) => patch({ kpi_metric: value })}
+                disabled={!marketSelected}
+                placeholder="Select KPI Metric"
+                searchPlaceholder="Search KPI…"
+              />
+            </MarketRequiredTooltip>
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between gap-2">

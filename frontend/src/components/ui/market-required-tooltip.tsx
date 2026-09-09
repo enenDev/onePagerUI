@@ -19,10 +19,13 @@ export function MarketRequiredTooltip({
   show,
   children,
   className = "block w-full",
+  message = MARKET_REQUIRED_FILTER_TOOLTIP,
 }: {
   show: boolean;
   children: ReactNode;
   className?: string;
+  /** Override the default filter copy (e.g. for create-form fields). */
+  message?: string;
 }) {
   if (!show) return children;
 
@@ -32,7 +35,7 @@ export function MarketRequiredTooltip({
         <span className={className}>{children}</span>
       </TooltipTrigger>
       <TooltipContent>
-        <p>{MARKET_REQUIRED_FILTER_TOOLTIP}</p>
+        <p>{message}</p>
       </TooltipContent>
     </Tooltip>
   );

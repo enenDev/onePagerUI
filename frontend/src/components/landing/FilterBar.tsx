@@ -1,5 +1,3 @@
-import { Plus } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { MarketRequiredTooltip } from "@/components/ui/market-required-tooltip";
@@ -20,37 +18,30 @@ import type {
 import { createEmptyFilters } from "@/types/onePager";
 
 /** `independent: true` → not gated by Market selection (e.g. Year). */
-const FILTER_FIELDS: { key: FilterKey; label: string; independent?: boolean }[] =
-  [
-    { key: "market", label: "Market" },
-    { key: "channel", label: "Channel" },
-    { key: "business_group", label: "Business Group" },
-    { key: "retailer", label: "Retailer" },
-    { key: "category", label: "Category" },
-    { key: "campaign", label: "Campaign" },
-    { key: "year", label: "Year", independent: true },
-  ];
+const FILTER_FIELDS: {
+  key: FilterKey;
+  label: string;
+  independent?: boolean;
+}[] = [
+  { key: "market", label: "Market" },
+  { key: "channel", label: "Channel" },
+  { key: "business_group", label: "Business Group" },
+  { key: "retailer", label: "Retailer" },
+  { key: "category", label: "Category" },
+  { key: "campaign", label: "Campaign" },
+  { key: "year", label: "Year", independent: true },
+];
 
 const YEAR_OPTIONS = getYearOptions();
 
-type FilterBarProps = {
-  onCreateNew: () => void;
-  /** Hide for read-only users (user_type_3). Default true. */
-  showCreateNew?: boolean;
-};
-
-export function FilterBar({
-  onCreateNew,
-  showCreateNew = true,
-}: FilterBarProps) {
+export function FilterBar() {
   const dispatch = useAppDispatch();
   const { metadata, filters, listLoading, metadataLoading } = useAppSelector(
     (state) => state.landing,
   );
 
   const marketSelected = filters.market.length > 0;
-  const dependentsDisabled =
-    metadataLoading || !metadata || !marketSelected;
+  const dependentsDisabled = metadataLoading || !metadata || !marketSelected;
   // Tooltip only when Market is empty — not while metadata is still loading.
   const showMarketRequiredTooltip =
     !marketSelected && !metadataLoading && Boolean(metadata);
@@ -93,77 +84,64 @@ export function FilterBar({
   };
 
   return (
-    <div className="flex w-full items-center gap-4">
-      <div className="flex min-w-0 flex-1 items-end gap-2 rounded-lg border border-border bg-white/80 px-3 pt-1.5 pb-2.5">
-        <div className="flex min-w-0 flex-1 items-end gap-2">
-          {FILTER_FIELDS.map((field) => {
-            const options = optionsFor(field.key);
-            const selected = filters[field.key];
-            const disabled = field.independent
-              ? false
-              : field.key === "market"
-                ? metadataLoading || !metadata
-                : dependentsDisabled;
+    <div className="flex w-full items-end gap-2 rounded-lg border border-border bg-white/80 px-3 pt-1.5 pb-2.5">
+      <div className="flex min-w-0 flex-1 items-end gap-2">
+        {FILTER_FIELDS.map((field) => {
+          const options = optionsFor(field.key);
+          const selected = filters[field.key];
+          const disabled = field.independent
+            ? false
+            : field.key === "market"
+              ? metadataLoading || !metadata
+              : dependentsDisabled;
 
-            return (
-              <div key={field.key} className="min-w-0 flex-1 space-y-1">
-                <Label className="text-xs font-medium text-foreground">
-                  {field.label}
-                </Label>
-                <MarketRequiredTooltip
-                  show={
-                    field.key !== "market" &&
-                    !field.independent &&
-                    showMarketRequiredTooltip
+          return (
+            <div key={field.key} className="min-w-0 flex-1 space-y-1">
+              <Label className="text-xs font-medium text-foreground">
+                {field.label}
+              </Label>
+              <MarketRequiredTooltip
+                show={
+                  field.key !== "market" &&
+                  !field.independent &&
+                  showMarketRequiredTooltip
+                }
+              >
+                <SearchableMultiSelect
+                  label={field.label}
+                  placeholder="Select"
+                  options={options}
+                  selected={selected}
+                  disabled={disabled}
+                  onToggle={(value) =>
+                    dispatch(toggleFilterValue({ key: field.key, value }))
                   }
-                >
-                  <SearchableMultiSelect
-                    label={field.label}
-                    placeholder="Select"
-                    options={options}
-                    selected={selected}
-                    disabled={disabled}
-                    onToggle={(value) =>
-                      dispatch(toggleFilterValue({ key: field.key, value }))
-                    }
-                  />
-                </MarketRequiredTooltip>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="flex shrink-0 items-center gap-1">
-          <Button
-            type="button"
-            onClick={handleSubmit}
-            disabled={listLoading}
-            className="h-9 cursor-pointer rounded-full bg-primary px-5 text-primary-foreground"
-          >
-            Submit
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={handleClear}
-            disabled={listLoading}
-            className="h-9 cursor-pointer rounded-full bg-brand-soft px-3 text-primary hover:bg-brand-soft-hover hover:text-primary"
-          >
-            Clear all
-          </Button>
-        </div>
+                />
+              </MarketRequiredTooltip>
+            </div>
+          );
+        })}
       </div>
 
-      {showCreateNew && (
+      <div className="flex shrink-0 items-center gap-1">
         <Button
           type="button"
-          onClick={onCreateNew}
-          className="h-9 shrink-0 cursor-pointer rounded-lg bg-primary px-4 text-primary-foreground"
+          onClick={handleSubmit}
+          disabled={listLoading}
+          className="h-9 cursor-pointer rounded-full bg-primary px-5 text-primary-foreground"
         >
-          <Plus className="size-4" />
-          Create New
+          Submit
         </Button>
-      )}
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={handleClear}
+          disabled={listLoading}
+          className="h-9 cursor-pointer rounded-full bg-brand-soft px-3 text-primary hover:bg-brand-soft-hover hover:text-primary"
+        >
+          Clear all
+        </Button>
+      </div>
     </div>
   );
 }
