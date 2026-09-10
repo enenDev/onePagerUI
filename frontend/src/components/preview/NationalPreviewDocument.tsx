@@ -91,7 +91,7 @@ type NationalPreviewDocumentProps = {
 
 function PreviewField({ label, value }: { label: string; value: string }) {
   return (
-    <div className="min-w-0 px-4 first:pl-0">
+    <div className="min-w-0 px-2 first:pl-0">
       <p className="text-xs font-medium text-muted-foreground">{label}</p>
       <p className="mt-0.5 text-sm font-semibold text-foreground">
         {value || "—"}
@@ -130,12 +130,7 @@ export function NationalPreviewDocument({
     <div className="flex flex-col gap-6">
       <div className="flex items-start justify-between gap-6">
         <div className="min-w-0 flex-1">
-          <dl
-            className={cn(
-              "grid grid-cols-2 divide-x divide-border",
-              payload.target_retailer ? "sm:grid-cols-5" : "sm:grid-cols-4",
-            )}
-          >
+          <dl className="flex flex-wrap items-start gap-y-2 divide-x divide-border">
             {payload.target_retailer ? (
               <PreviewField
                 label="Target Retailer"
@@ -143,9 +138,14 @@ export function NationalPreviewDocument({
               />
             ) : null}
             <PreviewField label="Channel" value={payload.channel} />
+            <PreviewField
+              label="Business Group"
+              value={payload.business_group ?? ""}
+            />
             <PreviewField label="Category" value={payload.category} />
             <PreviewField label="Campaign Focus" value={payload.campaign} />
             <PreviewField label="Market / Geography" value={payload.market} />
+            <PreviewField label="Year" value={payload.year ?? ""} />
           </dl>
           <p className="mt-4 text-sm leading-relaxed break-words text-foreground/85 [overflow-wrap:anywhere]">
             {payload.business_outcome_statement || "—"}

@@ -125,6 +125,12 @@ function InitiativeBlock({
           </div>
         </div>
       ) : null}
+
+      {initiative.checklist_compliance_notes ? (
+        <p className="text-xs leading-snug break-all text-muted-foreground [overflow-wrap:anywhere]">
+          {initiative.checklist_compliance_notes}
+        </p>
+      ) : null}
     </div>
   );
 }
