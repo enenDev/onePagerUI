@@ -1,10 +1,8 @@
 import { useEffect, useRef, type ReactNode } from "react";
-import { CloudUpload, Loader2 } from "lucide-react";
+import { CloudUpload, Loader2, X } from "lucide-react";
 
 import { CharCount } from "@/components/form/CharCount";
-import {
-  buildRetailerOnePagerTitle,
-} from "@/components/form/buildOnePagerTitle";
+import { buildRetailerOnePagerTitle } from "@/components/form/buildOnePagerTitle";
 import { FIELD_LIMITS } from "@/components/form/fieldLimits";
 import type { RetailerFormValues } from "@/components/form/retailerForm";
 import { useCoverImageUpload } from "@/components/form/useCoverImageUpload";
@@ -59,10 +57,14 @@ export function RetailerStrategyForm({
   useEffect(() => {
     valuesRef.current = values;
   }, [values]);
-  const { uploading: coverUploading, error: coverUploadError, onCoverFileChange } =
-    useCoverImageUpload({
-      patch: (next) => onChange({ ...valuesRef.current, ...next }),
-    });
+  const {
+    uploading: coverUploading,
+    error: coverUploadError,
+    onCoverFileChange,
+    clearCover,
+  } = useCoverImageUpload({
+    patch: (next) => onChange({ ...valuesRef.current, ...next }),
+  });
 
   const markets = catalog?.markets ?? [];
   const optionsByMarket = catalog?.optionsByMarket ?? {};
@@ -244,20 +246,22 @@ export function RetailerStrategyForm({
           <div className="space-y-2 sm:col-span-2">
             <Label>Cover Image/Thumbnail</Label>
             <label
-              className={`flex h-11 items-center justify-center gap-2 rounded-lg border border-primary bg-white text-sm font-medium text-primary ${
+              className={`flex h-11 min-w-0 items-center justify-center gap-2 rounded-lg border border-primary bg-white px-3 text-sm font-medium text-primary ${
                 coverUploading
                   ? "cursor-not-allowed opacity-60"
                   : "cursor-pointer hover:bg-accent"
               }`}
             >
               {coverUploading ? (
-                <Loader2 className="size-4 animate-spin" aria-hidden />
+                <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
               ) : (
-                <CloudUpload className="size-4" />
+                <CloudUpload className="size-4 shrink-0" />
               )}
-              {coverUploading
-                ? "Uploading…"
-                : values.coverImageName || "Upload Cover Image"}
+              <span className="min-w-0 truncate">
+                {coverUploading
+                  ? "Uploading…"
+                  : values.coverImageName || "Upload Cover Image"}
+              </span>
               <input
                 type="file"
                 accept="image/png,image/jpeg,image/jpg,image/webp,image/gif,image/svg+xml"
@@ -275,16 +279,27 @@ export function RetailerStrategyForm({
             ) : null}
             {coverUploading ? (
               <div className="flex h-28 items-center justify-center gap-2 rounded-lg border border-border bg-[#f8fafc] text-sm text-muted-foreground">
-                <Loader2 className="size-5 animate-spin text-primary" aria-hidden />
+                <Loader2
+                  className="size-5 animate-spin text-primary"
+                  aria-hidden
+                />
                 Uploading image…
               </div>
             ) : values.coverImageUrl ? (
-              <div className="overflow-hidden rounded-lg border border-border bg-[#f8fafc]">
+              <div className="relative overflow-hidden rounded-lg border border-border bg-[#f8fafc]">
                 <img
                   src={values.coverImageUrl}
                   alt={values.coverImageName || "Cover preview"}
                   className="h-28 w-full object-cover"
                 />
+                <button
+                  type="button"
+                  className="absolute top-1.5 right-1.5 cursor-pointer rounded-full bg-black/60 p-1 text-white hover:bg-black/70"
+                  onClick={() => clearCover(values.coverImageUrl)}
+                  aria-label="Remove cover image"
+                >
+                  <X className="size-3.5" />
+                </button>
               </div>
             ) : null}
           </div>

@@ -147,7 +147,7 @@ export function NationalPreviewDocument({
             <PreviewField label="Campaign Focus" value={payload.campaign} />
             <PreviewField label="Market / Geography" value={payload.market} />
           </dl>
-          <p className="mt-4 text-sm leading-relaxed text-foreground/85">
+          <p className="mt-4 text-sm leading-relaxed break-words text-foreground/85 [overflow-wrap:anywhere]">
             {payload.business_outcome_statement || "—"}
           </p>
         </div>

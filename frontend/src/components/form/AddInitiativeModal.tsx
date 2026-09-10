@@ -223,7 +223,7 @@ export function AddInitiativeModal({
 
   const handleUnitChange = (value: string) => {
     const next = value.slice(0, FIELD_LIMITS.unit);
-    if (next === "" || /^[A-Za-z0-9%./ ]+$/.test(next)) {
+    if (next === "" || /^\d*\.?\d*$/.test(next)) {
       patch({ unit: next });
     }
   };
@@ -451,15 +451,21 @@ export function AddInitiativeModal({
               Accountable Function / Department{" "}
               <span className="text-destructive">*</span>
             </Label>
-            <SearchableSelect
-              options={accountableOptions}
-              value={form.accountable_function_department}
-              onValueChange={(value) =>
-                patch({ accountable_function_department: value })
-              }
-              placeholder="Select"
-              searchPlaceholder="Search department…"
-            />
+            <MarketRequiredTooltip
+              show={!marketSelected}
+              message="Select a Market on the form first to load Accountable Function / Department options."
+            >
+              <SearchableSelect
+                options={accountableOptions}
+                value={form.accountable_function_department}
+                onValueChange={(value) =>
+                  patch({ accountable_function_department: value })
+                }
+                disabled={!marketSelected}
+                placeholder="Select"
+                searchPlaceholder="Search department…"
+              />
+            </MarketRequiredTooltip>
           </div>
         </div>
 
@@ -489,19 +495,13 @@ export function AddInitiativeModal({
             <Label>
               KPI Metric <span className="text-destructive">*</span>
             </Label>
-            <MarketRequiredTooltip
-              show={!marketSelected}
-              message="Select a Market on the form first to load KPI options."
-            >
-              <SearchableSelect
-                options={kpiOptions}
-                value={form.kpi_metric}
-                onValueChange={(value) => patch({ kpi_metric: value })}
-                disabled={!marketSelected}
-                placeholder="Select KPI Metric"
-                searchPlaceholder="Search KPI…"
-              />
-            </MarketRequiredTooltip>
+            <SearchableSelect
+              options={kpiOptions}
+              value={form.kpi_metric}
+              onValueChange={(value) => patch({ kpi_metric: value })}
+              placeholder="Select KPI Metric"
+              searchPlaceholder="Search KPI…"
+            />
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between gap-2">

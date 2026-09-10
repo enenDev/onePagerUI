@@ -67,8 +67,7 @@ export function composeCreateFormCatalog(
 }
 
 export type AddCampaignResult =
-  | { ok: true; campaign: FilterOption }
-  | { ok: false; error: string };
+  { ok: true; campaign: FilterOption } | { ok: false; error: string };
 
 /**
  * Add a campaign for a market via the real backend.
@@ -427,7 +426,12 @@ export async function getNationalOnePager(
   try {
     const { data } = await ApiBase.get(`api/v1/pagers/${id}`);
     return {
-      payload: data as NationalOnePagerCreatePayload,
+      payload: {
+        ...(data as NationalOnePagerCreatePayload),
+        // Raw API returns `campaign_focus`; the form/hydration reads `campaign`.
+        // Mirror getOnePagerById so Import-From-National hydration is populated.
+        campaign: data?.campaign_focus ?? data?.campaign ?? "",
+      } as NationalOnePagerCreatePayload,
       id,
       status: data?.status || "",
     } as NationalOnePagerRecord;

@@ -22,6 +22,32 @@ function fileName(url: string, fallback: string) {
   return part || fallback;
 }
 
+/**
+ * Extract just the file name from a (possibly signed) URL: drop the query
+ * string / hash, take the last path segment, and decode percent-encoding.
+ * Signed URLs carry long query strings that must not leak into the UI label.
+ *
+ * Returns "" when there is no URL at all (so callers can fall back to another
+ * URL via `||`). When a URL IS present but doesn't yield a usable file name
+ * (unexpected shape), returns `fallback` so the UI still shows a sensible label
+ * instead of an empty control.
+ */
+function fileNameFromUrl(
+  url?: string | null,
+  fallback = "Cover image",
+): string {
+  if (!url) return "";
+  const withoutQuery = url.split("?")[0].split("#")[0];
+  const last = withoutQuery.split("/").pop() ?? "";
+  let name: string;
+  try {
+    name = decodeURIComponent(last);
+  } catch {
+    name = last;
+  }
+  return name.trim() || fallback;
+}
+
 function toFormImages(
   publicUrls: string[] = [],
   signedUrls: string[] = [],
@@ -90,9 +116,8 @@ export function hydrateNationalFormFromPayload(
       title: payload.title,
       businessOutcome: payload.business_outcome_statement,
       coverImageName:
-        payload.image_signed_url?.split("/").pop() ||
-        payload.image_url?.split("/").pop() ||
-        "",
+        fileNameFromUrl(payload.image_signed_url) ||
+        fileNameFromUrl(payload.image_url),
       coverImageUrl: payload.image_signed_url ?? payload.image_url ?? "",
       coverImagePublicUrl: payload.image_url ?? "",
       coverImageFile: null,
@@ -122,9 +147,8 @@ export function hydrateRetailerFormFromPayload(
       title: payload.title,
       businessOutcome: payload.business_outcome_statement,
       coverImageName:
-        payload.image_signed_url?.split("/").pop() ||
-        payload.image_url?.split("/").pop() ||
-        "",
+        fileNameFromUrl(payload.image_signed_url) ||
+        fileNameFromUrl(payload.image_url),
       coverImageUrl: payload.image_signed_url ?? payload.image_url ?? "",
       coverImagePublicUrl: payload.image_url ?? "",
       coverImageFile: null,

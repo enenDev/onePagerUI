@@ -58,5 +58,24 @@ export function useCoverImageUpload({ patch }: UseCoverImageUploadArgs) {
     });
   };
 
-  return { uploading, error, onCoverFileChange };
+  /**
+   * Remove the current cover image. Cancels any in-flight upload, revokes a
+   * local blob: preview URL if present, and resets all cover fields.
+   */
+  const clearCover = (currentCoverUrl?: string) => {
+    uploadGen.current += 1;
+    if (currentCoverUrl?.startsWith("blob:")) {
+      URL.revokeObjectURL(currentCoverUrl);
+    }
+    setUploading(false);
+    setError(null);
+    patch({
+      coverImageName: "",
+      coverImageUrl: "",
+      coverImagePublicUrl: "",
+      coverImageFile: null,
+    });
+  };
+
+  return { uploading, error, onCoverFileChange, clearCover };
 }
