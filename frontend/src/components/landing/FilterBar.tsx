@@ -10,6 +10,10 @@ import {
 } from "@/redux/landingSlice";
 import { unionMarketScopedOptions } from "@/services/metadataApi";
 import { getYearOptions } from "@/lib/years";
+import {
+  clearPersistedFilters,
+  savePersistedFilters,
+} from "@/lib/homeFilterStorage";
 import type {
   FilterKey,
   FilterOption,
@@ -56,6 +60,8 @@ export function FilterBar() {
     // (OR within key, AND across keys; [] = no constraint).
     // Keep stable: FilterPayload / toOnePagerSearchPayload, Submit UX,
     // Redux filters state, OnePagerListItem[] response.
+    // Persist the applied filters so they survive reload / return to Home.
+    savePersistedFilters(filters);
     void dispatch(fetchOnePagers(filters));
   };
 
@@ -67,6 +73,8 @@ export function FilterBar() {
     // optionally skip refetch if product prefers client-only clear until Submit.
     // Keep stable: createEmptyFilters() / empty multi-select UI, Clear all label,
     // and that all five filter keys reset together.
+    // Drop the persisted selection so a reload starts clean too.
+    clearPersistedFilters();
     dispatch(clearFilters());
     void dispatch(fetchOnePagers(createEmptyFilters()));
   };

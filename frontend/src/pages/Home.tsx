@@ -11,9 +11,11 @@ import {
   clearFilters,
   fetchMetadata,
   fetchOnePagers,
+  setFilters,
   setScopeTab,
   setStatusTab,
 } from "@/redux/landingSlice";
+import { loadPersistedFilters } from "@/lib/homeFilterStorage";
 import {
   canCreateAnyOnePager,
   canSeeDraftsTab,
@@ -71,12 +73,15 @@ export const Home = () => {
   }, [dispatch, scopeTab, showDraftsTab, showMyTab, statusTab]);
 
   useEffect(() => {
-    // List always reloads unfiltered; reset dropdown UI to match.
-    // Redux filters persist across create/edit, so coming back would
-    // otherwise show old selections on an empty-filter result set.
-    dispatch(clearFilters());
+    // Restore the last *applied* dropdown filters from sessionStorage so they
+    // survive reloads / navigating back to Home. Fetch the list with the same
+    // filters so the results match the restored dropdown selections (avoids the
+    // old "dropdowns say X but list is unfiltered" mismatch). When nothing is
+    // stored, fall back to the previous clear-and-load-all behavior.
+    const persisted = loadPersistedFilters();
+    dispatch(persisted ? setFilters(persisted) : clearFilters());
     void dispatch(fetchMetadata());
-    void dispatch(fetchOnePagers(createEmptyFilters()));
+    void dispatch(fetchOnePagers(persisted ?? createEmptyFilters()));
   }, [dispatch]);
 
   const effectiveScope =

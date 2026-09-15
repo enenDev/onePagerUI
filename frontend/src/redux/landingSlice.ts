@@ -169,6 +169,15 @@ const landingSlice = createSlice({
       // Fresh arrays so Clear all always resets UI selection state.
       state.filters = createEmptyFilters();
     },
+    /**
+     * Hydrate the whole filter set at once (e.g. restoring from sessionStorage
+     * on Home mount). Prunes market-dependent values immediately when metadata
+     * is already loaded; otherwise fetchMetadata.fulfilled re-prunes on arrival.
+     */
+    setFilters(state, action: PayloadAction<FilterPayload>) {
+      state.filters = action.payload;
+      syncDependentFilters(state);
+    },
     setStatusTab(state, action: PayloadAction<StatusTab>) {
       state.statusTab = action.payload;
     },
@@ -271,6 +280,7 @@ function patchItemStatus(
 export const {
   toggleFilterValue,
   clearFilters,
+  setFilters,
   setStatusTab,
   setScopeTab,
   appendCampaignOption,
