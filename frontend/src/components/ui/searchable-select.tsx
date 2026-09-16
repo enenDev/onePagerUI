@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, ChevronDown } from "lucide-react";
+import { Check, ChevronDown, X } from "lucide-react";
 
 import {
   Command,
@@ -74,7 +74,37 @@ export function SearchableSelect({
           <span className="min-w-0 truncate text-left">
             {value ? selectedLabel : placeholder}
           </span>
-          <ChevronDown className="size-4 shrink-0 text-muted-foreground" />
+          <span className="flex shrink-0 items-center gap-1">
+            {value && !disabled ? (
+              <span
+                role="button"
+                tabIndex={0}
+                aria-label="Clear selection"
+                className="flex size-4 cursor-pointer items-center justify-center rounded-sm text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50"
+                // Stop pointer/click from bubbling to the trigger so clearing
+                // never opens the popover. Clearing empties the value ("").
+                onPointerDown={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                }}
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  onValueChange("");
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    onValueChange("");
+                  }
+                }}
+              >
+                <X className="size-4" />
+              </span>
+            ) : null}
+            <ChevronDown className="size-4 text-muted-foreground" />
+          </span>
         </button>
       </PopoverTrigger>
       <PopoverContent

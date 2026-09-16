@@ -169,6 +169,16 @@ const landingSlice = createSlice({
       // Fresh arrays so Clear all always resets UI selection state.
       state.filters = createEmptyFilters();
     },
+    /** Clear a single filter's selection (per-filter X). */
+    clearFilterValue(state, action: PayloadAction<{ key: FilterKey }>) {
+      const { key } = action.payload;
+      state.filters[key] = [];
+
+      // Clearing Market cascades: dependent filters must reset too.
+      if (key === "market") {
+        syncDependentFilters(state);
+      }
+    },
     /**
      * Hydrate the whole filter set at once (e.g. restoring from sessionStorage
      * on Home mount). Prunes market-dependent values immediately when metadata
@@ -280,6 +290,7 @@ function patchItemStatus(
 export const {
   toggleFilterValue,
   clearFilters,
+  clearFilterValue,
   setFilters,
   setStatusTab,
   setScopeTab,

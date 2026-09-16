@@ -5,6 +5,7 @@ import { SearchableMultiSelect } from "@/components/ui/searchable-multi-select";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import {
   clearFilters,
+  clearFilterValue,
   fetchOnePagers,
   toggleFilterValue,
 } from "@/redux/landingSlice";
@@ -123,6 +124,9 @@ export function FilterBar() {
                   disabled={disabled}
                   onToggle={(value) =>
                     dispatch(toggleFilterValue({ key: field.key, value }))
+                  }
+                  onClear={() =>
+                    dispatch(clearFilterValue({ key: field.key }))
                   }
                 />
               </MarketRequiredTooltip>

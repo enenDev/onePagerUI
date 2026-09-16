@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, ChevronDown } from "lucide-react";
+import { Check, ChevronDown, X } from "lucide-react";
 
 import {
   Command,
@@ -23,6 +23,8 @@ type SearchableMultiSelectProps = {
   options: FilterOption[];
   selected: string[];
   onToggle: (value: string) => void;
+  /** Clear all selected values for this filter. X shown only when provided. */
+  onClear?: () => void;
   disabled?: boolean;
   /** Empty-state trigger text. Defaults to `label`. */
   placeholder?: string;
@@ -54,6 +56,7 @@ export function SearchableMultiSelect({
   options,
   selected,
   onToggle,
+  onClear,
   disabled = false,
   placeholder = label,
   searchPlaceholder = `Search ${label}…`,
@@ -84,7 +87,37 @@ export function SearchableMultiSelect({
           )}
         >
           <span className="min-w-0 truncate text-left">{triggerLabel}</span>
-          <ChevronDown className="size-4 shrink-0 text-muted-foreground" />
+          <span className="flex shrink-0 items-center gap-1">
+            {hasSelection && !disabled && onClear ? (
+              <span
+                role="button"
+                tabIndex={0}
+                aria-label={`Clear ${label} selection`}
+                className="flex size-4 cursor-pointer items-center justify-center rounded-sm text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50"
+                // Stop pointer/click from bubbling to the trigger so clearing
+                // never opens the popover.
+                onPointerDown={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                }}
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  onClear();
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    onClear();
+                  }
+                }}
+              >
+                <X className="size-4" />
+              </span>
+            ) : null}
+            <ChevronDown className="size-4 text-muted-foreground" />
+          </span>
         </button>
       </PopoverTrigger>
       <PopoverContent
