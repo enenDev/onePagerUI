@@ -89,7 +89,7 @@ export function SearchableMultiSelect({
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="w-(--radix-popover-trigger-width) p-0"
+        className="min-w-(--radix-popover-trigger-width) w-max max-w-(--radix-popover-content-available-width) p-0"
       >
         <Command filter={commandSubstringFilter}>
           <CommandInput placeholder={searchPlaceholder} />
@@ -123,7 +123,7 @@ export function SearchableMultiSelect({
                         <Check className="size-3 stroke-[3]" />
                       ) : null}
                     </span>
-                    <span className="min-w-0 flex-1 truncate">
+                    <span className="min-w-0 flex-1">
                       {option.label}
                     </span>
                   </CommandItem>

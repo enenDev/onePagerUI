@@ -79,7 +79,7 @@ export function SearchableSelect({
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="w-(--radix-popover-trigger-width) p-0"
+        className="min-w-(--radix-popover-trigger-width) w-max max-w-(--radix-popover-content-available-width) p-0"
       >
         <Command
           key={selectKey ?? (open ? "open" : "closed")}
@@ -108,7 +108,7 @@ export function SearchableSelect({
                         isSelected ? "opacity-100" : "opacity-0",
                       )}
                     />
-                    <span className="min-w-0 flex-1 truncate">
+                    <span className="min-w-0 flex-1">
                       {option.label}
                     </span>
                   </CommandItem>

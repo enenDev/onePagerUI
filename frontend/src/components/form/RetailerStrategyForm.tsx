@@ -165,7 +165,7 @@ export function RetailerStrategyForm({
                 options={channelOptions}
                 value={values.channel}
                 onValueChange={(value) => patch({ channel: value })}
-                disabled={dependentScopeDisabled}
+                disabled={dependentDisabled}
                 placeholder="Select Channel"
                 searchPlaceholder="Search Channel…"
               />
