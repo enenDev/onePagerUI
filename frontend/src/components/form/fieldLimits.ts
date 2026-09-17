@@ -34,8 +34,9 @@ export function clipToLimit(value: string, max: number) {
  * resize; only the font size changes. Change ranges/sizes HERE only.
  *
  * Applied (via fontSizeForLength) to: Initiative, Guidelines, pillar
- * description, and checklist/image notes. NOT applied to Success Measure
- * (single line, overflow) or the header Business Outcome (fixed size).
+ * description, and checklist/image notes. Success Measure uses the fixed
+ * PPT_SUCCESS_MEASURE_FONT_SIZE (single line). Header Business Outcome stays
+ * a fixed size.
  *
  * A bucket matches when `value.length <= maxChars` (first match wins). Content
  * longer than the last bucket stays at the smallest (floor) size and is allowed
@@ -44,12 +45,20 @@ export function clipToLimit(value: string, max: number) {
 export type FontSizeBucket = { maxChars: number; fontSize: number };
 
 export const PPT_FONT_SIZE_BUCKETS: readonly FontSizeBucket[] = [
-  { maxChars: 120, fontSize: 7 }, // default
-  { maxChars: 200, fontSize: 6 },
-  { maxChars: 300, fontSize: 5.5 },
-  { maxChars: 400, fontSize: 4.5 },
-  { maxChars: 500, fontSize: 4 }, // floor
+  { maxChars: 120, fontSize: 7 },
+  { maxChars: 200, fontSize: 5.5 },
+  { maxChars: 300, fontSize: 4.5 },
+  { maxChars: 400, fontSize: 4 },
+  { maxChars: 500, fontSize: 3.5 }, // floor
 ] as const;
+
+/**
+ * Success Measure is a single non-wrapping line between Initiative and
+ * Guidelines. Keep this smaller than the Initiative default (7pt) so a
+ * slightly overflowing Initiative is less likely to collide, and so the
+ * 0.14" row still has air above Guidelines. 6pt line ≈ 0.10" inside 0.14".
+ */
+export const PPT_SUCCESS_MEASURE_FONT_SIZE = 6;
 
 /** First bucket whose maxChars >= length; falls back to the smallest (floor) size. */
 export function fontSizeForLength(

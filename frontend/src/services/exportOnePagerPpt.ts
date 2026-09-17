@@ -25,7 +25,7 @@
  *   | P1 / P2 / P3 initiative slots (empty slots stay blank so the grid does not shift)
  *
  * Each initiative slot, top → bottom:
- *   P1/P2/P3 circle + department pill + timeline pill (far right, "w/c …")
+ *   P1/P2/P3 circle + department pill + timeline pill (far right, "W30-W33 (Aug 1-Sep 27)")
  *   Initiative (label + initiative_description)
  *   Success Measure (single line, kpi_metric + success_target + unit)
  *   Guidelines (value only — label hidden/commented)
@@ -87,7 +87,7 @@ import unileverBrandLogo from "@/assets/UnileverLogo.svg";
 import {
   composeNationalPreviewTitle,
   composeRetailerPreviewTitle,
-  formatPreviewDateRange,
+  formatInitiativeTimeline,
   formatSuccessTarget,
 } from "@/components/preview/nationalPreview";
 import {
@@ -101,7 +101,10 @@ import type {
 } from "@/services/createFormApi";
 import { getOnePagerById } from "@/services/onePagerApi";
 import type { RetailerOnePagerCreatePayload } from "@/services/retailerCreateFormApi";
-import { fontSizeForLength } from "@/components/form/fieldLimits";
+import {
+  fontSizeForLength,
+  PPT_SUCCESS_MEASURE_FONT_SIZE,
+} from "@/components/form/fieldLimits";
 
 type Slide = ReturnType<PptxGenJS["addSlide"]>;
 
@@ -179,13 +182,6 @@ function composeTitle(
 function safeFileName(title: string) {
   const base = title.replace(/[<>:"/\\|?*]/g, "-").trim() || "OnePager";
   return `${base.slice(0, 80)}.pptx`;
-}
-
-function formatTimeline(start: string, end: string) {
-  const label = formatPreviewDateRange(start, end);
-  if (!label) return "";
-  const [from, to] = label.split(" – ");
-  return to ? `w/c ${from} – w/c ${to}` : `w/c ${from}`;
 }
 
 function blobToDataUrl(blob: Blob) {
@@ -309,18 +305,30 @@ function addHeader(
   });
 
   const storeLogo = images.get(perfectStoreLogo);
+  const storeLogoW = 0.55;
+  const storeLogoH = 0.34;
+  const logoInset = 0.08;
   if (storeLogo) {
-    slide.addImage({ data: storeLogo, x: 0.8, y: 0.18, w: 0.55, h: 0.34 });
+    slide.addImage({
+      data: storeLogo,
+      x: logoInset,
+      y: (HEADER_H - storeLogoH) / 2,
+      w: storeLogoW,
+      h: storeLogoH,
+    });
   }
 
   const unilever = images.get(unileverBrandLogo);
+  const unileverW = 0.42;
+  const unileverH = 0.3;
+  const unileverX = SLIDE_W - logoInset - unileverW;
   if (unilever) {
     slide.addImage({
       data: unilever,
-      x: SLIDE_W - 0.8,
-      y: 0.22,
-      w: 0.42,
-      h: 0.3,
+      x: unileverX,
+      y: (HEADER_H - unileverH) / 2,
+      w: unileverW,
+      h: unileverH,
     });
   }
 
@@ -328,8 +336,8 @@ function addHeader(
     .map((value) => value.trim())
     .filter(Boolean);
   const barH = 0.28;
-  const barY = 0.21;
-  const barRight = SLIDE_W - 1.28;
+  const barY = (HEADER_H - barH) / 2;
+  const barRight = unileverX - 0.06;
   const segmentPadX = 0.16;
   const charW = 0.072;
   const minSegW = 0.78;
@@ -386,30 +394,30 @@ function addHeader(
   }
 
   const title = composeTitle(pagerType, payload);
-  const titleX = 1.8;
-  const titleW = Math.max(3.5, barX - titleX - 0.12);
+  const titleX = logoInset + storeLogoW + 0.08;
+  const titleW = Math.max(3.5, barX - titleX - 0.08);
   slide.addText(title, {
     x: titleX,
-    y: 0.08,
+    y: 0.02,
     w: titleW,
-    h: 0.32,
+    h: 0.2,
     fontSize: 12,
     fontFace: "Arial",
     color: "FFFFFF",
     bold: true,
     margin: 0,
-    valign: "middle",
+    valign: "top",
   });
   slide.addText(payload.business_outcome_statement || "", {
     x: titleX,
-    y: 0.38,
+    y: 0.22,
     w: titleW,
-    h: 0.26,
+    h: HEADER_H - 0.24,
     fontSize: 8,
     fontFace: "Arial",
     color: "FFFFFF",
     margin: 0,
-    valign: "top",
+    valign: "middle",
   });
 }
 
@@ -492,8 +500,8 @@ function addInitiative(
 
   // Timeline moved up to the badge row, pinned to the far right (same Y level
   // as the P1/P2/P3 badge).
-  const timeline = formatTimeline(initiative.week_start, initiative.week_end);
-  const timelineW = 1.15;
+  const timeline = formatInitiativeTimeline(initiative);
+  const timelineW = 1.45;
 
   const dept = initiative.accountable_function_department || "—";
   const deptMaxW = innerW - badge - 0.06 - (timeline ? timelineW + 0.06 : 0);
@@ -558,17 +566,26 @@ function addInitiative(
   );
   cursor += 0.33;
 
-  // Success Measure — single line, fixed font, allowed to overflow (short
+  // Success Measure — single line, allowed to overflow horizontally (short
   // field, never 500 chars). wrap:false keeps label + value on one line.
+  // Font is PPT_SUCCESS_MEASURE_FONT_SIZE (6pt) so this row stays inside
+  // 0.14" and doesn't collide with Guidelines below.
   slide.addText(
     [
       {
         text: "Success Measure: ",
-        options: { bold: true, color: "0066CC", fontSize: 7 },
+        options: {
+          bold: true,
+          color: "0066CC",
+          fontSize: PPT_SUCCESS_MEASURE_FONT_SIZE,
+        },
       },
       {
         text: formatSuccessTarget(initiative) || "—",
-        options: { color: "333333", fontSize: 7 },
+        options: {
+          color: "333333",
+          fontSize: PPT_SUCCESS_MEASURE_FONT_SIZE,
+        },
       },
     ],
     {
