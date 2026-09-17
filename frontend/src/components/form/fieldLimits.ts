@@ -26,3 +26,38 @@ export const FIELD_LIMITS = {
 export function clipToLimit(value: string, max: number) {
   return value.length <= max ? value : value.slice(0, max);
 }
+
+/**
+ * PPT export font-size buckets — single source of truth.
+ *
+ * Longer copy shrinks to fit its FIXED box in the exported slide. Boxes do not
+ * resize; only the font size changes. Change ranges/sizes HERE only.
+ *
+ * Applied (via fontSizeForLength) to: Initiative, Guidelines, pillar
+ * description, and checklist/image notes. NOT applied to Success Measure
+ * (single line, overflow) or the header Business Outcome (fixed size).
+ *
+ * A bucket matches when `value.length <= maxChars` (first match wins). Content
+ * longer than the last bucket stays at the smallest (floor) size and is allowed
+ * to overflow rather than being clipped.
+ */
+export type FontSizeBucket = { maxChars: number; fontSize: number };
+
+export const PPT_FONT_SIZE_BUCKETS: readonly FontSizeBucket[] = [
+  { maxChars: 120, fontSize: 7 }, // default
+  { maxChars: 200, fontSize: 6 },
+  { maxChars: 300, fontSize: 5.5 },
+  { maxChars: 400, fontSize: 4.5 },
+  { maxChars: 500, fontSize: 4 }, // floor
+] as const;
+
+/** First bucket whose maxChars >= length; falls back to the smallest (floor) size. */
+export function fontSizeForLength(
+  length: number,
+  buckets: readonly FontSizeBucket[] = PPT_FONT_SIZE_BUCKETS,
+): number {
+  for (const bucket of buckets) {
+    if (length <= bucket.maxChars) return bucket.fontSize;
+  }
+  return buckets[buckets.length - 1]?.fontSize ?? 4;
+}

@@ -25,14 +25,17 @@
  *   | P1 / P2 / P3 initiative slots (empty slots stay blank so the grid does not shift)
  *
  * Each initiative slot, top → bottom:
- *   P1/P2/P3 circle + department pill
+ *   P1/P2/P3 circle + department pill + timeline pill (far right, "w/c …")
  *   Initiative (label + initiative_description)
- *   Success Target (kpi_metric + success_target + unit)
- *   Guidelines
- *   Timeline pill (week_start / week_end as "w/c …")
+ *   Success Measure (single line, kpi_metric + success_target + unit)
+ *   Guidelines (value only — label hidden/commented)
  *   Photo strip: up to 3 images, FIXED width = 1/3 of the column
  *     (1 image does not stretch; same slot size as a 3-up strip)
  *   checklist_compliance_notes under the photos
+ *
+ * Font sizing: Initiative / Guidelines / pillar description / checklist notes
+ * scale via PPT_FONT_SIZE_BUCKETS (fontSizeForLength) in fieldLimits.ts.
+ * Boxes stay fixed height; only the font size changes to fit.
  *
  * ---------------------------------------------------------------------------
  * How to change layout (all sizes are inches)
@@ -84,7 +87,7 @@ import unileverBrandLogo from "@/assets/UnileverLogo.svg";
 import {
   composeNationalPreviewTitle,
   composeRetailerPreviewTitle,
-  formatInitiativeTimeline,
+  formatPreviewDateRange,
   formatSuccessTarget,
 } from "@/components/preview/nationalPreview";
 import {
@@ -98,6 +101,7 @@ import type {
 } from "@/services/createFormApi";
 import { getOnePagerById } from "@/services/onePagerApi";
 import type { RetailerOnePagerCreatePayload } from "@/services/retailerCreateFormApi";
+import { fontSizeForLength } from "@/components/form/fieldLimits";
 
 type Slide = ReturnType<PptxGenJS["addSlide"]>;
 
@@ -128,12 +132,18 @@ const PILLAR_THEME: Record<number, { bg: string; title: string }> = {
   5: { bg: "FEFAF5", title: "EF9E22" },
 };
 
-/** P1 / P2 / P3 circle fill on each initiative. */
+/**
+ * P1 / P2 / P3 badge fill — mirrors the one-pager view UI
+ * (--preview-priority-p1/2/3 in index.css), not red/amber/green.
+ */
 const PRIORITY_COLOR: Record<string, string> = {
-  P1: "E73C43",
-  P2: "EF9E22",
-  P3: "A5BA02",
+  P1: "FDE6D4",
+  P2: "FFEDD5",
+  P3: "FEF3C7",
 };
+
+/** Badge label color — mirrors --preview-priority-fg (dark, readable on the pastels). */
+const PRIORITY_TEXT_COLOR = "3D3D3D";
 
 /** Slot label: initiative 1 → P1, 2 → P2, 3 → P3 (same rule as the form). */
 function priorityBadge(
@@ -171,13 +181,11 @@ function safeFileName(title: string) {
   return `${base.slice(0, 80)}.pptx`;
 }
 
-function formatTimeline(initiative: {
-  week_start: string;
-  week_end: string;
-  week_start_number?: string;
-  week_end_number?: string;
-}) {
-  return formatInitiativeTimeline(initiative);
+function formatTimeline(start: string, end: string) {
+  const label = formatPreviewDateRange(start, end);
+  if (!label) return "";
+  const [from, to] = label.split(" – ");
+  return to ? `w/c ${from} – w/c ${to}` : `w/c ${from}`;
 }
 
 function blobToDataUrl(blob: Blob) {
@@ -188,31 +196,50 @@ function blobToDataUrl(blob: Blob) {
     reader.readAsDataURL(blob);
   });
 }
-
-function blobToPngDataUrl(blob: Blob) {
-  return new Promise<string | null>((resolve) => {
-    const objectUrl = URL.createObjectURL(blob);
+async function blobToPngDataUrl(
+  blob: Blob,
+  targetWidth = 900,
+  targetHeight = 900,
+  scale = 2, // supersample factor so it stays crisp even when resized larger in PPT
+): Promise<string> {
+  const svgUrl = URL.createObjectURL(blob);
+  try {
     const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = Math.max(1, img.naturalWidth);
-      canvas.height = Math.max(1, img.naturalHeight);
-      const ctx = canvas.getContext("2d");
-      if (!ctx) {
-        URL.revokeObjectURL(objectUrl);
-        resolve(null);
-        return;
+    img.src = svgUrl;
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = (e) => reject(e);
+    });
+
+    // Preserve aspect ratio if the SVG has intrinsic dimensions,
+    // otherwise fall back to the target box.
+    let width = targetWidth;
+    let height = targetHeight;
+    if (img.naturalWidth && img.naturalHeight) {
+      const aspect = img.naturalWidth / img.naturalHeight;
+      if (aspect >= 1) {
+        width = targetWidth;
+        height = Math.round(targetWidth / aspect);
+      } else {
+        height = targetHeight;
+        width = Math.round(targetHeight * aspect);
       }
-      ctx.drawImage(img, 0, 0);
-      URL.revokeObjectURL(objectUrl);
-      resolve(canvas.toDataURL("image/png"));
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(objectUrl);
-      resolve(null);
-    };
-    img.src = objectUrl;
-  });
+    }
+
+    const canvas = document.createElement("canvas");
+    canvas.width = width * scale;
+    canvas.height = height * scale;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null as unknown as string; // shouldn't happen, but keep type-safe
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+    return canvas.toDataURL("image/png");
+  } finally {
+    URL.revokeObjectURL(svgUrl);
+  }
 }
 
 /**
@@ -395,14 +422,15 @@ function addLabeledBlock(
   y: number,
   w: number,
   h: number,
+  fontSize = 7,
 ) {
   slide.addText(
     [
       {
         text: label,
-        options: { bold: true, color: "0066CC", fontSize: 7, breakLine: true },
+        options: { bold: true, color: "0066CC", fontSize, breakLine: true },
       },
-      { text: value || "—", options: { color: "333333", fontSize: 7 } },
+      { text: value || "—", options: { color: "333333", fontSize } },
     ],
     {
       x,
@@ -417,8 +445,9 @@ function addLabeledBlock(
 }
 
 /**
- * One P1/P2/P3 block. `cursor` walks down the slot; the 0.32 / 0.24 / 0.33
- * steps are the text-box heights (keep in sync with fieldLimits.ts).
+ * One P1/P2/P3 block. `cursor` walks down the slot; the height steps are the
+ * text-box heights. Font sizes for Initiative / Guidelines / checklist notes
+ * come from the char→size buckets in fieldLimits.ts (fontSizeForLength).
  * Photo slots are always 1/3 of innerW — do not use full column width for 1 image.
  */
 function addInitiative(
@@ -438,7 +467,7 @@ function addInitiative(
 
   const badge = 0.18;
   const priority = priorityBadge(initiative);
-  const priorityColor = PRIORITY_COLOR[priority] ?? "E73C43";
+  const priorityColor = PRIORITY_COLOR[priority] ?? PRIORITY_COLOR.P1;
   slide.addShape(pptx.ShapeType.ellipse, {
     x: innerX,
     y: cursor,
@@ -456,13 +485,19 @@ function addInitiative(
     valign: "middle",
     fontSize: 6,
     fontFace: "Arial",
-    color: "FFFFFF",
+    color: PRIORITY_TEXT_COLOR,
     bold: true,
     margin: 0,
   });
 
+  // Timeline moved up to the badge row, pinned to the far right (same Y level
+  // as the P1/P2/P3 badge).
+  const timeline = formatTimeline(initiative.week_start, initiative.week_end);
+  const timelineW = 1.15;
+
   const dept = initiative.accountable_function_department || "—";
-  const deptW = Math.min(0.9, innerW - badge - 0.06);
+  const deptMaxW = innerW - badge - 0.06 - (timeline ? timelineW + 0.06 : 0);
+  const deptW = Math.min(0.9, deptMaxW);
   slide.addShape(pptx.ShapeType.roundRect, {
     x: innerX + badge + 0.04,
     y: cursor,
@@ -484,6 +519,31 @@ function addInitiative(
     color: "3D3D3D",
     margin: 0,
   });
+
+  if (timeline) {
+    const timelineX = innerX + innerW - timelineW;
+    slide.addShape(pptx.ShapeType.roundRect, {
+      x: timelineX,
+      y: cursor,
+      w: timelineW,
+      h: badge,
+      rectRadius: 0.08,
+      fill: { color: "A4F9FF" },
+      line: { color: "A4F9FF" },
+    });
+    slide.addText(timeline, {
+      x: timelineX,
+      y: cursor,
+      w: timelineW,
+      h: badge,
+      align: "center",
+      valign: "middle",
+      fontSize: 6,
+      fontFace: "Arial",
+      color: "1F2937",
+      margin: 0,
+    });
+  }
   cursor += badge + 0.04;
 
   addLabeledBlock(
@@ -494,56 +554,67 @@ function addInitiative(
     cursor,
     innerW,
     0.32,
+    fontSizeForLength(initiative.initiative_description.length),
   );
   cursor += 0.33;
 
-  addLabeledBlock(
-    slide,
-    "Success Target",
-    formatSuccessTarget(initiative),
-    innerX,
-    cursor,
-    innerW,
-    0.24,
-  );
-  cursor += 0.25;
-
-  addLabeledBlock(
-    slide,
-    "Guidelines",
-    initiative.guidelines,
-    innerX,
-    cursor,
-    innerW,
-    0.32,
-  );
-  cursor += 0.33;
-
-  const timeline = formatTimeline(initiative);
-  if (timeline) {
-    slide.addShape(pptx.ShapeType.roundRect, {
+  // Success Measure — single line, fixed font, allowed to overflow (short
+  // field, never 500 chars). wrap:false keeps label + value on one line.
+  slide.addText(
+    [
+      {
+        text: "Success Measure: ",
+        options: { bold: true, color: "0066CC", fontSize: 7 },
+      },
+      {
+        text: formatSuccessTarget(initiative) || "—",
+        options: { color: "333333", fontSize: 7 },
+      },
+    ],
+    {
       x: innerX,
       y: cursor,
-      w: Math.min(innerW, 2.2),
-      h: 0.16,
-      rectRadius: 0.08,
-      fill: { color: "A4F9FF" },
-      line: { color: "A4F9FF" },
-    });
-    slide.addText(timeline, {
-      x: innerX,
-      y: cursor,
-      w: Math.min(innerW, 2.2),
-      h: 0.16,
-      align: "center",
-      valign: "middle",
-      fontSize: 6,
+      w: innerW,
+      h: 0.14,
       fontFace: "Arial",
-      color: "1F2937",
+      valign: "middle",
       margin: 0,
-    });
-    cursor += 0.2;
-  }
+      wrap: false,
+    },
+  );
+  cursor += 0.16;
+
+  // Guidelines — heading intentionally hidden (future-ready). To bring the
+  // "Guidelines" label back, uncomment the bold label run below. The value
+  // font follows the shared char→size bucket (fontSizeForLength).
+  const guidelinesFont = fontSizeForLength(initiative.guidelines.length);
+  slide.addText(
+    [
+      // {
+      //   text: "Guidelines",
+      //   options: {
+      //     bold: true,
+      //     color: "0066CC",
+      //     fontSize: guidelinesFont,
+      //     breakLine: true,
+      //   },
+      // },
+      {
+        text: initiative.guidelines || "—",
+        options: { color: "333333", fontSize: guidelinesFont },
+      },
+    ],
+    {
+      x: innerX,
+      y: cursor,
+      w: innerW,
+      h: 0.32,
+      fontFace: "Arial",
+      valign: "top",
+      margin: 0,
+    },
+  );
+  cursor += 0.33;
 
   const imageGap = 0.04;
   const imageW =
@@ -590,7 +661,9 @@ function addInitiative(
       y: cursor,
       w: innerW,
       h: captionH,
-      fontSize: 6,
+      fontSize: fontSizeForLength(
+        initiative.checklist_compliance_notes.length,
+      ),
       fontFace: "Arial",
       color: "555555",
       valign: "top",
@@ -623,9 +696,11 @@ function addColumn(
   });
 
   const pad = 0.08;
-  const icon = 0.28;
+  const icon = 0.26; // −2px vs prior 0.28"
   const titleH = 0.18;
-  const scoreH = showWeight ? 0.12 : 0;
+  // Weight now sits at the title row's right (not stacked below), so no
+  // vertical reservation is needed here.
+  const scoreH = 0;
   const stackH = titleH + scoreH;
   const headerH = Math.max(icon, stackH);
   const iconUrl = PILLAR_ICON_BY_NUMBER[pillar.pillar_number];
@@ -650,8 +725,10 @@ function addColumn(
     });
   }
 
+  // Reserve room on the far right of the title row for the weight (WEIGHTED).
+  const weightW = showWeight ? 0.5 : 0;
   const titleX = x + pad + icon + 0.05;
-  const titleW = w - pad * 2 - icon - 0.05;
+  const titleW = w - pad * 2 - icon - 0.05 - weightW;
   const textY = y + pad + (headerH - stackH) / 2;
 
   slide.addText(pillar.pillar_name, {
@@ -659,7 +736,7 @@ function addColumn(
     y: textY,
     w: titleW,
     h: titleH,
-    fontSize: 9,
+    fontSize: 7,
     fontFace: "Arial",
     color: theme.title,
     bold: true,
@@ -667,12 +744,31 @@ function addColumn(
     margin: 0,
   });
 
-  slide.addText(pillar.pillar_description || "", {
+  // Pillar weight — WEIGHTED mode only. Small font, pinned to the title row's
+  // far right, e.g. "20pts".
+  if (showWeight) {
+    slide.addText(`${pillar.pillar_weight}pts`, {
+      x: x + w - pad - weightW,
+      y: textY,
+      w: weightW,
+      h: titleH,
+      align: "right",
+      valign: "middle",
+      fontSize: 7,
+      fontFace: "Arial",
+      color: theme.title,
+      bold: true,
+      margin: 0,
+    });
+  }
+
+  const pillarDescription = pillar.pillar_description || "";
+  slide.addText(pillarDescription, {
     x: x + pad,
     y: y + pad + headerH + 0.04,
     w: w - pad * 2,
     h: 0.32,
-    fontSize: 7,
+    fontSize: fontSizeForLength(pillarDescription.length),
     fontFace: "Arial",
     color: "555555",
     valign: "top",
