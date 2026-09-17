@@ -102,6 +102,7 @@ import type {
 import { getOnePagerById } from "@/services/onePagerApi";
 import type { RetailerOnePagerCreatePayload } from "@/services/retailerCreateFormApi";
 import {
+  flattenLineBreaks,
   fontSizeForLength,
   PPT_SUCCESS_MEASURE_FONT_SIZE,
 } from "@/components/form/fieldLimits";
@@ -408,7 +409,7 @@ function addHeader(
     margin: 0,
     valign: "top",
   });
-  slide.addText(payload.business_outcome_statement || "", {
+  slide.addText(flattenLineBreaks(payload.business_outcome_statement || ""), {
     x: titleX,
     y: 0.22,
     w: titleW,
@@ -432,13 +433,14 @@ function addLabeledBlock(
   h: number,
   fontSize = 7,
 ) {
+  const body = flattenLineBreaks(value);
   slide.addText(
     [
       {
         text: label,
         options: { bold: true, color: "0066CC", fontSize, breakLine: true },
       },
-      { text: value || "—", options: { color: "333333", fontSize } },
+      { text: body || "—", options: { color: "333333", fontSize } },
     ],
     {
       x,
@@ -562,7 +564,9 @@ function addInitiative(
     cursor,
     innerW,
     0.32,
-    fontSizeForLength(initiative.initiative_description.length),
+    fontSizeForLength(
+      flattenLineBreaks(initiative.initiative_description).length,
+    ),
   );
   cursor += 0.33;
 
@@ -604,7 +608,8 @@ function addInitiative(
   // Guidelines — heading intentionally hidden (future-ready). To bring the
   // "Guidelines" label back, uncomment the bold label run below. The value
   // font follows the shared char→size bucket (fontSizeForLength).
-  const guidelinesFont = fontSizeForLength(initiative.guidelines.length);
+  const guidelinesText = flattenLineBreaks(initiative.guidelines);
+  const guidelinesFont = fontSizeForLength(guidelinesText.length);
   slide.addText(
     [
       // {
@@ -617,7 +622,7 @@ function addInitiative(
       //   },
       // },
       {
-        text: initiative.guidelines || "—",
+        text: guidelinesText || "—",
         options: { color: "333333", fontSize: guidelinesFont },
       },
     ],
@@ -673,14 +678,15 @@ function addInitiative(
 
   if (initiative.checklist_compliance_notes) {
     const captionH = Math.max(0.16, y + h - cursor - pad);
-    slide.addText(initiative.checklist_compliance_notes, {
+    const notesText = flattenLineBreaks(
+      initiative.checklist_compliance_notes,
+    );
+    slide.addText(notesText, {
       x: innerX,
       y: cursor,
       w: innerW,
       h: captionH,
-      fontSize: fontSizeForLength(
-        initiative.checklist_compliance_notes.length,
-      ),
+      fontSize: fontSizeForLength(notesText.length),
       fontFace: "Arial",
       color: "555555",
       valign: "top",
@@ -779,7 +785,9 @@ function addColumn(
     });
   }
 
-  const pillarDescription = pillar.pillar_description || "";
+  const pillarDescription = flattenLineBreaks(
+    pillar.pillar_description || "",
+  );
   slide.addText(pillarDescription, {
     x: x + pad,
     y: y + pad + headerH + 0.04,

@@ -54,7 +54,7 @@ function PreviewSection({
   return (
     <div className="min-w-0 space-y-0.5">
       <p className="text-xs font-semibold text-primary">{label}</p>
-      <p className="text-xs leading-snug break-all text-foreground/90 [overflow-wrap:anywhere]">
+      <p className="text-xs leading-snug break-all whitespace-pre-line text-foreground/90 [overflow-wrap:anywhere]">
         {children || "—"}
       </p>
     </div>
@@ -127,7 +127,7 @@ function InitiativeBlock({
       ) : null}
 
       {initiative.checklist_compliance_notes ? (
-        <p className="text-xs leading-snug break-all text-muted-foreground [overflow-wrap:anywhere]">
+        <p className="text-xs leading-snug break-all whitespace-pre-line text-muted-foreground [overflow-wrap:anywhere]">
           {initiative.checklist_compliance_notes}
         </p>
       ) : null}
@@ -206,7 +206,7 @@ export function PillarBoard({ pillars, scoringMode, track }: PillarBoardProps) {
                   </div>
                 </div>
                 {pillar.pillar_description.trim() ? (
-                  <p className="text-[10px] leading-snug text-foreground/70">
+                  <p className="whitespace-pre-line text-[10px] leading-snug text-foreground/70">
                     {pillar.pillar_description}
                   </p>
                 ) : null}

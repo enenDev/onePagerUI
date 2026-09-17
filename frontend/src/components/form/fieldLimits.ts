@@ -60,6 +60,15 @@ export const PPT_FONT_SIZE_BUCKETS: readonly FontSizeBucket[] = [
  */
 export const PPT_SUCCESS_MEASURE_FONT_SIZE = 6;
 
+/**
+ * PPT export only: each line break becomes one space so hard Enter keys
+ * cannot blow past fixed boxes. Track/View keep `\n` and show them with
+ * whitespace-pre-line. Payload is unchanged.
+ */
+export function flattenLineBreaks(value: string) {
+  return value.replace(/\r\n/g, "\n").replace(/\n/g, " ");
+}
+
 /** First bucket whose maxChars >= length; falls back to the smallest (floor) size. */
 export function fontSizeForLength(
   length: number,

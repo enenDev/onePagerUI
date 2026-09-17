@@ -147,7 +147,7 @@ export function NationalPreviewDocument({
             <PreviewField label="Market / Geography" value={payload.market} />
             <PreviewField label="Year" value={payload.year ?? ""} />
           </dl>
-          <p className="mt-4 text-sm leading-relaxed break-words text-foreground/85 [overflow-wrap:anywhere]">
+          <p className="mt-4 whitespace-pre-line text-sm leading-relaxed break-words text-foreground/85 [overflow-wrap:anywhere]">
             {payload.business_outcome_statement || "—"}
           </p>
         </div>
