@@ -402,7 +402,7 @@ function addHeader(
     y: 0.02,
     w: titleW,
     h: 0.2,
-    fontSize: 12,
+    fontSize: 11,
     fontFace: "Arial",
     color: "FFFFFF",
     bold: true,
@@ -411,14 +411,14 @@ function addHeader(
   });
   slide.addText(flattenLineBreaks(payload.business_outcome_statement || ""), {
     x: titleX,
-    y: 0.22,
+    y: 0.24,
     w: titleW,
     h: HEADER_H - 0.24,
-    fontSize: 8,
+    fontSize: 7.5,
     fontFace: "Arial",
     color: "FFFFFF",
     margin: 0,
-    valign: "middle",
+    valign: "top",
   });
 }
 
@@ -556,24 +556,61 @@ function addInitiative(
   }
   cursor += badge + 0.04;
 
+  const urls = (
+    initiative.image_signed_url?.length
+      ? initiative.image_signed_url
+      : (initiative.images ?? [])
+  )
+    .filter(Boolean)
+    .slice(0, MAX_INITIATIVE_IMAGES);
+  const hasImages = urls.length > 0;
+  const hasNotes = Boolean(initiative.checklist_compliance_notes?.trim());
+
+  // Leftover space at the slot bottom goes to Initiative + Guidelines.
+  // Photos keep a fixed height; Success Measure / photos / notes shift down.
+  const minInitH = 0.32;
+  const minGuideH = 0.32;
+  const smH = 0.12;
+  const gapAfterInit = 0.01;
+  const gapAfterSm = 0.01;
+  const gapAfterGuide = 0.02;
+  const imageH = 0.34;
+  const gapAfterImages = 0.03;
+  const minNotesH = 0.16;
+  const usedMin =
+    pad +
+    badge +
+    0.04 +
+    minInitH +
+    gapAfterInit +
+    smH +
+    gapAfterSm +
+    minGuideH +
+    gapAfterGuide +
+    (hasImages ? imageH + gapAfterImages : 0) +
+    (hasNotes ? minNotesH : 0) +
+    pad;
+  const extra = Math.max(0, h - usedMin);
+  const initBoxH = minInitH + extra / 2;
+  const guideBoxH = minGuideH + extra / 2;
+  // Wider than the badge row: less left/right inset, same pillar width.
+  const textX = x + 0.01;
+  const textW = w - 0.02;
+
   addLabeledBlock(
     slide,
     "Initiative",
     initiative.initiative_description,
-    innerX,
+    textX,
     cursor,
-    innerW,
-    0.32,
+    textW,
+    initBoxH,
     fontSizeForLength(
       flattenLineBreaks(initiative.initiative_description).length,
     ),
   );
-  cursor += 0.33;
+  cursor += initBoxH + gapAfterInit;
 
-  // Success Measure — single line, allowed to overflow horizontally (short
-  // field, never 500 chars). wrap:false keeps label + value on one line.
-  // Font is PPT_SUCCESS_MEASURE_FONT_SIZE (6pt) so this row stays inside
-  // 0.14" and doesn't collide with Guidelines below.
   slide.addText(
     [
       {
@@ -593,62 +630,52 @@ function addInitiative(
       },
     ],
     {
-      x: innerX,
+      x: textX,
       y: cursor,
-      w: innerW,
-      h: 0.14,
+      w: textW,
+      h: smH,
       fontFace: "Arial",
       valign: "middle",
       margin: 0,
       wrap: false,
     },
   );
-  cursor += 0.16;
+  cursor += smH + gapAfterSm;
 
-  // Guidelines — heading intentionally hidden (future-ready). To bring the
-  // "Guidelines" label back, uncomment the bold label run below. The value
-  // font follows the shared char→size bucket (fontSizeForLength).
+  // Guidelines — heading on (sample/prod). Hide by commenting the label run.
   const guidelinesText = flattenLineBreaks(initiative.guidelines);
   const guidelinesFont = fontSizeForLength(guidelinesText.length);
   slide.addText(
     [
-      // {
-      //   text: "Guidelines",
-      //   options: {
-      //     bold: true,
-      //     color: "0066CC",
-      //     fontSize: guidelinesFont,
-      //     breakLine: true,
-      //   },
-      // },
+      {
+        text: "Guidelines",
+        options: {
+          bold: true,
+          color: "0066CC",
+          fontSize: guidelinesFont,
+          breakLine: true,
+        },
+      },
       {
         text: guidelinesText || "—",
         options: { color: "333333", fontSize: guidelinesFont },
       },
     ],
     {
-      x: innerX,
+      x: textX,
       y: cursor,
-      w: innerW,
-      h: 0.32,
+      w: textW,
+      h: guideBoxH,
       fontFace: "Arial",
       valign: "top",
       margin: 0,
     },
   );
-  cursor += 0.33;
+  cursor += guideBoxH + gapAfterGuide;
 
   const imageGap = 0.04;
   const imageW =
     (innerW - imageGap * (MAX_INITIATIVE_IMAGES - 1)) / MAX_INITIATIVE_IMAGES;
-  const imageH = 0.34;
-  const urls = (
-    initiative.image_signed_url?.length
-      ? initiative.image_signed_url
-      : (initiative.images ?? [])
-  )
-    .filter(Boolean)
-    .slice(0, MAX_INITIATIVE_IMAGES);
 
   urls.forEach((url, index) => {
     const imgX = innerX + index * (imageW + imageGap);
@@ -674,17 +701,17 @@ function addInitiative(
       });
     }
   });
-  if (urls.length > 0) cursor += imageH + 0.04;
+  if (hasImages) cursor += imageH + gapAfterImages;
 
-  if (initiative.checklist_compliance_notes) {
-    const captionH = Math.max(0.16, y + h - cursor - pad);
+  if (hasNotes) {
+    const captionH = Math.max(minNotesH, y + h - cursor - pad);
     const notesText = flattenLineBreaks(
       initiative.checklist_compliance_notes,
     );
     slide.addText(notesText, {
-      x: innerX,
+      x: textX,
       y: cursor,
-      w: innerW,
+      w: textW,
       h: captionH,
       fontSize: fontSizeForLength(notesText.length),
       fontFace: "Arial",
@@ -785,9 +812,7 @@ function addColumn(
     });
   }
 
-  const pillarDescription = flattenLineBreaks(
-    pillar.pillar_description || "",
-  );
+  const pillarDescription = flattenLineBreaks(pillar.pillar_description || "");
   slide.addText(pillarDescription, {
     x: x + pad,
     y: y + pad + headerH + 0.04,
