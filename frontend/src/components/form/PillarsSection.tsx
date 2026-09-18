@@ -8,6 +8,7 @@ import {
   Plus,
   Scale,
   Store,
+  Info,
   Megaphone,
   ShoppingBag,
   MonitorSmartphone,
@@ -276,6 +277,18 @@ export function PillarsSection({
             Weighted Pillar
           </button>
         </div>
+      </div>
+
+      <div className="mb-4 flex gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-900">
+        <Info className="mt-0.5 size-4 shrink-0" aria-hidden />
+        <p>
+          <span className="font-medium">Note: </span>
+          For a cleaner PPT export, we recommend{" "}
+          <span className="font-medium">120–200 characters</span> per written
+          field (Initiative, Guidelines, pillar description, business outcome).
+          Line breaks stay on this page; the export shows them as a single
+          paragraph so initiatives don&apos;t overlap.
+        </p>
       </div>
 
       <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
