@@ -556,44 +556,6 @@ function addInitiative(
   }
   cursor += badge + 0.04;
 
-  const urls = (
-    initiative.image_signed_url?.length
-      ? initiative.image_signed_url
-      : (initiative.images ?? [])
-  )
-    .filter(Boolean)
-    .slice(0, MAX_INITIATIVE_IMAGES);
-  const hasImages = urls.length > 0;
-  const hasNotes = Boolean(initiative.checklist_compliance_notes?.trim());
-
-  // Leftover space at the slot bottom goes to Initiative + Guidelines.
-  // Photos keep a fixed height; Success Measure / photos / notes shift down.
-  const minInitH = 0.32;
-  const minGuideH = 0.32;
-  const smH = 0.12;
-  const gapAfterInit = 0.01;
-  const gapAfterSm = 0.01;
-  const gapAfterGuide = 0.02;
-  const imageH = 0.34;
-  const gapAfterImages = 0.03;
-  const minNotesH = 0.16;
-  const usedMin =
-    pad +
-    badge +
-    0.04 +
-    minInitH +
-    gapAfterInit +
-    smH +
-    gapAfterSm +
-    minGuideH +
-    gapAfterGuide +
-    (hasImages ? imageH + gapAfterImages : 0) +
-    (hasNotes ? minNotesH : 0) +
-    pad;
-  const extra = Math.max(0, h - usedMin);
-  const initBoxH = minInitH + extra / 2;
-  const guideBoxH = minGuideH + extra / 2;
-  // Wider than the badge row: less left/right inset, same pillar width.
   const textX = x + 0.01;
   const textW = w - 0.02;
 
@@ -604,12 +566,12 @@ function addInitiative(
     textX,
     cursor,
     textW,
-    initBoxH,
+    0.32,
     fontSizeForLength(
       flattenLineBreaks(initiative.initiative_description).length,
     ),
   );
-  cursor += initBoxH + gapAfterInit;
+  cursor += 0.33;
 
   slide.addText(
     [
@@ -624,6 +586,7 @@ function addInitiative(
       {
         text: formatSuccessTarget(initiative) || "—",
         options: {
+          bold: true,
           color: "333333",
           fontSize: PPT_SUCCESS_MEASURE_FONT_SIZE,
         },
@@ -633,29 +596,29 @@ function addInitiative(
       x: textX,
       y: cursor,
       w: textW,
-      h: smH,
+      h: 0.14,
       fontFace: "Arial",
       valign: "middle",
       margin: 0,
       wrap: false,
     },
   );
-  cursor += smH + gapAfterSm;
+  cursor += 0.11;
 
-  // Guidelines — heading on (sample/prod). Hide by commenting the label run.
   const guidelinesText = flattenLineBreaks(initiative.guidelines);
   const guidelinesFont = fontSizeForLength(guidelinesText.length);
   slide.addText(
     [
-      {
-        text: "Guidelines",
-        options: {
-          bold: true,
-          color: "0066CC",
-          fontSize: guidelinesFont,
-          breakLine: true,
-        },
-      },
+      // Heading hidden so the 0.32" box is all body text. Uncomment to restore.
+      // {
+      //   text: "Guidelines",
+      //   options: {
+      //     bold: true,
+      //     color: "0066CC",
+      //     fontSize: guidelinesFont,
+      //     breakLine: true,
+      //   },
+      // },
       {
         text: guidelinesText || "—",
         options: { color: "333333", fontSize: guidelinesFont },
@@ -665,17 +628,35 @@ function addInitiative(
       x: textX,
       y: cursor,
       w: textW,
-      h: guideBoxH,
+      h: 0.32,
       fontFace: "Arial",
       valign: "top",
       margin: 0,
     },
   );
-  cursor += guideBoxH + gapAfterGuide;
+  cursor += 0.33;
 
   const imageGap = 0.04;
   const imageW =
     (innerW - imageGap * (MAX_INITIATIVE_IMAGES - 1)) / MAX_INITIATIVE_IMAGES;
+  const imageH = 0.34;
+  const urls = (
+    initiative.image_signed_url?.length
+      ? initiative.image_signed_url
+      : (initiative.images ?? [])
+  )
+    .filter(Boolean)
+    .slice(0, MAX_INITIATIVE_IMAGES);
+  const hasImages = urls.length > 0;
+  const hasNotes = Boolean(initiative.checklist_compliance_notes?.trim());
+  const notesReserve = hasNotes ? 0.16 : 0;
+  const imagesReserve = hasImages ? imageH + 0.04 : 0;
+  const roomLeft = y + h - pad - cursor;
+  const shiftDown = Math.max(
+    0,
+    Math.min(0.1, roomLeft - imagesReserve - notesReserve),
+  );
+  cursor += shiftDown;
 
   urls.forEach((url, index) => {
     const imgX = innerX + index * (imageW + imageGap);
@@ -701,24 +682,26 @@ function addInitiative(
       });
     }
   });
-  if (hasImages) cursor += imageH + gapAfterImages;
+  if (hasImages) cursor += imageH + 0.04;
 
   if (hasNotes) {
-    const captionH = Math.max(minNotesH, y + h - cursor - pad);
-    const notesText = flattenLineBreaks(
-      initiative.checklist_compliance_notes,
-    );
-    slide.addText(notesText, {
-      x: textX,
-      y: cursor,
-      w: textW,
-      h: captionH,
-      fontSize: fontSizeForLength(notesText.length),
-      fontFace: "Arial",
-      color: "555555",
-      valign: "top",
-      margin: 0,
-    });
+    const captionH = Math.max(0, y + h - cursor - pad);
+    if (captionH >= 0.1) {
+      const notesText = flattenLineBreaks(
+        initiative.checklist_compliance_notes,
+      );
+      slide.addText(notesText, {
+        x: textX,
+        y: cursor,
+        w: textW,
+        h: captionH,
+        fontSize: fontSizeForLength(notesText.length),
+        fontFace: "Arial",
+        color: "555555",
+        valign: "top",
+        margin: 0,
+      });
+    }
   }
 }
 
