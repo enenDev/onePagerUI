@@ -88,10 +88,6 @@ export function TrackOnePager() {
   const [archiving, setArchiving] = useState(false);
   const [archiveError, setArchiveError] = useState<string | null>(null);
   const [editPublishedOpen, setEditPublishedOpen] = useState(false);
-  const [editPublishedBusy, setEditPublishedBusy] = useState(false);
-  const [editPublishedError, setEditPublishedError] = useState<string | null>(
-    null,
-  );
   const displayError = pagerId ? error : "Missing one-pager id.";
 
   useEffect(() => {
@@ -143,9 +139,11 @@ export function TrackOnePager() {
   const canModify = canModifyOnePagers(currentUser.user_type);
   const canUpdate = isOwner;
 
-  const goEditCreateAsNew = () => {
+  const goEdit = (createAsNew: boolean) => {
     if (!record) return;
-    navigate(`/edit/${record.id}`, { state: { createAsNew: true } });
+    navigate(`/edit/${record.id}`, {
+      state: createAsNew ? { createAsNew: true } : undefined,
+    });
   };
 
   const handleConfirmDelete = async () => {
@@ -183,25 +181,6 @@ export function TrackOnePager() {
       );
     } finally {
       setArchiving(false);
-    }
-  };
-
-  const handleArchiveAndEdit = async () => {
-    if (!record || !isOwner) return;
-    setEditPublishedBusy(true);
-    setEditPublishedError(null);
-    try {
-      await dispatch(
-        archiveOnePager({ pagerId: record.id, user: owner }),
-      ).unwrap();
-      setEditPublishedOpen(false);
-      goEditCreateAsNew();
-    } catch (err) {
-      setEditPublishedError(
-        err instanceof Error ? err.message : "Failed to archive one-pager",
-      );
-    } finally {
-      setEditPublishedBusy(false);
     }
   };
 
@@ -290,7 +269,6 @@ export function TrackOnePager() {
             canEdit={isOwner}
             canDelete={isOwner}
             onEdit={() => {
-              setEditPublishedError(null);
               setEditPublishedOpen(true);
             }}
             onExport={() => {
@@ -340,14 +318,13 @@ export function TrackOnePager() {
       <EditPublishedOnePagerModal
         open={editPublishedOpen}
         onOpenChange={setEditPublishedOpen}
-        busy={editPublishedBusy}
-        error={editPublishedError}
-        onKeepActiveAndEdit={() => {
+        onEditAndReplace={() => {
           setEditPublishedOpen(false);
-          goEditCreateAsNew();
+          goEdit(false);
         }}
-        onArchiveAndEdit={() => {
-          void handleArchiveAndEdit();
+        onCreateCopy={() => {
+          setEditPublishedOpen(false);
+          goEdit(true);
         }}
       />
       <FormToast

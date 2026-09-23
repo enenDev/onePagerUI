@@ -106,8 +106,8 @@ export type OnePagerByIdRecord =
 export type EditOnePagerLocationState = {
   editRecord: OnePagerByIdRecord;
   /**
-   * Published → edit flows (Keep Active / Archive & Edit): hydrate form but
-   * leave recordId null so Save Draft / Publish creates a new pager.
+   * Create a copy: hydrate the form but leave recordId null so Save Draft /
+   * Publish creates a new pager. Edit & Replace omits this and keeps the id.
    */
   createAsNew?: boolean;
 };

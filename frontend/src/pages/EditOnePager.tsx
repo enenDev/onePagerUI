@@ -22,7 +22,7 @@ import {
 } from "@/services/onePagerApi";
 
 type EditRouteLocationState = {
-  /** Published Keep Active / Archive & Edit — save creates a new pager. */
+  /** Create a copy — save creates a new pager. Omit for Edit & Replace. */
   createAsNew?: boolean;
 };
 
@@ -33,8 +33,8 @@ type EditRouteLocationState = {
  * (GetOnePagerApiResponse). Keep mapGetOnePagerResponse + pager_type branch
  * → /create/national vs /create/retailer.
  * Pass EditOnePagerLocationState.editRecord into the form (hydrate, no 2nd GET).
- * createAsNew from location.state (published edit flows) keeps recordId null
- * so Save Draft / Publish POST a new id.
+ * createAsNew (Create a copy) keeps recordId null so Save Draft / Publish
+ * POST a new id. Edit & Replace omits it and updates the same pager.
  */
 export function EditOnePager() {
   const { pagerId } = useParams<{ pagerId: string }>();

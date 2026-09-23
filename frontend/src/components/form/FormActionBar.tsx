@@ -62,16 +62,18 @@ export function FormActionBar({
           </div>
 
           <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onSaveDraft}
-              disabled={busy}
-              className="h-9 cursor-pointer rounded-lg border-primary px-4 text-primary hover:bg-accent hover:text-primary"
-            >
-              <Save className="size-4" />
-              {savingDraft ? "Saving..." : "Save Draft"}
-            </Button>
+            {onSaveDraft ? (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onSaveDraft}
+                disabled={busy}
+                className="h-9 cursor-pointer rounded-lg border-primary px-4 text-primary hover:bg-accent hover:text-primary"
+              >
+                <Save className="size-4" />
+                {savingDraft ? "Saving..." : "Save Draft"}
+              </Button>
+            ) : null}
             <Button
               type="button"
               onClick={onPreviewPublish}

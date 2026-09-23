@@ -76,14 +76,12 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
   const [restoring, setRestoring] = useState(false);
   const [restoreError, setRestoreError] = useState<string | null>(null);
   const [editPublishedOpen, setEditPublishedOpen] = useState(false);
-  const [editPublishedBusy, setEditPublishedBusy] = useState(false);
-  const [editPublishedError, setEditPublishedError] = useState<string | null>(
-    null,
-  );
   const [exporting, setExporting] = useState(false);
 
-  const goEditCreateAsNew = () => {
-    navigate(`/edit/${item.pager_id}`, { state: { createAsNew: true } });
+  const goEdit = (createAsNew: boolean) => {
+    navigate(`/edit/${item.pager_id}`, {
+      state: createAsNew ? { createAsNew: true } : undefined,
+    });
   };
 
   const handleExport = async () => {
@@ -153,25 +151,6 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
     }
   };
 
-  const handleArchiveAndEdit = async () => {
-    if (!isOwner) return;
-    setEditPublishedBusy(true);
-    setEditPublishedError(null);
-    try {
-      await dispatch(
-        archiveOnePager({ pagerId: item.pager_id, user: currentUser.email }),
-      ).unwrap();
-      setEditPublishedOpen(false);
-      goEditCreateAsNew();
-    } catch (err) {
-      setEditPublishedError(
-        err instanceof Error ? err.message : "Failed to archive one-pager",
-      );
-    } finally {
-      setEditPublishedBusy(false);
-    }
-  };
-
   return (
     <article className="relative overflow-hidden rounded-xl border border-border bg-card-surface shadow-sm transition-shadow hover:shadow-md">
       <div className="absolute top-5 right-5 z-10">
@@ -197,7 +176,6 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
                 onEdit={() => {
                   if (!isOwner) return;
                   if (item.status === "PUBLISHED") {
-                    setEditPublishedError(null);
                     setEditPublishedOpen(true);
                     return;
                   }
@@ -323,14 +301,13 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
       <EditPublishedOnePagerModal
         open={editPublishedOpen}
         onOpenChange={setEditPublishedOpen}
-        busy={editPublishedBusy}
-        error={editPublishedError}
-        onKeepActiveAndEdit={() => {
+        onEditAndReplace={() => {
           setEditPublishedOpen(false);
-          goEditCreateAsNew();
+          goEdit(false);
         }}
-        onArchiveAndEdit={() => {
-          void handleArchiveAndEdit();
+        onCreateCopy={() => {
+          setEditPublishedOpen(false);
+          goEdit(true);
         }}
       />
     </article>
