@@ -67,7 +67,8 @@ export function composeCreateFormCatalog(
 }
 
 export type AddCampaignResult =
-  { ok: true; campaign: FilterOption } | { ok: false; error: string };
+  | { ok: true; campaign: FilterOption }
+  | { ok: false; error: string };
 
 /**
  * Add a campaign for a market via the real backend.

@@ -108,8 +108,8 @@ export function CreateRetailerOnePager() {
   // Import-from-National: picker passes pager_id; this page calls
   // getNationalOnePager(id) and hydrates from that one record.
   // TODO: Swap getOnePagerById (edit) and getNationalOnePager (import) only.
-  // createAsNew (Create a copy): hydrate only — recordId stays null.
-  // Edit & Replace keeps the id, hides Save Draft, and publish updates it.
+  // createAsNew (published Keep Active / Archive & Edit): hydrate only —
+  // recordId stays null so Save Draft / Publish creates a new pager id.
   // recordId stays null on import (new retailer draft). Scope stays locked on import.
   const navigate = useNavigate();
   const location = useLocation();
@@ -136,15 +136,6 @@ export function CreateRetailerOnePager() {
   const initialSample = shouldFillSample ? buildRetailerFormSample() : null;
 
   const [isEditing] = useState(() => Boolean(edited));
-  const [replaceExisting] = useState(
-    () =>
-      Boolean(restored?.replaceExisting) ||
-      Boolean(
-        edited &&
-          !edited.createAsNew &&
-          edited.editRecord.list_status === "PUBLISHED",
-      ),
-  );
   const [importPagerId] = useState(() => imported?.source.pager_id ?? null);
   const [scopeLocked, setScopeLocked] = useState(
     () => Boolean(imported) || Boolean(restored?.scopeLocked),
@@ -175,21 +166,20 @@ export function CreateRetailerOnePager() {
   const [recordId, setRecordId] = useState<string | null>(
     () =>
       restored?.recordId ??
-      (edited?.createAsNew ? null : edited?.editRecord.id ?? null),
+      (edited?.createAsNew ? null : (edited?.editRecord.id ?? null)),
   );
-  const [savedFingerprint, setSavedFingerprint] = useState<string | null>(
-    () =>
-      restored
-        ? JSON.stringify(restored.payload)
-        : editedForm
-          ? JSON.stringify(
+  const [savedFingerprint, setSavedFingerprint] = useState<string | null>(() =>
+    restored
+      ? JSON.stringify(restored.payload)
+      : editedForm
+        ? JSON.stringify(
             buildRetailerOnePagerPayload(
               editedForm.values,
               editedForm.scoringMode,
               editedForm.pillars,
             ),
           )
-          : null,
+        : null,
   );
   const [unsavedOpen, setUnsavedOpen] = useState(false);
   const [savingDraft, setSavingDraft] = useState(false);
@@ -286,7 +276,7 @@ export function CreateRetailerOnePager() {
     const payload = buildRetailerOnePagerPayload(values, scoringMode, pillars);
     payload.created_by = currentUser.email;
     payload.campaign_focus = payload.campaign;
-    payload.retailer = payload.target_retailer
+    payload.retailer = payload.target_retailer;
     payload.pager_type = "retailer";
     // TODO: When backend is live, saveRetailerDraft becomes the real HTTP call.
     // Keep toast + homepage redirect UX for action-bar Save Draft; only swap service.
@@ -321,7 +311,7 @@ export function CreateRetailerOnePager() {
     const payload = buildRetailerOnePagerPayload(values, scoringMode, pillars);
     payload.created_by = currentUser.email;
     payload.campaign_focus = payload.campaign;
-    payload.retailer = payload.target_retailer
+    payload.retailer = payload.target_retailer;
     payload.pager_type = "retailer";
     // TODO: Preview route is FE-only handoff via location.state today.
     // Next: persist draft then open /create/retailer/preview/:id from backend id.
@@ -333,7 +323,6 @@ export function CreateRetailerOnePager() {
       recordId,
       payload,
       scopeLocked,
-      replaceExisting,
     };
     navigate("/create/retailer/preview", { state: previewState });
   };
@@ -385,13 +374,9 @@ export function CreateRetailerOnePager() {
         submitBlockedReason={submitBlockedReason}
         onCancel={requestLeave}
         onFillSample={import.meta.env.DEV ? applySampleData : undefined}
-        onSaveDraft={
-          replaceExisting
-            ? undefined
-            : () => {
-                void handleSaveDraft({ redirectHome: true });
-              }
-        }
+        onSaveDraft={() => {
+          void handleSaveDraft({ redirectHome: true });
+        }}
         onPreviewPublish={handlePreviewPublish}
       />
 
@@ -400,25 +385,20 @@ export function CreateRetailerOnePager() {
         saving={savingDraft}
         canSaveDraft={true}
         saveBlockedReason={null}
-        discardOnly={replaceExisting}
         onOpenChange={setUnsavedOpen}
         onDiscard={() => {
           revokeFormImageUrls(values, pillars);
           setUnsavedOpen(false);
           navigate("/home");
         }}
-        onSaveDraft={
-          replaceExisting
-            ? undefined
-            : () => {
-                void (async () => {
-                  const ok = await handleSaveDraft({ redirectHome: true });
-                  if (ok) {
-                    setUnsavedOpen(false);
-                  }
-                })();
-              }
-        }
+        onSaveDraft={() => {
+          void (async () => {
+            const ok = await handleSaveDraft({ redirectHome: true });
+            if (ok) {
+              setUnsavedOpen(false);
+            }
+          })();
+        }}
       />
 
       <FormToast

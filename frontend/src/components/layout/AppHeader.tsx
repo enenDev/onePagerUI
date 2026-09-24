@@ -17,6 +17,7 @@ import { userTypeLabel } from "@/redux/userSlice";
 import { logout } from "@/services/authApi";
 import perfectStoreLogo from "@/assets/Perfect_Store_Hero_Logo.svg";
 import unileverBrandLogo from "@/assets/Unilever_Brand_Logo.svg";
+import { VITE_USER_HELP_URL } from "@/constants/constants";
 
 function HeaderDivider() {
   return (
@@ -26,9 +27,13 @@ function HeaderDivider() {
 
 export function AppHeader() {
   const navigate = useNavigate();
+  const userGuideURL = VITE_USER_HELP_URL?.trim() ?? "";
   const { name, email, initials, user_type } = useAppSelector(
     (state) => state.user.currentUser,
   );
+  const handleHelp = () => {
+    open(userGuideURL)
+  }
 
   const handleLogout = () => {
     // Always land on /login even if signOut fails; logout() already clears the
@@ -107,7 +112,7 @@ export function AppHeader() {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator className="m-0" />
-            <DropdownMenuItem className="cursor-pointer gap-2">
+            <DropdownMenuItem className="cursor-pointer gap-2" onClick={handleHelp}>
               <HelpCircle className="size-4 " />
               {/* <span className="truncate">Help</span> */}
               Help

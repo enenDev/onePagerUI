@@ -156,9 +156,7 @@ export function SearchableMultiSelect({
                         <Check className="size-3 stroke-[3]" />
                       ) : null}
                     </span>
-                    <span className="min-w-0 flex-1">
-                      {option.label}
-                    </span>
+                    <span className="min-w-0 flex-1">{option.label}</span>
                   </CommandItem>
                 );
               })}

@@ -125,9 +125,7 @@ export function FilterBar() {
                   onToggle={(value) =>
                     dispatch(toggleFilterValue({ key: field.key, value }))
                   }
-                  onClear={() =>
-                    dispatch(clearFilterValue({ key: field.key }))
-                  }
+                  onClear={() => dispatch(clearFilterValue({ key: field.key }))}
                 />
               </MarketRequiredTooltip>
             </div>

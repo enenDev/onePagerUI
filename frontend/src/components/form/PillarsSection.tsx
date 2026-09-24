@@ -83,7 +83,7 @@ type PillarsSectionProps = {
   catalog: CreateFormMetadata | null;
   /** Selected strategy market — scopes initiative Accountable Team + KPI options. */
   market: string;
-}
+};
 
 export function PillarsSection({
   scoringMode,
@@ -286,7 +286,7 @@ export function PillarsSection({
           For a cleaner PPT export, we recommend{" "}
           <span className="font-medium">120–200 characters</span> per written
           field (Initiative, Guidelines, pillar description, business outcome).
-          Line breaks stay on this page; the export shows them as a single
+          Line breaks stay on the web app UI; the export shows them as a single
           paragraph so initiatives don&apos;t overlap.
         </p>
       </div>
@@ -395,7 +395,9 @@ export function PillarsSection({
                         }
                         onFocus={(event) => event.target.select()}
                         onKeyDown={(event) => {
-                          if (["e", "E", "+", "-", ".", ","].includes(event.key)) {
+                          if (
+                            ["e", "E", "+", "-", ".", ","].includes(event.key)
+                          ) {
                             event.preventDefault();
                           }
                         }}
@@ -512,11 +514,8 @@ export function PillarsSection({
                           {initiative.initiative_description}
                         </p>
                         <span className="inline-flex w-fit rounded-full bg-brand-soft px-2.5 py-1 text-xs font-medium text-primary">
-                          Target {initiative.success_target}
-                          {initiative.unit}
-                          {initiative.kpi_metric
-                            ? ` (${initiative.kpi_metric})`
-                            : ""}
+                          Measure{" "}
+                          {`- ${initiative.kpi_metric || ""}: ${initiative.success_target}${initiative.unit}`}
                         </span>
                       </article>
                     ))}

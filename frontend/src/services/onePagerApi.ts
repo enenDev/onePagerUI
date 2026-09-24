@@ -45,8 +45,7 @@ import type { PagerUpdateArgs } from "@/redux/landingSlice";
  * TODO: Replace with real FastAPI list/search endpoint.
  * Temporary: normalize to array-only payload, then filter the in-memory
  * landingList (seeded from mocks/landingOnePagers.json; save/publish upserts
- * cover_image_url into the same list). Used by Home Submit + Clear all, and by
- * the Import From National picker (picker stores the response in local state).
+ * cover_image_url into the same list). Used by Submit + Clear all + import picker.
  * Next: POST /api/one-pagers/search with JSON body from toOnePagerSearchPayload —
  * always `{ market: string[], retailer: string[], channel: string[],
  * category: string[], campaign: string[] }` (never scalar strings).
@@ -106,8 +105,8 @@ export type OnePagerByIdRecord =
 export type EditOnePagerLocationState = {
   editRecord: OnePagerByIdRecord;
   /**
-   * Create a copy: hydrate the form but leave recordId null so Save Draft /
-   * Publish creates a new pager. Edit & Replace omits this and keeps the id.
+   * Published → edit flows (Keep Active / Archive & Edit): hydrate form but
+   * leave recordId null so Save Draft / Publish creates a new pager.
    */
   createAsNew?: boolean;
 };

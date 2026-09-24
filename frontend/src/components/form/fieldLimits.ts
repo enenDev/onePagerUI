@@ -6,21 +6,21 @@ export const FIELD_LIMITS = {
   /** Landing + payload title (auto from strategy dropdowns; editable). */
   title: 100,
   /** PPT header subtitle — about 2 lines. */
-  businessOutcome: 120,
+  businessOutcome: 500,
   /** Header pill + composed title segment. */
   campaignName: 30,
   /** Pillar intro under the name — about 2 lines. */
-  pillarDescription: 80,
+  pillarDescription: 500,
   /** Initiative line — about 2 lines. */
-  initiativeDescription: 80,
+  initiativeDescription: 500,
   /** Numeric/short target before unit. */
   successTarget: 10,
   /** %, Outlets, ACV%, etc. */
   unit: 10,
-  /** Body under Success Target — about 2 lines. */
-  guidelines: 80,
+  /** Body under Success Measure — about 2 lines. */
+  guidelines: 500,
   /** Caption under the photo strip — about 2 short lines. */
-  checklistNotes: 60,
+  checklistNotes: 500,
 } as const;
 
 export function clipToLimit(value: string, max: number) {
@@ -58,7 +58,7 @@ export const PPT_FONT_SIZE_BUCKETS: readonly FontSizeBucket[] = [
  * slightly overflowing Initiative is less likely to collide, and so the
  * 0.14" row still has air above Guidelines. 6pt line ≈ 0.10" inside 0.14".
  */
-export const PPT_SUCCESS_MEASURE_FONT_SIZE = 6;
+export const PPT_SUCCESS_MEASURE_FONT_SIZE = 5.5;
 
 /**
  * PPT export only: each line break becomes one space so hard Enter keys

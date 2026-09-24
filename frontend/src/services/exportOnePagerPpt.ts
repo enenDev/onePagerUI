@@ -610,15 +610,15 @@ function addInitiative(
   slide.addText(
     [
       // Heading hidden so the 0.32" box is all body text. Uncomment to restore.
-      // {
-      //   text: "Guidelines",
-      //   options: {
-      //     bold: true,
-      //     color: "0066CC",
-      //     fontSize: guidelinesFont,
-      //     breakLine: true,
-      //   },
-      // },
+      {
+        text: "Guidelines",
+        options: {
+          bold: true,
+          color: "0066CC",
+          fontSize: guidelinesFont,
+          breakLine: true,
+        },
+      },
       {
         text: guidelinesText || "—",
         options: { color: "333333", fontSize: guidelinesFont },

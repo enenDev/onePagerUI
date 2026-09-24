@@ -12,12 +12,10 @@ type UnsavedChangesModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onDiscard: () => void;
-  onSaveDraft?: () => void;
+  onSaveDraft: () => void;
   saving?: boolean;
   canSaveDraft?: boolean;
   saveBlockedReason?: string | null;
-  /** Edit & Replace: no draft save. Confirm that leaving drops the edits. */
-  discardOnly?: boolean;
 };
 
 export function UnsavedChangesModal({
@@ -28,23 +26,21 @@ export function UnsavedChangesModal({
   saving = false,
   canSaveDraft = true,
   saveBlockedReason = null,
-  discardOnly = false,
 }: UnsavedChangesModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg gap-4 sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="pr-6 font-semibold text-foreground">
-            {discardOnly ? "Discard changes?" : "You have unsaved changes"}
+            You have unsaved changes
           </DialogTitle>
         </DialogHeader>
 
         <div className="flex gap-2 rounded-lg bg-amber-50 px-3 py-2.5 text-sm text-amber-950">
           <Info className="mt-0.5 size-4 shrink-0 text-amber-700" />
           <p>
-            {discardOnly
-              ? "Your changes will be discarded."
-              : "You have unsaved changes. Your progress might be lost. Save your progress to drafts to access it later."}
+            You have unsaved changes. Your progress might be lost. Save your
+            progress to drafts to access it later.
           </p>
         </div>
 
@@ -53,46 +49,25 @@ export function UnsavedChangesModal({
         ) : null}
 
         <div className="flex items-center justify-between gap-3 pt-1">
-          {discardOnly ? (
-            <Button
-              type="button"
-              variant="outline"
-              className="cursor-pointer rounded-full border-primary text-primary hover:bg-accent hover:text-primary"
-              onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </Button>
-          ) : (
-            <Button
-              type="button"
-              variant="outline"
-              className="cursor-pointer rounded-full border-primary text-primary hover:bg-accent hover:text-primary"
-              onClick={onDiscard}
-              disabled={saving}
-            >
-              Discard Changes
-            </Button>
-          )}
-          {discardOnly ? (
-            <Button
-              type="button"
-              className="cursor-pointer rounded-full"
-              onClick={onDiscard}
-            >
-              Discard Changes
-            </Button>
-          ) : (
-            <Button
-              type="button"
-              className="cursor-pointer rounded-full"
-              onClick={onSaveDraft}
-              disabled={saving || !canSaveDraft}
-              title={saveBlockedReason ?? undefined}
-            >
-              <FileDown className="size-4" />
-              {saving ? "Saving..." : "Save Draft"}
-            </Button>
-          )}
+          <Button
+            type="button"
+            variant="outline"
+            className="cursor-pointer rounded-full border-primary text-primary hover:bg-accent hover:text-primary"
+            onClick={onDiscard}
+            disabled={saving}
+          >
+            Discard Changes
+          </Button>
+          <Button
+            type="button"
+            className="cursor-pointer rounded-full"
+            onClick={onSaveDraft}
+            disabled={saving || !canSaveDraft}
+            title={saveBlockedReason ?? undefined}
+          >
+            <FileDown className="size-4" />
+            {saving ? "Saving..." : "Save Draft"}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

@@ -36,6 +36,9 @@ import {
 } from "@/services/trackApi";
 
 function composeTitle(record: OnePagerByIdRecord) {
+  if(record?.payload?.title){
+    return record?.payload?.title
+  }
   if (record.pager_type === "retailer") {
     return composeRetailerPreviewTitle(record.payload);
   }
@@ -88,6 +91,10 @@ export function TrackOnePager() {
   const [archiving, setArchiving] = useState(false);
   const [archiveError, setArchiveError] = useState<string | null>(null);
   const [editPublishedOpen, setEditPublishedOpen] = useState(false);
+  const [editPublishedBusy, setEditPublishedBusy] = useState(false);
+  const [editPublishedError, setEditPublishedError] = useState<string | null>(
+    null,
+  );
   const displayError = pagerId ? error : "Missing one-pager id.";
 
   useEffect(() => {
@@ -139,11 +146,9 @@ export function TrackOnePager() {
   const canModify = canModifyOnePagers(currentUser.user_type);
   const canUpdate = isOwner;
 
-  const goEdit = (createAsNew: boolean) => {
+  const goEditCreateAsNew = () => {
     if (!record) return;
-    navigate(`/edit/${record.id}`, {
-      state: createAsNew ? { createAsNew: true } : undefined,
-    });
+    navigate(`/edit/${record.id}`, { state: { createAsNew: true } });
   };
 
   const handleConfirmDelete = async () => {
@@ -181,6 +186,25 @@ export function TrackOnePager() {
       );
     } finally {
       setArchiving(false);
+    }
+  };
+
+  const handleArchiveAndEdit = async () => {
+    if (!record || !isOwner) return;
+    setEditPublishedBusy(true);
+    setEditPublishedError(null);
+    try {
+      await dispatch(
+        archiveOnePager({ pagerId: record.id, user: owner }),
+      ).unwrap();
+      setEditPublishedOpen(false);
+      goEditCreateAsNew();
+    } catch (err) {
+      setEditPublishedError(
+        err instanceof Error ? err.message : "Failed to archive one-pager",
+      );
+    } finally {
+      setEditPublishedBusy(false);
     }
   };
 
@@ -269,6 +293,7 @@ export function TrackOnePager() {
             canEdit={isOwner}
             canDelete={isOwner}
             onEdit={() => {
+              setEditPublishedError(null);
               setEditPublishedOpen(true);
             }}
             onExport={() => {
@@ -318,13 +343,14 @@ export function TrackOnePager() {
       <EditPublishedOnePagerModal
         open={editPublishedOpen}
         onOpenChange={setEditPublishedOpen}
-        onEditAndReplace={() => {
+        busy={editPublishedBusy}
+        error={editPublishedError}
+        onKeepActiveAndEdit={() => {
           setEditPublishedOpen(false);
-          goEdit(false);
+          goEditCreateAsNew();
         }}
-        onCreateCopy={() => {
-          setEditPublishedOpen(false);
-          goEdit(true);
+        onArchiveAndEdit={() => {
+          void handleArchiveAndEdit();
         }}
       />
       <FormToast

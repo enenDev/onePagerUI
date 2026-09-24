@@ -91,7 +91,7 @@ type NationalPreviewDocumentProps = {
 
 function PreviewField({ label, value }: { label: string; value: string }) {
   return (
-    <div className="min-w-0 px-2 first:pl-0">
+    <div className="min-w-0 px-4 first:pl-0">
       <p className="text-xs font-medium text-muted-foreground">{label}</p>
       <p className="mt-0.5 text-sm font-semibold text-foreground">
         {value || "—"}

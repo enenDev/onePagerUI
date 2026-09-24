@@ -5,7 +5,7 @@ import { FIREBASE_TOKEN_KEY, logoutUser } from "@/services/authService";
 
 const ApiBase = axios.create({
   baseURL: (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/+$/, ""),
-  timeout: 10000,
+  timeout: 60000,
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",

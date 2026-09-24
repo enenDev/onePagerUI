@@ -223,9 +223,9 @@ export function AddInitiativeModal({
 
   const handleUnitChange = (value: string) => {
     const next = value.slice(0, FIELD_LIMITS.unit);
-    if (next === "" || /^\d*\.?\d*$/.test(next)) {
-      patch({ unit: next });
-    }
+    // if (next === "" || /^\d*\.?\d*$/.test(next)) {
+    patch({ unit: next });
+    // }
   };
 
   const handleFiles = (fileList: FileList | File[] | null) => {
@@ -370,7 +370,7 @@ export function AddInitiativeModal({
       return;
     }
     if (!form.success_target.trim()) {
-      setError("Success Target is required.");
+      setError("Success Measure is required.");
       return;
     }
     if (form.week_start.trim() && !isValidDisplayDate(form.week_start)) {
@@ -451,10 +451,7 @@ export function AddInitiativeModal({
               Accountable Function / Department{" "}
               <span className="text-destructive">*</span>
             </Label>
-            <MarketRequiredTooltip
-              show={!marketSelected}
-              message="Select a Market on the form first to load Accountable Function / Department options."
-            >
+            <MarketRequiredTooltip show={!marketSelected}>
               <SearchableSelect
                 options={accountableOptions}
                 value={form.accountable_function_department}
@@ -486,7 +483,7 @@ export function AddInitiativeModal({
               patch({ initiative_description: event.target.value })
             }
             placeholder="Enter Description"
-            className="min-h-20 bg-white"
+            className="h-20 overflow-auto bg-white"
           />
         </div>
 
@@ -506,7 +503,7 @@ export function AddInitiativeModal({
           <div className="space-y-2">
             <div className="flex items-center justify-between gap-2">
               <Label>
-                Success Target <span className="text-destructive">*</span>
+                Success Measure <span className="text-destructive">*</span>
               </Label>
               <CharCount
                 value={form.success_target}
@@ -532,7 +529,7 @@ export function AddInitiativeModal({
               value={form.unit}
               maxLength={FIELD_LIMITS.unit}
               onChange={(event) => handleUnitChange(event.target.value)}
-              placeholder="%"
+              placeholder="Enter Value"
               className="bg-white"
             />
           </div>
@@ -603,13 +600,13 @@ export function AddInitiativeModal({
             maxLength={FIELD_LIMITS.guidelines}
             onChange={(event) => patch({ guidelines: event.target.value })}
             placeholder="Enter instructions regarding execution of initiative/visual guidelines"
-            className="min-h-20 bg-white"
+            className="h-20 overflow-auto bg-white"
           />
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label>Photo Guideline & Checklist</Label>
+            <Label>Photo Guidelines</Label>
 
             <div className="flex h-16 items-center gap-2 overflow-x-auto rounded-lg border border-dashed border-border bg-[#f8fafc] px-2">
               {form.images.length === 0 && pendingUploads.length === 0 ? (
@@ -672,7 +669,7 @@ export function AddInitiativeModal({
 
           <div className="space-y-2">
             <div className="flex items-center justify-between gap-2">
-              <Label>Checklist Compliance Notes</Label>
+              <Label>Visual Guidelines</Label>
               <CharCount
                 value={form.checklist_compliance_notes}
                 max={FIELD_LIMITS.checklistNotes}
@@ -685,7 +682,7 @@ export function AddInitiativeModal({
                 patch({ checklist_compliance_notes: event.target.value })
               }
               placeholder="Enter Description"
-              className="min-h-[7.75rem] bg-white"
+              className="h-[7.75rem] overflow-auto bg-white"
             />
           </div>
         </div>

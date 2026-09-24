@@ -76,9 +76,18 @@ function formatMonthDay(value: string) {
 export function composeNationalPreviewTitle(
   payload: Pick<
     NationalOnePagerCreatePayload,
-    "channel" | "category" | "campaign" | "business_group" | "year"
+    | "channel"
+    | "category"
+    | "campaign"
+    | "market"
+    | "title"
+    | "business_group"
+    | "year"
   >,
 ) {
+  if (payload?.title) {
+    return payload?.title;
+  }
   return [
     "National",
     payload.channel,
@@ -98,9 +107,14 @@ export function composeRetailerPreviewTitle(payload: {
   channel: string;
   category: string;
   campaign: string;
+  market: string;
+  title: string;
   business_group?: string;
   year?: string;
 }) {
+  if (payload?.title) {
+    return payload?.title;
+  }
   return [
     payload.target_retailer,
     payload.channel,
@@ -184,7 +198,7 @@ export function formatSuccessTarget(initiative: {
 }) {
   const value = `${initiative.success_target}${initiative.unit}`.trim();
   if (initiative.kpi_metric) {
-    return value ? `${value} (${initiative.kpi_metric})` : initiative.kpi_metric;
+    return value ? `${initiative.kpi_metric}: ${value}` : initiative.kpi_metric;
   }
   return value || "—";
 }

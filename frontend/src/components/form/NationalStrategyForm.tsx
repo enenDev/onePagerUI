@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState, type ReactNode } from "react";
+﻿﻿﻿import { useEffect, useRef, useState, type ReactNode } from "react";
 import { CloudUpload, Loader2, X } from "lucide-react";
 
 import { AddCampaignModal } from "@/components/form/AddCampaignModal";
@@ -303,7 +303,7 @@ export function NationalStrategyForm({
             maxLength={FIELD_LIMITS.businessOutcome}
             onChange={(event) => patch({ businessOutcome: event.target.value })}
             placeholder="State the core commercial target and outcome expected from this execution plan."
-            className="min-h-24 resize-y bg-white"
+            className="h-24 overflow-auto resize-y bg-white"
           />
         </section>
       </div>

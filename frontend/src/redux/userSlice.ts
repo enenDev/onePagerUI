@@ -58,9 +58,9 @@ export function userTypeLabel(userType: UserType) {
     case "user_type_1":
       return "CSP";
     case "user_type_2":
-      return "Retailer";
+      return "CBD";
     case "user_type_3":
-      return "Read-only";
+      return "General";
   }
 }
 

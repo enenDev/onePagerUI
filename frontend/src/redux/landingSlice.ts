@@ -1,4 +1,8 @@
-import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import {
+  createAsyncThunk,
+  createSlice,
+  type PayloadAction,
+} from "@reduxjs/toolkit";
 
 import { getMetadata, unionMarketScopedOptions } from "@/services/metadataApi";
 import {
@@ -50,9 +54,9 @@ const initialState: LandingState = {
   listLoading: false,
   error: null,
 };
-export interface PagerUpdateArgs{
+export interface PagerUpdateArgs {
   pagerId: string;
-  user:string;
+  user: string;
 }
 export const fetchMetadata = createAsyncThunk(
   "landing/fetchMetadata",
@@ -71,8 +75,8 @@ export const fetchOnePagers = createAsyncThunk(
  */
 export const deleteOnePager = createAsyncThunk(
   "landing/deleteOnePager",
-  async (args:PagerUpdateArgs) => {
-    const result = await deleteOnePagerRequest(args.pagerId,args.user);
+  async (args: PagerUpdateArgs) => {
+    const result = await deleteOnePagerRequest(args.pagerId, args.user);
     if (!result.ok) {
       throw new Error(result.error);
     }
@@ -82,8 +86,12 @@ export const deleteOnePager = createAsyncThunk(
 
 export const updateOnePagerStatus = createAsyncThunk(
   "landing/updateOnePagerStatus",
-  async (args:{pagerId: string,updatedBy:string, newStatus:string}) => {
-    const result = await updateOnePagerRequest(args.pagerId,args.updatedBy,args.newStatus);
+  async (args: { pagerId: string; updatedBy: string; newStatus: string }) => {
+    const result = await updateOnePagerRequest(
+      args.pagerId,
+      args.updatedBy,
+      args.newStatus,
+    );
     if (!result.ok) {
       throw new Error(result.error);
     }
@@ -96,7 +104,7 @@ export const updateOnePagerStatus = createAsyncThunk(
  */
 export const archiveOnePager = createAsyncThunk(
   "landing/archiveOnePager",
-  async (args:PagerUpdateArgs) => {
+  async (args: PagerUpdateArgs) => {
     const result = await archiveOnePagerRequest(args);
     if (!result.ok) {
       throw new Error(result.error);
@@ -111,7 +119,7 @@ export const archiveOnePager = createAsyncThunk(
  */
 export const restoreOnePager = createAsyncThunk(
   "landing/restoreOnePager",
-  async (args:PagerUpdateArgs) => {
+  async (args: PagerUpdateArgs) => {
     const result = await restoreOnePagerRequest(args);
     if (!result.ok) {
       throw new Error(result.error);
@@ -262,14 +270,22 @@ const landingSlice = createSlice({
         state.error = action.error.message ?? "Failed to delete one-pager";
       })
       .addCase(archiveOnePager.fulfilled, (state, action) => {
-        patchItemStatus(state.items, action.payload.pager_id, action.payload.status);
+        patchItemStatus(
+          state.items,
+          action.payload.pager_id,
+          action.payload.status,
+        );
         state.error = null;
       })
       .addCase(archiveOnePager.rejected, (state, action) => {
         state.error = action.error.message ?? "Failed to archive one-pager";
       })
       .addCase(restoreOnePager.fulfilled, (state, action) => {
-        patchItemStatus(state.items, action.payload.pager_id, action.payload.status);
+        patchItemStatus(
+          state.items,
+          action.payload.pager_id,
+          action.payload.status,
+        );
         state.error = null;
       })
       .addCase(restoreOnePager.rejected, (state, action) => {

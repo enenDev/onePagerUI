@@ -15,15 +15,21 @@ import { loginWithSso } from "@/services/authApi";
 import perfectStoreLogo from "@/assets/Perfect Store_Hero_Logo_DarkBG 1.svg?raw";
 import unileverBrandLogo from "@/assets/Unilever_Brand_Logo.svg";
 import darkBg from "@/assets/Dark_Background.svg";
+import { VITE_ACCESS_INSTRUCTIONS_URL } from "@/constants/constants";
 
 export const Login = () => {
   const { user, loading, redirectError } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const accessInstructionsUrl =
-    import.meta.env.VITE_ACCESS_INSTRUCTIONS_URL?.trim() ?? "";
+    VITE_ACCESS_INSTRUCTIONS_URL?.trim() ?? "";
   const [helpOpen, setHelpOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+  const handleAccessInstructionsClick = (
+    e: React.MouseEvent<HTMLAnchorElement>
+  ): void =>  {
+    e.preventDefault();
+    window.open(accessInstructionsUrl, '_blank');
+  }
   const handleSso = async () => {
     setError(null);
     setSubmitting(true);
@@ -138,6 +144,7 @@ export const Login = () => {
           {accessInstructionsUrl ? (
             <a
               href={accessInstructionsUrl}
+              onClick={handleAccessInstructionsClick}
               target="_blank"
               rel="noopener noreferrer"
               className="mx-auto cursor-pointer text-sm font-medium text-primary underline underline-offset-2 hover:text-primary/80"

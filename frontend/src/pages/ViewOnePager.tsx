@@ -42,7 +42,7 @@ function composeViewTitle(record: OnePagerByIdRecord) {
  * Keep rendering NationalPreviewDocument from the record payload (retailer
  * shows Target Retailer when present). Do not route through create/preview.
  * Back → /home. More Options → Edit still uses /edit/:id (owner-only);
- * published Edit opens EditPublishedOnePagerModal (replace or create a copy).
+ * published Edit opens EditPublishedOnePagerModal (createAsNew on save).
  * Archive / Restore / Delete navigate to /home after a successful mock call
  * until FastAPI endpoints exist.
  * More Options → Track uses /track/:id for PUBLISHED only.
@@ -71,6 +71,10 @@ export function ViewOnePager() {
   const [restoring, setRestoring] = useState(false);
   const [restoreError, setRestoreError] = useState<string | null>(null);
   const [editPublishedOpen, setEditPublishedOpen] = useState(false);
+  const [editPublishedBusy, setEditPublishedBusy] = useState(false);
+  const [editPublishedError, setEditPublishedError] = useState<string | null>(
+    null,
+  );
   const displayError = pagerId ? error : "Missing one-pager id.";
 
   useEffect(() => {
@@ -116,11 +120,9 @@ export function ViewOnePager() {
   // Read-only users (user_type_3) can only view + export.
   const canModify = canModifyOnePagers(currentUser.user_type);
 
-  const goEdit = (createAsNew: boolean) => {
+  const goEditCreateAsNew = () => {
     if (!record) return;
-    navigate(`/edit/${record.id}`, {
-      state: createAsNew ? { createAsNew: true } : undefined,
-    });
+    navigate(`/edit/${record.id}`, { state: { createAsNew: true } });
   };
 
   const handleConfirmDelete = async () => {
@@ -181,6 +183,25 @@ export function ViewOnePager() {
     }
   };
 
+  const handleArchiveAndEdit = async () => {
+    if (!record || !isOwner) return;
+    setEditPublishedBusy(true);
+    setEditPublishedError(null);
+    try {
+      await dispatch(
+        archiveOnePager({ pagerId: record.id, user: owner }),
+      ).unwrap();
+      setEditPublishedOpen(false);
+      goEditCreateAsNew();
+    } catch (err) {
+      setEditPublishedError(
+        err instanceof Error ? err.message : "Failed to archive one-pager",
+      );
+    } finally {
+      setEditPublishedBusy(false);
+    }
+  };
+
   return (
     <div className="flex min-h-[calc(100svh-3.5rem)] w-full flex-col">
       <PageContainer className="flex flex-1 flex-col py-6">
@@ -210,6 +231,7 @@ export function ViewOnePager() {
             canDelete={isOwner}
             onEdit={() => {
               if (record.list_status === "PUBLISHED") {
+                setEditPublishedError(null);
                 setEditPublishedOpen(true);
                 return;
               }
@@ -287,13 +309,14 @@ export function ViewOnePager() {
       <EditPublishedOnePagerModal
         open={editPublishedOpen}
         onOpenChange={setEditPublishedOpen}
-        onEditAndReplace={() => {
+        busy={editPublishedBusy}
+        error={editPublishedError}
+        onKeepActiveAndEdit={() => {
           setEditPublishedOpen(false);
-          goEdit(false);
+          goEditCreateAsNew();
         }}
-        onCreateCopy={() => {
-          setEditPublishedOpen(false);
-          goEdit(true);
+        onArchiveAndEdit={() => {
+          void handleArchiveAndEdit();
         }}
       />
     </div>

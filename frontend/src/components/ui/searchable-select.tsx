@@ -138,9 +138,7 @@ export function SearchableSelect({
                         isSelected ? "opacity-100" : "opacity-0",
                       )}
                     />
-                    <span className="min-w-0 flex-1">
-                      {option.label}
-                    </span>
+                    <span className="min-w-0 flex-1">{option.label}</span>
                   </CommandItem>
                 );
               })}

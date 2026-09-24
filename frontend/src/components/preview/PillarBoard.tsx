@@ -95,7 +95,7 @@ function InitiativeBlock({
       <PreviewSection label="Initiative">
         {initiative.initiative_description}
       </PreviewSection>
-      <PreviewSection label="Success Target">
+      <PreviewSection label="Success Measure">
         {formatSuccessTarget(initiative)}
       </PreviewSection>
       <PreviewSection label="Guidelines">
@@ -156,7 +156,7 @@ export function PillarBoard({ pillars, scoringMode, track }: PillarBoardProps) {
             <article
               key={pillar.pillar_number}
               className={cn(
-                "flex min-w-0 flex-col gap-4 overflow-hidden rounded-preview-card p-4 shadow-preview-card",
+                "flex min-w-0 flex-col gap-4 overflow-hidden rounded-preview-card p-2 shadow-preview-card",
                 theme.card,
               )}
             >

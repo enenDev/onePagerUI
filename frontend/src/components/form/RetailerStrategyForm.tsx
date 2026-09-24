@@ -321,7 +321,7 @@ export function RetailerStrategyForm({
           maxLength={FIELD_LIMITS.businessOutcome}
           onChange={(event) => patch({ businessOutcome: event.target.value })}
           placeholder="State the core commercial target and outcome expected from this execution plan."
-          className="min-h-24 resize-y bg-white"
+          className="h-24 overflow-auto resize-y bg-white"
         />
       </section>
     </div>

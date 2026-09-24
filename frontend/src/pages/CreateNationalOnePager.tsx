@@ -79,8 +79,8 @@ function isPreviewReturnState(
 export function CreateNationalOnePager() {
   // Edit: `/edit/:id` calls getOnePagerById then navigates here with editRecord.
   // TODO: Keep hydrating from OnePagerByIdRecord.payload.
-  // createAsNew (Create a copy): hydrate only — recordId stays null.
-  // Edit & Replace keeps the id, hides Save Draft, and publish updates it.
+  // createAsNew (published Keep Active / Archive & Edit): hydrate only —
+  // recordId stays null so Save Draft / Publish creates a new pager id.
   // Image fields: API URLs go into coverImageUrl + initiative blobUrl; File is
   // null until the user replaces an image.
   const navigate = useNavigate();
@@ -103,15 +103,6 @@ export function CreateNationalOnePager() {
   const initialSample = shouldFillSample ? buildNationalFormSample() : null;
 
   const [isEditing] = useState(() => Boolean(edited));
-  const [replaceExisting] = useState(
-    () =>
-      Boolean(restored?.replaceExisting) ||
-      Boolean(
-        edited &&
-          !edited.createAsNew &&
-          edited.editRecord.list_status === "PUBLISHED",
-      ),
-  );
   const [values, setValues] = useState<NationalFormValues>(
     () =>
       restored?.values ??
@@ -136,21 +127,20 @@ export function CreateNationalOnePager() {
   const [recordId, setRecordId] = useState<string | null>(
     () =>
       restored?.recordId ??
-      (edited?.createAsNew ? null : edited?.editRecord.id ?? null),
+      (edited?.createAsNew ? null : (edited?.editRecord.id ?? null)),
   );
-  const [savedFingerprint, setSavedFingerprint] = useState<string | null>(
-    () =>
-      restored
-        ? JSON.stringify(restored.payload)
-        : editedForm
-          ? JSON.stringify(
-              buildNationalOnePagerPayload(
-                editedForm.values,
-                editedForm.scoringMode,
-                editedForm.pillars,
-              ),
-            )
-          : null,
+  const [savedFingerprint, setSavedFingerprint] = useState<string | null>(() =>
+    restored
+      ? JSON.stringify(restored.payload)
+      : editedForm
+        ? JSON.stringify(
+            buildNationalOnePagerPayload(
+              editedForm.values,
+              editedForm.scoringMode,
+              editedForm.pillars,
+            ),
+          )
+        : null,
   );
   const [unsavedOpen, setUnsavedOpen] = useState(false);
   const [savingDraft, setSavingDraft] = useState(false);
@@ -267,7 +257,6 @@ export function CreateNationalOnePager() {
       pillars,
       recordId,
       payload,
-      replaceExisting,
     };
     navigate("/create/national/preview", { state: previewState });
   };
@@ -312,13 +301,9 @@ export function CreateNationalOnePager() {
         submitBlockedReason={submitBlockedReason}
         onCancel={requestLeave}
         onFillSample={import.meta.env.DEV ? applySampleData : undefined}
-        onSaveDraft={
-          replaceExisting
-            ? undefined
-            : () => {
-                void handleSaveDraft({ redirectHome: true });
-              }
-        }
+        onSaveDraft={() => {
+          void handleSaveDraft({ redirectHome: true });
+        }}
         onPreviewPublish={handlePreviewPublish}
       />
 
@@ -327,25 +312,20 @@ export function CreateNationalOnePager() {
         saving={savingDraft}
         canSaveDraft={true}
         saveBlockedReason={null}
-        discardOnly={replaceExisting}
         onOpenChange={setUnsavedOpen}
         onDiscard={() => {
           revokeFormImageUrls(values, pillars);
           setUnsavedOpen(false);
           navigate("/home");
         }}
-        onSaveDraft={
-          replaceExisting
-            ? undefined
-            : () => {
-                void (async () => {
-                  const ok = await handleSaveDraft({ redirectHome: true });
-                  if (ok) {
-                    setUnsavedOpen(false);
-                  }
-                })();
-              }
-        }
+        onSaveDraft={() => {
+          void (async () => {
+            const ok = await handleSaveDraft({ redirectHome: true });
+            if (ok) {
+              setUnsavedOpen(false);
+            }
+          })();
+        }}
       />
 
       <FormToast

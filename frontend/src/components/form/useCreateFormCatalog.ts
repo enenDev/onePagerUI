@@ -34,8 +34,7 @@ export function useCreateFormCatalog(): {
     [filterMetadata],
   );
 
-  const catalogLoading =
-    !filterMetadata && (metadataLoading || !metadataError);
+  const catalogLoading = !filterMetadata && (metadataLoading || !metadataError);
 
   return {
     catalog,

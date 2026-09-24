@@ -35,8 +35,6 @@ export type NationalPreviewLocationState = {
   pillars: PillarDraft[];
   recordId: string | null;
   payload: NationalOnePagerCreatePayload;
-  /** Edit & Replace: hide Save Draft and confirm discard on back. */
-  replaceExisting?: boolean;
 };
 
 function isPreviewState(value: unknown): value is NationalPreviewLocationState {
@@ -74,22 +72,22 @@ export function PreviewNationalOnePager() {
   const [archiving, setArchiving] = useState(false);
   const [archiveError, setArchiveError] = useState<string | null>(null);
   const [editPublishedOpen, setEditPublishedOpen] = useState(false);
-
-  const goEdit = useCallback(
-    (createAsNew: boolean) => {
-      const id = recordId ?? state?.recordId;
-      if (!id) return;
-      navigate(`/edit/${id}`, {
-        state: createAsNew ? { createAsNew: true } : undefined,
-      });
-    },
-    [navigate, recordId, state?.recordId],
+  const [editPublishedBusy, setEditPublishedBusy] = useState(false);
+  const [editPublishedError, setEditPublishedError] = useState<string | null>(
+    null,
   );
 
+  const goEditCreateAsNew = useCallback(() => {
+    const id = recordId ?? state?.recordId;
+    if (!id) return;
+    navigate(`/edit/${id}`, { state: { createAsNew: true } });
+  }, [navigate, recordId, state?.recordId]);
+
   const goBackToEdit = useCallback(() => {
-    // After publish, Edit opens the published-edit modal.
+    // After publish, Edit opens the published-edit modal (createAsNew on save).
     // Pre-publish Edit still restores in-memory form state (not a GET).
     if (published) {
+      setEditPublishedError(null);
       setEditPublishedOpen(true);
       return;
     }
@@ -181,6 +179,27 @@ export function PreviewNationalOnePager() {
       );
     } finally {
       setArchiving(false);
+    }
+  };
+
+  const handleArchiveAndEdit = async () => {
+    const id = recordId ?? state.recordId;
+    if (!id) {
+      setEditPublishedError("Missing one-pager id.");
+      return;
+    }
+    setEditPublishedBusy(true);
+    setEditPublishedError(null);
+    try {
+      await dispatch(archiveOnePager({ pagerId: id, user: owner })).unwrap();
+      setEditPublishedOpen(false);
+      goEditCreateAsNew();
+    } catch (err) {
+      setEditPublishedError(
+        err instanceof Error ? err.message : "Failed to archive one-pager",
+      );
+    } finally {
+      setEditPublishedBusy(false);
     }
   };
 
@@ -298,13 +317,14 @@ export function PreviewNationalOnePager() {
       <EditPublishedOnePagerModal
         open={editPublishedOpen}
         onOpenChange={setEditPublishedOpen}
-        onEditAndReplace={() => {
+        busy={editPublishedBusy}
+        error={editPublishedError}
+        onKeepActiveAndEdit={() => {
           setEditPublishedOpen(false);
-          goEdit(false);
+          goEditCreateAsNew();
         }}
-        onCreateCopy={() => {
-          setEditPublishedOpen(false);
-          goEdit(true);
+        onArchiveAndEdit={() => {
+          void handleArchiveAndEdit();
         }}
       />
     </div>
