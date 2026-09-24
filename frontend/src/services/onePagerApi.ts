@@ -45,7 +45,8 @@ import type { PagerUpdateArgs } from "@/redux/landingSlice";
  * TODO: Replace with real FastAPI list/search endpoint.
  * Temporary: normalize to array-only payload, then filter the in-memory
  * landingList (seeded from mocks/landingOnePagers.json; save/publish upserts
- * cover_image_url into the same list). Used by Submit + Clear all + import picker.
+ * cover_image_url into the same list). Used by Home Submit + Clear all, and by
+ * the Import From National picker (picker stores the response in local state).
  * Next: POST /api/one-pagers/search with JSON body from toOnePagerSearchPayload —
  * always `{ market: string[], retailer: string[], channel: string[],
  * category: string[], campaign: string[] }` (never scalar strings).
