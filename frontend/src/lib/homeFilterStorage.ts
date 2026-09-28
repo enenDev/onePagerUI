@@ -12,8 +12,8 @@ import {
  * scopeTab (those stay Redux-only and reset on full reload by design).
  *
  * Lifetime: sessionStorage → survives reloads and in-app navigation, clears
- * when the browser tab is closed. Swap to localStorage here if product later
- * wants filters to outlive the tab.
+ * when the browser tab is closed or the user logs out (AppHeader). Swap to
+ * localStorage here if product later wants filters to outlive the tab.
  *
  * Timing: written only when filters are *applied* (FilterBar Submit) and
  * removed on Clear, so storage always mirrors the list the user is seeing.

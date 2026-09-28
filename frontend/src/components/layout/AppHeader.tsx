@@ -12,6 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { clearPersistedFilters } from "@/lib/homeFilterStorage";
 import { useAppSelector } from "@/redux/hooks";
 import { userTypeLabel } from "@/redux/userSlice";
 import { logout } from "@/services/authApi";
@@ -38,9 +39,12 @@ export function AppHeader() {
   const handleLogout = () => {
     // Always land on /login even if signOut fails; logout() already clears the
     // stored token, so the user is effectively signed out locally.
+    // sessionStorage survives a same-tab logout. Drop applied homepage filters
+    // here so Home does not restore them on the next login.
     void logout()
       .catch(() => {})
       .finally(() => {
+        clearPersistedFilters();
         navigate("/login");
       });
   };
