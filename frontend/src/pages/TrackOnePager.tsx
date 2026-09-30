@@ -10,7 +10,6 @@ import { Loading } from "@/components/common/Loading";
 import { FormToast } from "@/components/form/FormToast";
 import { ArchiveOnePagerModal } from "@/components/landing/ArchiveOnePagerModal";
 import { DeleteOnePagerModal } from "@/components/landing/DeleteOnePagerModal";
-import { EditPublishedOnePagerModal } from "@/components/landing/EditPublishedOnePagerModal";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { NationalPreviewDocument } from "@/components/preview/NationalPreviewDocument";
 import {
@@ -57,8 +56,8 @@ function publishedToastFromState(state: unknown): string {
  * initiative_id ("" for pillar-only) from that GET.
  *
  * Home Active card click and post-publish Preview both open this page.
- * More Options: Export / Archive / Edit / Delete (Track omitted — already
- * here). Archive / Delete → /home on success.
+ * More Options: Export / Archive / Edit & Replace / Create a copy / Delete
+ * (Track omitted — already here). Archive / Delete → /home on success.
  *
  * TODO: Swap getOnePagerById / updateTrackStatus bodies only.
  * Keep this page looking up pillar_id / initiative_id from the mapped record.
@@ -90,7 +89,6 @@ export function TrackOnePager() {
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [archiving, setArchiving] = useState(false);
   const [archiveError, setArchiveError] = useState<string | null>(null);
-  const [editPublishedOpen, setEditPublishedOpen] = useState(false);
   const displayError = pagerId ? error : "Missing one-pager id.";
 
   useEffect(() => {
@@ -271,9 +269,8 @@ export function TrackOnePager() {
             canModify={canModify}
             canEdit={isOwner}
             canDelete={isOwner}
-            onEdit={() => {
-              setEditPublishedOpen(true);
-            }}
+            onEdit={() => goEdit(false)}
+            onCreateCopy={() => goEdit(true)}
             onExport={() => {
               void exportOnePagerPpt({
                 pagerType: record.pager_type,
@@ -317,18 +314,6 @@ export function TrackOnePager() {
         }}
         archiving={archiving}
         error={archiveError}
-      />
-      <EditPublishedOnePagerModal
-        open={editPublishedOpen}
-        onOpenChange={setEditPublishedOpen}
-        onEditAndReplace={() => {
-          setEditPublishedOpen(false);
-          goEdit(false);
-        }}
-        onCreateCopy={() => {
-          setEditPublishedOpen(false);
-          goEdit(true);
-        }}
       />
       <FormToast
         open={toastOpen}

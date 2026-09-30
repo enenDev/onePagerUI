@@ -11,7 +11,6 @@ import type { RetailerFormValues } from "@/components/form/retailerForm";
 import type { PillarDraft, ScoringMode } from "@/components/form/pillars";
 import { DeleteOnePagerModal } from "@/components/landing/DeleteOnePagerModal";
 import { ArchiveOnePagerModal } from "@/components/landing/ArchiveOnePagerModal";
-import { EditPublishedOnePagerModal } from "@/components/landing/EditPublishedOnePagerModal";
 import { NationalPreviewDocument } from "@/components/preview/NationalPreviewDocument";
 import { PublishIncompletePillarsModal } from "@/components/preview/PublishIncompletePillarsModal";
 import {
@@ -74,7 +73,6 @@ export function PreviewRetailerOnePager() {
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [archiving, setArchiving] = useState(false);
   const [archiveError, setArchiveError] = useState<string | null>(null);
-  const [editPublishedOpen, setEditPublishedOpen] = useState(false);
 
   const goEdit = useCallback(
     (createAsNew: boolean) => {
@@ -88,18 +86,13 @@ export function PreviewRetailerOnePager() {
   );
 
   const goBackToEdit = useCallback(() => {
-    // After publish, Edit opens the published-edit modal.
-    // Pre-publish Edit still restores in-memory form state (not a GET).
-    if (published) {
-      setEditPublishedOpen(true);
-      return;
-    }
+    // Pre-publish Edit restores in-memory form state (not a GET).
     if (!state) {
       navigate("/create/retailer");
       return;
     }
     navigate("/create/retailer", { state });
-  }, [navigate, published, state]);
+  }, [navigate, state]);
 
   useEffect(() => {
     setBackHandler(goBackToEdit);
@@ -193,7 +186,8 @@ export function PreviewRetailerOnePager() {
           owner={owner}
           publishedAt={publishedAt}
           status="PUBLISHED"
-          onEdit={goBackToEdit}
+          onEdit={published ? () => goEdit(false) : goBackToEdit}
+          onCreateCopy={published ? () => goEdit(true) : undefined}
           moreOptionsEnabled={published}
           onTrack={
             published
@@ -294,19 +288,6 @@ export function PreviewRetailerOnePager() {
         }}
         archiving={archiving}
         error={archiveError}
-      />
-
-      <EditPublishedOnePagerModal
-        open={editPublishedOpen}
-        onOpenChange={setEditPublishedOpen}
-        onEditAndReplace={() => {
-          setEditPublishedOpen(false);
-          goEdit(false);
-        }}
-        onCreateCopy={() => {
-          setEditPublishedOpen(false);
-          goEdit(true);
-        }}
       />
     </div>
   );

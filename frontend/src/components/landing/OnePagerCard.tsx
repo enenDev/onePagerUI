@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from "react";
 import {
   Archive,
+  Copy,
   MoreVertical,
   Pencil,
   RotateCcw,
@@ -11,7 +12,6 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { ArchiveOnePagerModal } from "@/components/landing/ArchiveOnePagerModal";
 import { DeleteOnePagerModal } from "@/components/landing/DeleteOnePagerModal";
-import { EditPublishedOnePagerModal } from "@/components/landing/EditPublishedOnePagerModal";
 import { RestoreOnePagerModal } from "@/components/landing/RestoreOnePagerModal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -34,11 +34,18 @@ type OnePagerCardProps = {
   item: OnePagerListItem;
 };
 
-type CardMenuAction = "export" | "archive" | "restore" | "edit" | "delete";
+type CardMenuAction =
+  | "export"
+  | "archive"
+  | "restore"
+  | "edit"
+  | "editReplace"
+  | "createCopy"
+  | "delete";
 
 function menuActionsForStatus(status: OnePagerStatus): CardMenuAction[] {
   if (status === "PUBLISHED") {
-    return ["export", "archive", "edit", "delete"];
+    return ["export", "archive", "editReplace", "createCopy", "delete"];
   }
   if (status === "DRAFT") {
     return ["edit", "delete"];
@@ -75,7 +82,6 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
   const [restoreOpen, setRestoreOpen] = useState(false);
   const [restoring, setRestoring] = useState(false);
   const [restoreError, setRestoreError] = useState<string | null>(null);
-  const [editPublishedOpen, setEditPublishedOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
 
   const goEdit = (createAsNew: boolean) => {
@@ -175,11 +181,15 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
                 showSeparator={index < actions.length - 1}
                 onEdit={() => {
                   if (!isOwner) return;
-                  if (item.status === "PUBLISHED") {
-                    setEditPublishedOpen(true);
-                    return;
-                  }
                   navigate(`/edit/${item.pager_id}`);
+                }}
+                onEditReplace={() => {
+                  if (!isOwner) return;
+                  goEdit(false);
+                }}
+                onCreateCopy={() => {
+                  if (!isOwner) return;
+                  goEdit(true);
                 }}
                 onExport={() => {
                   void handleExport();
@@ -298,18 +308,6 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
         restoring={restoring}
         error={restoreError}
       />
-      <EditPublishedOnePagerModal
-        open={editPublishedOpen}
-        onOpenChange={setEditPublishedOpen}
-        onEditAndReplace={() => {
-          setEditPublishedOpen(false);
-          goEdit(false);
-        }}
-        onCreateCopy={() => {
-          setEditPublishedOpen(false);
-          goEdit(true);
-        }}
-      />
     </article>
   );
 }
@@ -319,6 +317,8 @@ function CardMenuItem({
   isOwner,
   showSeparator,
   onEdit,
+  onEditReplace,
+  onCreateCopy,
   onExport,
   exporting,
   onArchive,
@@ -329,6 +329,8 @@ function CardMenuItem({
   isOwner: boolean;
   showSeparator: boolean;
   onEdit: () => void;
+  onEditReplace: () => void;
+  onCreateCopy: () => void;
   onExport: () => void;
   exporting: boolean;
   onArchive: () => void;
@@ -398,6 +400,32 @@ function CardMenuItem({
         >
           <Pencil className="size-4" />
           Edit
+        </DropdownMenuItem>
+      );
+      break;
+    case "editReplace":
+      menuItem = (
+        <DropdownMenuItem
+          disabled={!isOwner}
+          title={isOwner ? undefined : "Only the owner can edit this one-pager"}
+          className={itemClassName}
+          onClick={onEditReplace}
+        >
+          <Pencil className="size-4" />
+          Edit &amp; Replace
+        </DropdownMenuItem>
+      );
+      break;
+    case "createCopy":
+      menuItem = (
+        <DropdownMenuItem
+          disabled={!isOwner}
+          title={isOwner ? undefined : "Only the owner can edit this one-pager"}
+          className={itemClassName}
+          onClick={onCreateCopy}
+        >
+          <Copy className="size-4" />
+          Create a copy
         </DropdownMenuItem>
       );
       break;

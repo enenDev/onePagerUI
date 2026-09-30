@@ -1,5 +1,6 @@
 import {
   Archive,
+  Copy,
   Info,
   MoreVertical,
   Pencil,
@@ -62,6 +63,8 @@ type NationalPreviewDocumentProps = {
   owner: string;
   publishedAt: string;
   onEdit?: () => void;
+  /** Published only: leave the active one-pager and edit a new copy. */
+  onCreateCopy?: () => void;
   /** Opens /track/:id. Omit on drafts, archive, and pre-publish preview. */
   onTrack?: () => void;
   /** Downloads the one-slide PPT. Omit on drafts and pre-publish preview. */
@@ -105,6 +108,7 @@ export function NationalPreviewDocument({
   owner,
   publishedAt,
   onEdit,
+  onCreateCopy,
   onTrack,
   onExport,
   onDelete,
@@ -231,7 +235,45 @@ export function NationalPreviewDocument({
                     <DropdownMenuSeparator className="m-0" />
                   </>
                 ) : null}
-                {showEdit ? (
+                {showEdit && status === "PUBLISHED" ? (
+                  <>
+                    <DropdownMenuItem
+                      disabled={!canEdit}
+                      title={
+                        canEdit
+                          ? undefined
+                          : "Only the owner can edit this one-pager"
+                      }
+                      className="cursor-pointer rounded-none px-3 py-2"
+                      onClick={() => {
+                        if (!canEdit) return;
+                        onEdit?.();
+                      }}
+                    >
+                      <Pencil className="size-4" />
+                      Edit &amp; Replace
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="m-0" />
+                    <DropdownMenuItem
+                      disabled={!canEdit}
+                      title={
+                        canEdit
+                          ? undefined
+                          : "Only the owner can edit this one-pager"
+                      }
+                      className="cursor-pointer rounded-none px-3 py-2"
+                      onClick={() => {
+                        if (!canEdit) return;
+                        onCreateCopy?.();
+                      }}
+                    >
+                      <Copy className="size-4" />
+                      Create a copy
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="m-0" />
+                  </>
+                ) : null}
+                {showEdit && status === "DRAFT" ? (
                   <>
                     <DropdownMenuItem
                       disabled={!canEdit}

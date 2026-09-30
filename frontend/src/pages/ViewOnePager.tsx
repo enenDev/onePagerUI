@@ -4,7 +4,6 @@ import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 import { Loading } from "@/components/common/Loading";
 import { ArchiveOnePagerModal } from "@/components/landing/ArchiveOnePagerModal";
 import { DeleteOnePagerModal } from "@/components/landing/DeleteOnePagerModal";
-import { EditPublishedOnePagerModal } from "@/components/landing/EditPublishedOnePagerModal";
 import { RestoreOnePagerModal } from "@/components/landing/RestoreOnePagerModal";
 import { NationalPreviewDocument } from "@/components/preview/NationalPreviewDocument";
 import {
@@ -41,8 +40,8 @@ function composeViewTitle(record: OnePagerByIdRecord) {
  * (GetOnePagerApiResponse). Keep mapGetOnePagerResponse + OnePagerByIdRecord.
  * Keep rendering NationalPreviewDocument from the record payload (retailer
  * shows Target Retailer when present). Do not route through create/preview.
- * Back → /home. More Options → Edit still uses /edit/:id (owner-only);
- * published Edit opens EditPublishedOnePagerModal (replace or create a copy).
+ * Back → /home. More Options → Edit still uses /edit/:id (owner-only).
+ * Published menus list Edit & Replace and Create a copy in place of Edit.
  * Archive / Restore / Delete navigate to /home after a successful mock call
  * until FastAPI endpoints exist.
  * More Options → Track uses /track/:id for PUBLISHED only.
@@ -70,7 +69,6 @@ export function ViewOnePager() {
   const [restoreOpen, setRestoreOpen] = useState(false);
   const [restoring, setRestoring] = useState(false);
   const [restoreError, setRestoreError] = useState<string | null>(null);
-  const [editPublishedOpen, setEditPublishedOpen] = useState(false);
   const displayError = pagerId ? error : "Missing one-pager id.";
 
   useEffect(() => {
@@ -210,11 +208,16 @@ export function ViewOnePager() {
             canDelete={isOwner}
             onEdit={() => {
               if (record.list_status === "PUBLISHED") {
-                setEditPublishedOpen(true);
+                goEdit(false);
                 return;
               }
               navigate(`/edit/${record.id}`);
             }}
+            onCreateCopy={
+              record.list_status === "PUBLISHED"
+                ? () => goEdit(true)
+                : undefined
+            }
             onTrack={
               record.list_status === "PUBLISHED"
                 ? () => navigate(`/track/${record.id}`)
@@ -283,18 +286,6 @@ export function ViewOnePager() {
         }}
         restoring={restoring}
         error={restoreError}
-      />
-      <EditPublishedOnePagerModal
-        open={editPublishedOpen}
-        onOpenChange={setEditPublishedOpen}
-        onEditAndReplace={() => {
-          setEditPublishedOpen(false);
-          goEdit(false);
-        }}
-        onCreateCopy={() => {
-          setEditPublishedOpen(false);
-          goEdit(true);
-        }}
       />
     </div>
   );
