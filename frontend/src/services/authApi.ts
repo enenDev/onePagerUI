@@ -1,4 +1,5 @@
 import { loginUser, logoutUser } from "@/services/authService";
+import { logUserLogin } from "@/services/loginLogApi";
 
 export type LoginWithSsoResult = { ok: true };
 
@@ -10,6 +11,7 @@ export type LoginWithSsoResult = { ok: true };
  */
 export async function loginWithSso(): Promise<LoginWithSsoResult> {
   await loginUser();
+  logUserLogin();
   return { ok: true };
 }
 

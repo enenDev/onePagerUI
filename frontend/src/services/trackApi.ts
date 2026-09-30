@@ -1,4 +1,5 @@
 import ApiBase from "@/components/auth/apiBase";
+import { API_ENDPOINTS } from "@/config/apiEndpoints";
 
 export type ApiTrackColor = "red" | "amber" | "green";
 export type TrackRagStatus = "clear" | ApiTrackColor;
@@ -81,7 +82,7 @@ export async function updateTrackStatus(input: {
   }
   try {
     const { pagerId, pillarId, initiativeId } = input
-    await ApiBase.patch('api/v1/update-track', {
+    await ApiBase.patch(API_ENDPOINTS.updateTrack, {
       table: (pagerId && pillarId && initiativeId) ? "initiative"
         : (pagerId && pillarId && !initiativeId) ? "pillar"
           : "pager",

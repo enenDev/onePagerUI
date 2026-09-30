@@ -3,6 +3,7 @@ import type { PillarDraft, ScoringMode } from "@/components/form/pillars";
 
 import type { FilterMetadata } from "@/types/onePager";
 import ApiBase from "@/components/auth/apiBase";
+import { API_ENDPOINTS } from "@/config/apiEndpoints";
 
 export type FilterOption = {
   label: string;
@@ -103,7 +104,7 @@ export async function addCampaign(
     };
   }
   try {
-    await ApiBase.post("api/v1/campaigns", {
+    await ApiBase.post(API_ENDPOINTS.campaigns, {
       market: market,
       campaign_name: trimmed,
       created_by: createdBy,
@@ -353,13 +354,13 @@ export async function saveNationalDraft(
 ): Promise<NationalOnePagerMutationResult> {
   try {
     if (id) {
-      const { data } = await ApiBase.patch(`api/v1/pagers/${id}`, {
+      const { data } = await ApiBase.patch(API_ENDPOINTS.pagerById(id), {
         ...toPublicImageSavePayload(payload),
         pager_id: id || "",
       });
       return { ok: true, id: data?.pager_id || "", status: "draft" };
     }
-    const { data } = await ApiBase.post("api/v1/pagers", {
+    const { data } = await ApiBase.post(API_ENDPOINTS.pagers, {
       ...toPublicImageSavePayload(payload),
       pager_id: id || "",
     });
@@ -388,13 +389,13 @@ export async function publishNationalOnePager(
 ): Promise<NationalOnePagerMutationResult> {
   try {
     if (id) {
-      const { data } = await ApiBase.patch(`api/v1/pagers/${id}`, {
+      const { data } = await ApiBase.patch(API_ENDPOINTS.pagerById(id), {
         ...toPublicImageSavePayload(payload),
         pager_id: id || "",
       });
       return { ok: true, id: data?.pager_id || "", status: "draft" };
     }
-    const { data } = await ApiBase.post("api/v1/pagers", {
+    const { data } = await ApiBase.post(API_ENDPOINTS.pagers, {
       ...toPublicImageSavePayload(payload),
       pager_id: id || "",
     });
@@ -425,7 +426,7 @@ export async function getNationalOnePager(
   id: string,
 ): Promise<NationalOnePagerRecord | null> {
   try {
-    const { data } = await ApiBase.get(`api/v1/pagers/${id}`);
+    const { data } = await ApiBase.get(API_ENDPOINTS.pagerById(id));
     return {
       payload: {
         ...(data as NationalOnePagerCreatePayload),

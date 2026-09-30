@@ -100,6 +100,7 @@ import type {
   NationalPillarPayload,
 } from "@/services/createFormApi";
 import { getOnePagerById } from "@/services/onePagerApi";
+import { logPagerActivity } from "@/services/pagerActivityApi";
 import type { RetailerOnePagerCreatePayload } from "@/services/retailerCreateFormApi";
 import {
   flattenLineBreaks,
@@ -116,6 +117,8 @@ type ExportPayload =
 export type ExportOnePagerInput = {
   pagerType: "national" | "retailer";
   payload: ExportPayload;
+  /** When set, a successful download logs an export activity event. */
+  pagerId?: string;
 };
 
 /** Widescreen inches. LAYOUT_WIDE is 13.333 × 7.5. Change these to resize the whole slide. */
@@ -887,6 +890,9 @@ export async function exportOnePagerPpt(input: ExportOnePagerInput) {
     await pptx.writeFile({
       fileName: safeFileName(composeTitle(input.pagerType, input.payload)),
     });
+    if (input.pagerId) {
+      logPagerActivity({ pager_id: input.pagerId, action: "export" });
+    }
   } finally {
     exportBusy = false;
   }
@@ -901,5 +907,6 @@ export async function exportOnePagerById(pagerId: string) {
   await exportOnePagerPpt({
     pagerType: record.pager_type,
     payload: record.payload,
+    pagerId,
   });
 }

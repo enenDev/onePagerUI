@@ -5,7 +5,7 @@ import { AppHeader } from "@/components/layout/AppHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Button } from "@/components/ui/button";
 import { useAppDispatch } from "@/redux/hooks";
-import { fetchCurrentUser } from "@/redux/userSlice";
+import { fetchCurrentUser, fetchUserDetails } from "@/redux/userSlice";
 
 type RouteHandle = {
   headerVariant?: "list" | "simple";
@@ -31,6 +31,11 @@ const MainLayout = () => {
     // TODO: After GET /api/me exists, keep this dispatch. It should run only
     // when RequireAuth has a Firebase user so ApiBase can send the token.
     void dispatch(fetchCurrentUser());
+    void dispatch(fetchUserDetails())
+      .unwrap()
+      .catch(() => {
+        // Activity logging falls back until this succeeds. Do not block the app.
+      });
   }, [dispatch]);
 
   const setBackHandler = useCallback((handler: (() => void) | null) => {

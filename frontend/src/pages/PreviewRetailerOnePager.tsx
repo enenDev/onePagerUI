@@ -209,6 +209,7 @@ export function PreviewRetailerOnePager() {
                 void exportOnePagerPpt({
                   pagerType: "retailer",
                   payload,
+                  pagerId: recordId ?? undefined,
                 });
               }
               : undefined

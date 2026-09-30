@@ -10,6 +10,7 @@ import {
   type OnePagerStatus,
 } from "@/types/onePager";
 import ApiBase from "@/components/auth/apiBase";
+import { API_ENDPOINTS } from "@/config/apiEndpoints";
 import type { PagerUpdateArgs } from "@/redux/landingSlice";
 
 // function matchesFilter(item: OnePagerListItem, filters: FilterPayload) {
@@ -62,7 +63,7 @@ export async function submitOnePagerSearch(
   try {
     const payload = toOnePagerSearchPayload(filters);
     const { data } = await ApiBase.post(
-      "api/v1/pagers/fetch-all?skip=0&limit=499",
+      API_ENDPOINTS.fetchAllPagers,
       payload,
     );
     const pagers = (data.pagers ?? []) as Array<
@@ -173,7 +174,7 @@ export async function getOnePagerById(
   id: string,
 ): Promise<OnePagerByIdRecord | null> {
   try {
-    const { data } = await ApiBase.get(`api/v1/pagers/${id}`);
+    const { data } = await ApiBase.get(API_ENDPOINTS.pagerById(id));
     return {
       id: data.pager_id,
       status: data.status,
@@ -232,7 +233,7 @@ export async function deleteOnePager(
 ): Promise<DeleteOnePagerResult> {
   const trimmed = pagerId.trim();
   try {
-    await ApiBase.patch(`api/v1/pagers/${trimmed}/status`, {
+    await ApiBase.patch(API_ENDPOINTS.pagerStatus(trimmed), {
       status: "DELETED",
       updated_by: user,
     });
@@ -258,7 +259,7 @@ export async function updateOnePagerStatus(
 ): Promise<DeleteOnePagerResult> {
   const trimmed = pagerId.trim();
   try {
-    await ApiBase.patch(`api/v1/pagers/${trimmed}/status`, {
+    await ApiBase.patch(API_ENDPOINTS.pagerStatus(trimmed), {
       status: newStatus,
       updated_by: updatedBy,
     });
@@ -287,7 +288,7 @@ export async function archiveOnePager(
   if (!trimmed) {
     return { ok: false, error: "Missing one-pager id." };
   }
-  await ApiBase.patch(`api/v1/pagers/${trimmed}/status`, {
+  await ApiBase.patch(API_ENDPOINTS.pagerStatus(trimmed), {
     status: "ARCHIVED",
     updated_by: args?.user || "",
   });
@@ -316,7 +317,7 @@ export async function restoreOnePager(
   if (!trimmed) {
     return { ok: false, error: "Missing one-pager id." };
   }
-  await ApiBase.patch(`api/v1/pagers/${trimmed}/status`, {
+  await ApiBase.patch(API_ENDPOINTS.pagerStatus(trimmed), {
     status: "DRAFT",
     updated_by: args?.user || "",
   });

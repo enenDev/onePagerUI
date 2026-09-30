@@ -33,6 +33,7 @@ import {
 } from "@/services/retailerCreateFormApi";
 import { getNationalOnePager } from "@/services/createFormApi";
 import { isRetailerEditState } from "@/services/onePagerApi";
+import { logPagerActivity } from "@/services/pagerActivityApi";
 import type { OnePagerListItem } from "@/types/onePager";
 import { useAppSelector } from "@/redux/hooks";
 
@@ -300,6 +301,7 @@ export function CreateRetailerOnePager() {
     setRecordId(result.id);
     setSavedFingerprint(JSON.stringify(payload));
     setSaveError(null);
+    logPagerActivity({ pager_id: result.id, action: "draft" });
 
     if (options?.redirectHome !== false) {
       navigate("/home", { replace: true });

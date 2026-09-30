@@ -1,4 +1,5 @@
 import ApiBase from "@/components/auth/apiBase";
+import { API_ENDPOINTS } from "@/config/apiEndpoints";
 import type {
   FilterMetadata,
   FilterOption,
@@ -87,7 +88,7 @@ const transformData = (input: RawMetadataInput): FilterMetadata => {
 export async function getMetadata(): Promise<FilterMetadata> {
   try {
     // Explicitly fallback to unknown/any for runtime parsing if ApiBase isn't generic
-    const { data } = await ApiBase.get("api/v1/metadata");
+    const { data } = await ApiBase.get(API_ENDPOINTS.metadata);
     const marketData = transformData(data as RawMetadataInput);
     return marketData;
   } catch (error) {

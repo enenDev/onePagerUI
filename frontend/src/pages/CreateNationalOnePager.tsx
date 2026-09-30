@@ -28,6 +28,7 @@ import {
   saveNationalDraft,
 } from "@/services/createFormApi";
 import { isNationalEditState } from "@/services/onePagerApi";
+import { logPagerActivity } from "@/services/pagerActivityApi";
 import { useAppSelector } from "@/redux/hooks";
 
 function isFormDirty(
@@ -235,6 +236,7 @@ export function CreateNationalOnePager() {
     setRecordId(result.id);
     setSavedFingerprint(JSON.stringify(payload));
     setSaveError(null);
+    logPagerActivity({ pager_id: result.id, action: "draft" });
 
     if (options?.redirectHome !== false) {
       navigate("/home", { replace: true });

@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
 import { getCurrentUser } from "@/services/userApi";
+import { getUserDetails, type UserDetails } from "@/services/userDetailsApi";
 
 /**
  * TODO: currentUser is populated from the signed-in Firebase user via
@@ -24,6 +25,8 @@ export type CurrentUser = {
 
 interface UserState {
   currentUser: CurrentUser;
+  /** Null until GET user-tracking/user-details succeeds for this signed-in session. */
+  userDetails: UserDetails | null;
 }
 
 // Neutral placeholder until fetchCurrentUser populates the real Firebase user.
@@ -35,10 +38,20 @@ const initialState: UserState = {
     initials: "U",
     user_type: "user_type_1",
   },
+  userDetails: null,
 };
 
 export const fetchCurrentUser = createAsyncThunk("user/fetchCurrentUser", () =>
   getCurrentUser(),
+);
+
+/** Once per signed-in app load. Email is the only request field. */
+export const fetchUserDetails = createAsyncThunk(
+  "user/fetchUserDetails",
+  async () => {
+    const { email } = await getCurrentUser();
+    return getUserDetails(email);
+  },
 );
 
 export const userSlice = createSlice({
@@ -48,6 +61,12 @@ export const userSlice = createSlice({
   extraReducers: (builder) => {
     builder.addCase(fetchCurrentUser.fulfilled, (state, action) => {
       state.currentUser = action.payload;
+    });
+    builder.addCase(fetchUserDetails.pending, (state) => {
+      state.userDetails = null;
+    });
+    builder.addCase(fetchUserDetails.fulfilled, (state, action) => {
+      state.userDetails = action.payload;
     });
   },
 });
