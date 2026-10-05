@@ -1,8 +1,11 @@
 import { Navigate } from "react-router-dom";
 
+import { RequireAnalyst } from "../components/auth/RequireAnalyst";
 import { RequireAuth } from "../components/auth/RequireAuth";
+import { RequireOnePagerAccess } from "../components/auth/RequireOnePagerAccess";
 import { RequireUserCreateAccess } from "../components/auth/RequireUserCreateAccess";
 import { Home } from "../pages/Home";
+import { UserAdoption } from "../pages/UserAdoption";
 import { Login } from "../pages/Login";
 import { CreateNationalOnePager } from "../pages/CreateNationalOnePager";
 import { CreateRetailerOnePager } from "../pages/CreateRetailerOnePager";
@@ -33,80 +36,93 @@ const routes = [
         ),
         children: [
           {
-            path: "home",
-            element: <Home />,
+            element: <RequireOnePagerAccess />,
+            children: [
+              {
+                path: "home",
+                element: <Home />,
+              },
+              {
+                path: "edit/:pagerId",
+                element: <EditOnePager />,
+                handle: {
+                  headerVariant: "simple",
+                  title: "Edit One-Pager",
+                },
+              },
+              {
+                path: "view/:pagerId",
+                element: <ViewOnePager />,
+                handle: {
+                  headerVariant: "simple",
+                  title: "View One-Pager",
+                },
+              },
+              {
+                path: "track/:pagerId",
+                element: <TrackOnePager />,
+                handle: {
+                  headerVariant: "simple",
+                  title: "Track One-Pager",
+                },
+              },
+              {
+                path: "create/national",
+                element: (
+                  <RequireUserCreateAccess kind="national">
+                    <CreateNationalOnePager />
+                  </RequireUserCreateAccess>
+                ),
+                handle: {
+                  headerVariant: "simple",
+                  title: "Create New National One-Pager",
+                },
+              },
+              {
+                path: "create/national/preview",
+                element: (
+                  <RequireUserCreateAccess kind="national">
+                    <PreviewNationalOnePager />
+                  </RequireUserCreateAccess>
+                ),
+                handle: {
+                  headerVariant: "simple",
+                  title: "Preview National One-Pager",
+                },
+              },
+              {
+                path: "create/retailer",
+                element: (
+                  <RequireUserCreateAccess kind="retailer">
+                    <CreateRetailerOnePager />
+                  </RequireUserCreateAccess>
+                ),
+                handle: {
+                  headerVariant: "simple",
+                  title: "Build New Retailer One-Pager",
+                },
+              },
+              {
+                path: "create/retailer/preview",
+                element: (
+                  <RequireUserCreateAccess kind="retailer">
+                    <PreviewRetailerOnePager />
+                  </RequireUserCreateAccess>
+                ),
+                handle: {
+                  headerVariant: "simple",
+                  title: "Preview Retailer One-Pager",
+                },
+              },
+            ],
           },
           {
-            path: "edit/:pagerId",
-            element: <EditOnePager />,
-            handle: {
-              headerVariant: "simple",
-              title: "Edit One-Pager",
-            },
-          },
-          {
-            path: "view/:pagerId",
-            element: <ViewOnePager />,
-            handle: {
-              headerVariant: "simple",
-              title: "View One-Pager",
-            },
-          },
-          {
-            path: "track/:pagerId",
-            element: <TrackOnePager />,
-            handle: {
-              headerVariant: "simple",
-              title: "Track One-Pager",
-            },
-          },
-          {
-            path: "create/national",
+            path: "user-adoption",
             element: (
-              <RequireUserCreateAccess kind="national">
-                <CreateNationalOnePager />
-              </RequireUserCreateAccess>
+              <RequireAnalyst>
+                <UserAdoption />
+              </RequireAnalyst>
             ),
-            handle: {
-              headerVariant: "simple",
-              title: "Create New National One-Pager",
-            },
-          },
-          {
-            path: "create/national/preview",
-            element: (
-              <RequireUserCreateAccess kind="national">
-                <PreviewNationalOnePager />
-              </RequireUserCreateAccess>
-            ),
-            handle: {
-              headerVariant: "simple",
-              title: "Preview National One-Pager",
-            },
-          },
-          {
-            path: "create/retailer",
-            element: (
-              <RequireUserCreateAccess kind="retailer">
-                <CreateRetailerOnePager />
-              </RequireUserCreateAccess>
-            ),
-            handle: {
-              headerVariant: "simple",
-              title: "Build New Retailer One-Pager",
-            },
-          },
-          {
-            path: "create/retailer/preview",
-            element: (
-              <RequireUserCreateAccess kind="retailer">
-                <PreviewRetailerOnePager />
-              </RequireUserCreateAccess>
-            ),
-            handle: {
-              headerVariant: "simple",
-              title: "Preview Retailer One-Pager",
-            },
           },
         ],
       },

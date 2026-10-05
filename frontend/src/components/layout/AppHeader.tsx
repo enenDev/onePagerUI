@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { HelpCircle, LogOut, UserRound } from "lucide-react";
+import { HelpCircle, LayoutDashboard, LogOut, UserRound } from "lucide-react";
 
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAppSelector } from "@/redux/hooks";
-import { userTypeLabel } from "@/redux/userSlice";
+import { profileRoleLabel } from "@/redux/userSlice";
 import { logout } from "@/services/authApi";
 import perfectStoreLogo from "@/assets/Perfect_Store_Hero_Logo.svg";
 import unileverBrandLogo from "@/assets/Unilever_Brand_Logo.svg";
@@ -26,12 +26,31 @@ function HeaderDivider() {
   );
 }
 
+function HeaderBrand() {
+  return (
+    <>
+      <img
+        src={perfectStoreLogo}
+        alt=""
+        className="size-28 object-contain"
+      />
+      <HeaderDivider />
+      {/* TODO: Swap /logo-secondary.svg for the real second brand logo asset. */}
+      <img
+        src={unileverBrandLogo}
+        alt=""
+        className="size-16 object-contain"
+      />
+    </>
+  );
+}
+
 export function AppHeader() {
   const navigate = useNavigate();
   const userGuideURL = VITE_USER_HELP_URL?.trim() ?? "";
-  const { name, email, initials, user_type } = useAppSelector(
-    (state) => state.user.currentUser,
-  );
+  const currentUser = useAppSelector((state) => state.user.currentUser);
+  const { name, email, initials, isAnalyst, isAnalystOnly } = currentUser;
+  const showDashboard = isAnalyst && !isAnalystOnly;
   const handleHelp = () => {
     open(userGuideURL);
   };
@@ -51,24 +70,19 @@ export function AppHeader() {
     <header className="sticky top-0 z-40 w-full overflow-hidden bg-primary">
       <PageContainer className="relative flex h-14 items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-2">
-          <Link
-            to="/home"
-            className="flex h-14 shrink-0 cursor-pointer items-center gap-2 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-white/60"
-            aria-label="Go to home"
-          >
-            <img
-              src={perfectStoreLogo}
-              alt=""
-              className="size-28 object-contain"
-            />
-            <HeaderDivider />
-            {/* TODO: Swap /logo-secondary.svg for the real second brand logo asset. */}
-            <img
-              src={unileverBrandLogo}
-              alt=""
-              className="size-16 object-contain"
-            />
-          </Link>
+          {isAnalystOnly ? (
+            <div className="flex h-14 shrink-0 items-center gap-2">
+              <HeaderBrand />
+            </div>
+          ) : (
+            <Link
+              to="/home"
+              className="flex h-14 shrink-0 cursor-pointer items-center gap-2 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+              aria-label="Go to home"
+            >
+              <HeaderBrand />
+            </Link>
+          )}
           <HeaderDivider />
           <p className="mt-[5px] font-semibold text-[#ffffff] text-[14px] tracking-[0.2px] whitespace-nowrap">
             CATEGORY ONE-PAGER APP
@@ -109,11 +123,23 @@ export function AppHeader() {
                   variant="secondary"
                   className="shrink-0 self-center bg-brand-soft text-primary hover:bg-brand-soft"
                 >
-                  {userTypeLabel(user_type)}
+                  {profileRoleLabel(currentUser)}
                 </Badge>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator className="m-0" />
+            {showDashboard ? (
+              <>
+                <DropdownMenuItem
+                  className="cursor-pointer gap-2"
+                  onClick={() => navigate("/user-adoption")}
+                >
+                  <LayoutDashboard className="size-4" />
+                  Dashboard
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="m-0" />
+              </>
+            ) : null}
             <DropdownMenuItem
               className="cursor-pointer gap-2"
               onClick={handleHelp}

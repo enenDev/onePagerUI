@@ -1,7 +1,7 @@
 import ApiBase from "@/components/auth/apiBase";
 import { API_ENDPOINTS } from "@/config/apiEndpoints";
 import { store } from "@/redux/store";
-import { userTypeLabel } from "@/redux/userSlice";
+import { profileRoleLabel } from "@/redux/userSlice";
 import { getCurrentUser } from "@/services/userApi";
 
 /**
@@ -21,7 +21,7 @@ export function logUserLogin(): void {
       details?.email.trim().toLowerCase() === email.toLowerCase()
         ? details.role.trim()
         : "";
-    const role = storedForThisUser || userTypeLabel(signedIn.user_type);
+    const role = storedForThisUser || profileRoleLabel(signedIn);
 
     await ApiBase.post(
       API_ENDPOINTS.loginLog,

@@ -5,7 +5,8 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// Define role hierarchy
+// Privilege hierarchy only. Analyst is a separate capability and must be
+// removed before this runs so it cannot win or fall through to General.
 const ROLE_HIERARCHY = {
   CSP: 3, // Highest
   CBD: 2, // Second

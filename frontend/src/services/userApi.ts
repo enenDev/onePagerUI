@@ -53,19 +53,64 @@ function toUserType(claim: unknown): UserType {
 type FirebaseCustomClaims = {
   firebase?: {
     sign_in_attributes?: {
-      role?: string;
+      role?: string | string[];
       group?: string[];
     };
   };
 };
+
+const PRIVILEGE_ROLES = new Set(["CSP", "CBD", "GENERAL"]);
+
+function roleList(role: unknown): string[] {
+  if (Array.isArray(role)) {
+    return role.flatMap((item) => roleList(item));
+  }
+  if (typeof role === "string") {
+    const trimmed = role.trim();
+    return trimmed ? [trimmed.toUpperCase()] : [];
+  }
+  return [];
+}
+
+/**
+ * Analyst is stripped before the CSP / CBD / General hierarchy runs.
+ * A token with only analyst does not become General.
+ */
+function resolveRoles(role: unknown): {
+  userType: UserType;
+  isAnalyst: boolean;
+  isAnalystOnly: boolean;
+} {
+  const roles = roleList(role);
+  const isAnalyst = roles.includes("ANALYST");
+  const privilegeRoles = roles.filter((value) => PRIVILEGE_ROLES.has(value));
+
+  if (privilegeRoles.length === 0) {
+    return {
+      // Same fallback as an empty or unrecognized role today. Ignored for
+      // access and the badge when isAnalystOnly is true.
+      userType: "user_type_3",
+      isAnalyst,
+      isAnalystOnly: isAnalyst,
+    };
+  }
+
+  return {
+    userType: toUserType(getHighestPrivilegeRole(privilegeRoles)),
+    isAnalyst,
+    isAnalystOnly: false,
+  };
+}
 
 /**
  * Builds the app's CurrentUser from the signed-in Firebase user.
  *
  * TODO: Role/user_type is read from Firebase ID-token custom claims
  * (`user_type` / `role`) if present, otherwise defaulted to user_type_3.
+ * Analyst stays a separate flag on that same role array, not a user_type.
  * Replace with GET /api/me via ApiBase once the backend owns the profile +
- * role. Keep the returned shape { id, name, email, initials, user_type } and
+ * role. Keep the returned shape
+ * { id, name, email, initials, user_type, isAnalyst, isAnalystOnly } and
  * the fetchCurrentUser thunk stable when swapping.
  */
 export async function getCurrentUser(): Promise<CurrentUser> {
@@ -83,25 +128,32 @@ export async function getCurrentUser(): Promise<CurrentUser> {
   const initials = computeInitials(name, email);
 
   let userType: UserType = "user_type_3";
+  let isAnalyst = false;
+  let isAnalystOnly = false;
   if (firebaseUser) {
     try {
-      // getting token details
       const tokenResult = await firebaseUser.getIdTokenResult();
-      // getting claims from token
       const claims = tokenResult.claims as FirebaseCustomClaims;
-      // getting highest privilege role and group details
-      const role =
-        getHighestPrivilegeRole(claims.firebase?.sign_in_attributes?.role) ||
-        "general";
+      const resolved = resolveRoles(
+        claims.firebase?.sign_in_attributes?.role,
+      );
+      userType = resolved.userType;
+      isAnalyst = resolved.isAnalyst;
+      isAnalystOnly = resolved.isAnalystOnly;
       // enable in case we need conditioning based on groups
       // const groups = claims.firebase?.sign_in_attributes?.group;
-
-      // finally setting user type as per role
-      userType = toUserType(role);
     } catch {
       // Keep the default user_type if claims can't be read.
     }
   }
 
-  return { id, name, email, initials, user_type: userType };
+  return {
+    id,
+    name,
+    email,
+    initials,
+    user_type: userType,
+    isAnalyst,
+    isAnalystOnly,
+  };
 }

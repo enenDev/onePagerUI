@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Outlet, useLocation, useNavigate, useMatches } from "react-router-dom";
 
+import { Loading } from "@/components/common/Loading";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Button } from "@/components/ui/button";
@@ -26,16 +27,24 @@ const MainLayout = () => {
     null,
   );
   const [headerTitle, setHeaderTitleState] = useState<string | null>(null);
+  const [currentUserReady, setCurrentUserReady] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
     // TODO: After GET /api/me exists, keep this dispatch. It should run only
     // when RequireAuth has a Firebase user so ApiBase can send the token.
-    void dispatch(fetchCurrentUser());
+    // Wait for it before rendering routes so analyst-only users never see Home.
+    void dispatch(fetchCurrentUser()).finally(() => {
+      if (!cancelled) setCurrentUserReady(true);
+    });
     void dispatch(fetchUserDetails())
       .unwrap()
       .catch(() => {
         // Activity logging falls back until this succeeds. Do not block the app.
       });
+    return () => {
+      cancelled = true;
+    };
   }, [dispatch]);
 
   const setBackHandler = useCallback((handler: (() => void) | null) => {
@@ -65,6 +74,14 @@ const MainLayout = () => {
     }
     navigate("/home");
   };
+
+  if (!currentUserReady) {
+    return (
+      <div className="app-shell flex min-h-svh w-full flex-col">
+        <Loading className="min-h-svh" label="Loading…" />
+      </div>
+    );
+  }
 
   return (
     <div className="app-shell flex min-h-svh w-full flex-col">
