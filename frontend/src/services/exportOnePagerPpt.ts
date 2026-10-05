@@ -909,11 +909,11 @@ export async function exportOnePagerPpt(input: ExportOnePagerInput) {
     const fileName = safeFileName(composeTitle(input.pagerType, input.payload));
     const blob = await buildOnePagerPptBlob(input);
     triggerDownload(blob, fileName);
-  } finally {
-    exportBusy = false;
     if (input.pagerId) {
       logPagerActivity({ pager_id: input.pagerId, action: "export" });
     }
+  } finally {
+    exportBusy = false;
   }
 }
 
