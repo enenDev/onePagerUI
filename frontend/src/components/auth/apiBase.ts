@@ -3,6 +3,13 @@ import axios from "axios";
 import { auth } from "@/config/firebaseConfig";
 import { FIREBASE_TOKEN_KEY, logoutUser } from "@/services/authService";
 
+declare module "axios" {
+  export interface AxiosRequestConfig {
+    /** When true, a 401 does not sign the user out. Used by fire-and-forget logs. */
+    skipAuthRedirect?: boolean;
+  }
+}
+
 const ApiBase = axios.create({
   baseURL: (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/+$/, ""),
   timeout: 60000,
@@ -42,7 +49,7 @@ ApiBase.interceptors.response.use(
     // TODO: 401 after token verify → sign out. Keep redirect to /login; do not
     // change one-pager error toasts. Skip this bounce until the API returns 401
     // for bad tokens (mocks / unverified APIs should not 401).
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 && !error.config?.skipAuthRedirect) {
       await logoutUser().catch(() => {
         localStorage.removeItem(FIREBASE_TOKEN_KEY);
       });

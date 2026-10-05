@@ -21,7 +21,11 @@ import { Button } from "@/components/ui/button";
 import { PageContainer } from "@/components/layout/PageContainer";
 import type { FormLayoutContext } from "@/layouts/MainLayout";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-import { deleteOnePager, fetchOnePagers, archiveOnePager } from "@/redux/landingSlice";
+import {
+  deleteOnePager,
+  fetchOnePagers,
+  archiveOnePager,
+} from "@/redux/landingSlice";
 import {
   publishNationalOnePager,
   type NationalOnePagerCreatePayload,
@@ -202,6 +206,7 @@ export function PreviewNationalOnePager() {
                   void exportOnePagerPpt({
                     pagerType: "national",
                     payload,
+                    pagerId: recordId ?? undefined,
                   });
                 }
               : undefined
@@ -219,7 +224,9 @@ export function PreviewNationalOnePager() {
             setDeleteOpen(true);
           }}
         />
-        {error ? <p className="mt-4 text-sm text-destructive">{error}</p> : null}
+        {error ? (
+          <p className="mt-4 text-sm text-destructive">{error}</p>
+        ) : null}
       </PageContainer>
 
       {!published ? (

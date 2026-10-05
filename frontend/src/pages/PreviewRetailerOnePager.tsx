@@ -21,7 +21,11 @@ import { Button } from "@/components/ui/button";
 import { PageContainer } from "@/components/layout/PageContainer";
 import type { FormLayoutContext } from "@/layouts/MainLayout";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-import { deleteOnePager, fetchOnePagers,archiveOnePager } from "@/redux/landingSlice";
+import {
+  deleteOnePager,
+  fetchOnePagers,
+  archiveOnePager,
+} from "@/redux/landingSlice";
 import { exportOnePagerPpt } from "@/services/exportOnePagerPpt";
 import {
   publishRetailerOnePager,
@@ -192,19 +196,20 @@ export function PreviewRetailerOnePager() {
           onTrack={
             published
               ? () => {
-                const id = recordId ?? state.recordId;
-                if (id) navigate(`/track/${id}`);
-              }
+                  const id = recordId ?? state.recordId;
+                  if (id) navigate(`/track/${id}`);
+                }
               : undefined
           }
           onExport={
             published
               ? () => {
-                void exportOnePagerPpt({
-                  pagerType: "retailer",
-                  payload,
-                });
-              }
+                  void exportOnePagerPpt({
+                    pagerType: "retailer",
+                    payload,
+                    pagerId: recordId ?? undefined,
+                  });
+                }
               : undefined
           }
           onArchive={
@@ -220,7 +225,9 @@ export function PreviewRetailerOnePager() {
             setDeleteOpen(true);
           }}
         />
-        {error ? <p className="mt-4 text-sm text-destructive">{error}</p> : null}
+        {error ? (
+          <p className="mt-4 text-sm text-destructive">{error}</p>
+        ) : null}
       </PageContainer>
 
       {!published ? (

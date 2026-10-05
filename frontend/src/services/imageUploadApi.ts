@@ -1,4 +1,5 @@
 import ApiBase from "@/components/auth/apiBase";
+import { API_ENDPOINTS } from "@/config/apiEndpoints";
 
 export type UploadImageResult =
   | { ok: true; signed_url: string; public_url: string }
@@ -11,15 +12,15 @@ export async function uploadImage(file: File): Promise<UploadImageResult> {
   const formData = new FormData();
   formData.append("file", file);
   try {
-    const { data } = await ApiBase.post("api/v1/upload", formData, {
+    const { data } = await ApiBase.post(API_ENDPOINTS.upload, formData, {
       headers: {
         accept: "application/json",
         "Content-Type": "multipart/form-data",
       },
     });
     const body = data?.data ?? data;
-    console.log(body)
-    const obj =body[0]
+    console.log(body);
+    const obj = body[0];
     const signed_url = obj?.image_signed_url ?? "";
     const public_url = obj?.image_name ?? "";
     if (!signed_url || !public_url) {

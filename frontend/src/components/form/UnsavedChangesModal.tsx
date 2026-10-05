@@ -43,7 +43,7 @@ export function UnsavedChangesModal({
           <Info className="mt-0.5 size-4 shrink-0 text-amber-700" />
           <p>
             {discardOnly
-              ? "Your changes will be discarded."
+              ? "You have unsaved changes. Your progress might be lost if you go back."
               : "You have unsaved changes. Your progress might be lost. Save your progress to drafts to access it later."}
           </p>
         </div>

@@ -1,4 +1,5 @@
 import ApiBase from "@/components/auth/apiBase";
+import { API_ENDPOINTS } from "@/config/apiEndpoints";
 
 export type ApiTrackColor = "red" | "amber" | "green";
 export type TrackRagStatus = "clear" | ApiTrackColor;
@@ -22,7 +23,6 @@ export type UpdateTrackPayload = {
   updated_by: string;
 };
 
-
 export function initiativeTrackKey(
   pillarNumber: number,
   initiativeNumber: number,
@@ -30,9 +30,7 @@ export function initiativeTrackKey(
   return `${pillarNumber}-${initiativeNumber}`;
 }
 
-function apiTrackToUi(
-  value: ApiTrackColor | null | undefined,
-): TrackRagStatus {
+function apiTrackToUi(value: ApiTrackColor | null | undefined): TrackRagStatus {
   return value ?? "clear";
 }
 
@@ -75,22 +73,24 @@ export async function updateTrackStatus(input: {
   status: TrackRagStatus;
   updated_by: string;
 }): Promise<{ ok: true } | { ok: false; error: string }> {
-
   if (!input.pagerId.trim() || !input.pillarId.trim()) {
     return { ok: false, error: "Missing pager or pillar id." };
   }
   try {
-    const { pagerId, pillarId, initiativeId } = input
-    await ApiBase.patch('api/v1/update-track', {
-      table: (pagerId && pillarId && initiativeId) ? "initiative"
-        : (pagerId && pillarId && !initiativeId) ? "pillar"
-          : "pager",
+    const { pagerId, pillarId, initiativeId } = input;
+    await ApiBase.patch(API_ENDPOINTS.updateTrack, {
+      table:
+        pagerId && pillarId && initiativeId
+          ? "initiative"
+          : pagerId && pillarId && !initiativeId
+            ? "pillar"
+            : "pager",
       pager_id: input.pagerId,
       pillar_id: input.pillarId,
       initiative_id: input.initiativeId,
       track: input.status,
-      updated_by: input.updated_by
-    })
+      updated_by: input.updated_by,
+    });
     return { ok: true };
   } catch (error) {
     console.error("Error fetching data:", error);

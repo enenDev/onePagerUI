@@ -29,9 +29,16 @@ import { canModifyOnePagers, isCurrentUserOwner } from "@/redux/userSlice";
 import { exportOnePagerById } from "@/services/exportOnePagerPpt";
 import { type OnePagerListItem, type OnePagerStatus } from "@/types/onePager";
 import { formatPublishedAt } from "../preview/nationalPreview";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type OnePagerCardProps = {
   item: OnePagerListItem;
+  selected?: boolean;
+  onSelectToggle?: (pagerId: string) => void;
 };
 
 type CardMenuAction =
@@ -54,7 +61,11 @@ function menuActionsForStatus(status: OnePagerStatus): CardMenuAction[] {
   return ["export", "restore", "delete"];
 }
 
-export function OnePagerCard({ item }: OnePagerCardProps) {
+export function OnePagerCard({
+  item,
+  selected = false,
+  onSelectToggle,
+}: OnePagerCardProps) {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const currentUser = useAppSelector((state) => state.user.currentUser);
@@ -159,6 +170,32 @@ export function OnePagerCard({ item }: OnePagerCardProps) {
 
   return (
     <article className="relative overflow-hidden rounded-xl border border-border bg-card-surface shadow-sm transition-shadow hover:shadow-md">
+      {onSelectToggle && (
+        <div className="absolute h-6 w-6 top-3 left-3 z-20 flex items-center">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="inline-block">
+                <input
+                  type="checkbox"
+                  checked={selected}
+                  aria-label={`Select ${item.title}`}
+                  onPointerDown={(event) => event.stopPropagation()}
+                  onClick={(event) => event.stopPropagation()}
+                  onChange={(event) => {
+                    event.stopPropagation();
+                    onSelectToggle?.(item.pager_id);
+                  }}
+                  className="pointer-events-auto h-4 w-4 cursor-pointer rounded border-border bg-white accent-primary px-1.5"
+                />
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{selected ? "Added to ZIP export" : "Add to ZIP export"}</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      )}
+
       <div className="absolute top-5 right-5 z-10">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

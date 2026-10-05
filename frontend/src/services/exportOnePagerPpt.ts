@@ -100,6 +100,7 @@ import type {
   NationalPillarPayload,
 } from "@/services/createFormApi";
 import { getOnePagerById } from "@/services/onePagerApi";
+import { logPagerActivity } from "@/services/pagerActivityApi";
 import type { RetailerOnePagerCreatePayload } from "@/services/retailerCreateFormApi";
 import {
   flattenLineBreaks,
@@ -116,6 +117,8 @@ type ExportPayload =
 export type ExportOnePagerInput = {
   pagerType: "national" | "retailer";
   payload: ExportPayload;
+  /** When set, a successful download logs an export activity event. */
+  pagerId?: string;
 };
 
 /** Widescreen inches. LAYOUT_WIDE is 13.333 × 7.5. Change these to resize the whole slide. */
@@ -170,7 +173,7 @@ function isRetailerPayload(
 }
 
 /** PPT header title — not payload.title. National: National-Channel-Category-Campaign-Market. Retailer inserts Target Retailer after Retailer. */
-function composeTitle(
+export function composeTitle(
   pagerType: "national" | "retailer",
   payload: ExportPayload,
 ) {
@@ -180,7 +183,7 @@ function composeTitle(
   return composeNationalPreviewTitle(payload);
 }
 
-function safeFileName(title: string) {
+export function safeFileName(title: string) {
   const base = title.replace(/[<>:"/\\|?*]/g, "-").trim() || "OnePager";
   return `${base.slice(0, 80)}.pptx`;
 }
@@ -845,6 +848,56 @@ function addColumn(
   }
 }
 
+export async function buildOnePagerPptBlob(
+  input: ExportOnePagerInput,
+): Promise<Blob> {
+  const images = await loadImageCache(collectImageUrls(input.payload));
+  const pptx = new PptxGenJS();
+  pptx.layout = "LAYOUT_WIDE";
+  pptx.title = composeTitle(input.pagerType, input.payload);
+  const slide = pptx.addSlide();
+  slide.background = { color: "F5F5F5" };
+
+  addHeader(pptx, slide, input.payload, input.pagerType, images);
+
+  const colW = (SLIDE_W - MARGIN_X * 2 - COL_GAP * (COL_COUNT - 1)) / COL_COUNT;
+  const colY = HEADER_H + 0.08;
+  const colH = SLIDE_H - colY - 0.08;
+  const pillars = [...input.payload.pillars]
+    .sort((a, b) => a.pillar_number - b.pillar_number)
+    .slice(0, COL_COUNT);
+
+  pillars.forEach((pillar, index) => {
+    addColumn(
+      pptx,
+      slide,
+      pillar,
+      MARGIN_X + index * (colW + COL_GAP),
+      colY,
+      colW,
+      colH,
+      images,
+      input.payload.scoring_mode === "WEIGHTED",
+    );
+  });
+
+  return (await (pptx.write as any)({
+    outputType: "blob",
+    fileName: safeFileName(composeTitle(input.pagerType, input.payload)),
+  })) as Blob;
+}
+
+function triggerDownload(blob: Blob, fileName: string) {
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = fileName;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+}
+
 /**
  * Build and download the PPT from a payload already in memory (View / Preview).
  * Fetches images first, then draws header + 5 columns on a single LAYOUT_WIDE slide.
@@ -853,42 +906,14 @@ export async function exportOnePagerPpt(input: ExportOnePagerInput) {
   if (exportBusy) return;
   exportBusy = true;
   try {
-    const images = await loadImageCache(collectImageUrls(input.payload));
-    const pptx = new PptxGenJS();
-    pptx.layout = "LAYOUT_WIDE";
-    pptx.title = composeTitle(input.pagerType, input.payload);
-    const slide = pptx.addSlide();
-    slide.background = { color: "F5F5F5" };
-
-    addHeader(pptx, slide, input.payload, input.pagerType, images);
-
-    const colW =
-      (SLIDE_W - MARGIN_X * 2 - COL_GAP * (COL_COUNT - 1)) / COL_COUNT;
-    const colY = HEADER_H + 0.08;
-    const colH = SLIDE_H - colY - 0.08;
-    const pillars = [...input.payload.pillars]
-      .sort((a, b) => a.pillar_number - b.pillar_number)
-      .slice(0, COL_COUNT);
-
-    pillars.forEach((pillar, index) => {
-      addColumn(
-        pptx,
-        slide,
-        pillar,
-        MARGIN_X + index * (colW + COL_GAP),
-        colY,
-        colW,
-        colH,
-        images,
-        input.payload.scoring_mode === "WEIGHTED",
-      );
-    });
-
-    await pptx.writeFile({
-      fileName: safeFileName(composeTitle(input.pagerType, input.payload)),
-    });
+    const fileName = safeFileName(composeTitle(input.pagerType, input.payload));
+    const blob = await buildOnePagerPptBlob(input);
+    triggerDownload(blob, fileName);
   } finally {
     exportBusy = false;
+    if (input.pagerId) {
+      logPagerActivity({ pager_id: input.pagerId, action: "export" });
+    }
   }
 }
 
@@ -901,5 +926,6 @@ export async function exportOnePagerById(pagerId: string) {
   await exportOnePagerPpt({
     pagerType: record.pager_type,
     payload: record.payload,
+    pagerId,
   });
 }

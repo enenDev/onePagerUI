@@ -10,6 +10,7 @@ import {
   type OnePagerRecordStatus,
 } from "@/services/createFormApi";
 import ApiBase from "@/components/auth/apiBase";
+import { API_ENDPOINTS } from "@/config/apiEndpoints";
 
 export type { FilterOption, MarketScopedOptions };
 
@@ -156,13 +157,13 @@ export async function saveRetailerDraft(
 ): Promise<RetailerOnePagerMutationResult> {
   try {
     if (id) {
-      const { data } = await ApiBase.patch(`api/v1/pagers/${id}`, {
+      const { data } = await ApiBase.patch(API_ENDPOINTS.pagerById(id), {
         ...toPublicImageSavePayload(payload),
         pager_id: id || "",
       });
       return { ok: true, id: data?.pager_id || "", status: "draft" };
     }
-    const { data } = await ApiBase.post("api/v1/pagers", {
+    const { data } = await ApiBase.post(API_ENDPOINTS.pagers, {
       ...toPublicImageSavePayload(payload),
       pager_id: id || "",
     });
@@ -185,13 +186,13 @@ export async function publishRetailerOnePager(
 ): Promise<RetailerOnePagerMutationResult> {
   try {
     if (id) {
-      const { data } = await ApiBase.patch(`api/v1/pagers/${id}`, {
+      const { data } = await ApiBase.patch(API_ENDPOINTS.pagerById(id), {
         ...toPublicImageSavePayload(payload),
         pager_id: id || "",
       });
       return { ok: true, id: data?.pager_id || "", status: "draft" };
     }
-    const { data } = await ApiBase.post("api/v1/pagers", {
+    const { data } = await ApiBase.post(API_ENDPOINTS.pagers, {
       ...toPublicImageSavePayload(payload),
       pager_id: id || "",
     });

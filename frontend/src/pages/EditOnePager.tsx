@@ -98,13 +98,7 @@ export function EditOnePager() {
     return () => {
       cancelled = true;
     };
-  }, [
-    createAsNew,
-    currentUser.id,
-    currentUser.user_type,
-    navigate,
-    pagerId,
-  ]);
+  }, [createAsNew, currentUser.id, currentUser.user_type, navigate, pagerId]);
 
   return (
     <PageContainer className="flex flex-1 flex-col py-6">

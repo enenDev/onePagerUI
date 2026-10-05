@@ -230,6 +230,7 @@ export function ViewOnePager() {
                     void exportOnePagerPpt({
                       pagerType: record.pager_type,
                       payload: record.payload,
+                      pagerId: record.id,
                     });
                   }
             }

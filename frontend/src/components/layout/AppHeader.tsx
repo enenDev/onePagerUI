@@ -12,13 +12,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { clearPersistedFilters } from "@/lib/homeFilterStorage";
 import { useAppSelector } from "@/redux/hooks";
 import { userTypeLabel } from "@/redux/userSlice";
 import { logout } from "@/services/authApi";
 import perfectStoreLogo from "@/assets/Perfect_Store_Hero_Logo.svg";
 import unileverBrandLogo from "@/assets/Unilever_Brand_Logo.svg";
 import { VITE_USER_HELP_URL } from "@/constants/constants";
+import { clearPersistedFilters } from "@/lib/homeFilterStorage";
 
 function HeaderDivider() {
   return (
@@ -33,14 +33,12 @@ export function AppHeader() {
     (state) => state.user.currentUser,
   );
   const handleHelp = () => {
-    open(userGuideURL)
-  }
+    open(userGuideURL);
+  };
 
   const handleLogout = () => {
     // Always land on /login even if signOut fails; logout() already clears the
     // stored token, so the user is effectively signed out locally.
-    // sessionStorage survives a same-tab logout. Drop applied homepage filters
-    // here so Home does not restore them on the next login.
     void logout()
       .catch(() => {})
       .finally(() => {
@@ -116,7 +114,10 @@ export function AppHeader() {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator className="m-0" />
-            <DropdownMenuItem className="cursor-pointer gap-2" onClick={handleHelp}>
+            <DropdownMenuItem
+              className="cursor-pointer gap-2"
+              onClick={handleHelp}
+            >
               <HelpCircle className="size-4 " />
               {/* <span className="truncate">Help</span> */}
               Help

@@ -26,6 +26,7 @@ import {
   getOnePagerById,
   type OnePagerByIdRecord,
 } from "@/services/onePagerApi";
+import { logPagerActivity } from "@/services/pagerActivityApi";
 import {
   initiativeTrackKey,
   trackStateFromPillars,
@@ -35,8 +36,8 @@ import {
 } from "@/services/trackApi";
 
 function composeTitle(record: OnePagerByIdRecord) {
-  if(record?.payload?.title){
-    return record?.payload?.title
+  if (record?.payload?.title) {
+    return record?.payload?.title;
   }
   if (record.pager_type === "retailer") {
     return composeRetailerPreviewTitle(record.payload);
@@ -125,6 +126,7 @@ export function TrackOnePager() {
       }
       setRecord(next);
       setStatuses(trackStateFromPillars(next.payload.pillars));
+      logPagerActivity({ pager_id: next.id || pagerId, action: "view" });
     })();
 
     return () => {
@@ -207,7 +209,11 @@ export function TrackOnePager() {
       status,
       updated_by: currentUser.email,
     });
-    if (!result.ok) setStatuses(previous);
+    if (!result.ok) {
+      setStatuses(previous);
+      return;
+    }
+    logPagerActivity({ pager_id: record.id, action: "track" });
   };
 
   const handleInitiativeChange = async (
@@ -239,7 +245,11 @@ export function TrackOnePager() {
       status,
       updated_by: currentUser.email,
     });
-    if (!result.ok) setStatuses(previous);
+    if (!result.ok) {
+      setStatuses(previous);
+      return;
+    }
+    logPagerActivity({ pager_id: record.id, action: "track" });
   };
 
   return (
@@ -275,6 +285,7 @@ export function TrackOnePager() {
               void exportOnePagerPpt({
                 pagerType: record.pager_type,
                 payload: record.payload,
+                pagerId: record.id,
               });
             }}
             onArchive={() => {

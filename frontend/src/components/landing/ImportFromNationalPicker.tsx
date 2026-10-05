@@ -169,8 +169,7 @@ export function ImportFromNationalPicker({
   );
 
   const visibleItems = useMemo(
-    () =>
-      nationalItems.filter((item) => matchesImportFilters(item, filters)),
+    () => nationalItems.filter((item) => matchesImportFilters(item, filters)),
     [nationalItems, filters],
   );
 
@@ -348,7 +347,7 @@ function PillSelect({
       placeholder={placeholder}
       searchPlaceholder={`Search ${placeholder}…`}
       disabled={disabled}
-      className="h-8 min-w-0 w-full cursor-pointer overflow-hidden rounded-full bg-white px-3"
+      className="h-8 min-w-0 w-full cursor-pointer overflow-hidden bg-white px-3"
     />
   );
 }
