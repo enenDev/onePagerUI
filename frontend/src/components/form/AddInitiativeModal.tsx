@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, type RefObject } from "react";
-import { CalendarDays, CloudUpload, Loader2, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { CloudUpload, Loader2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -19,7 +19,13 @@ import {
   type InitiativeImage,
 } from "@/components/form/pillars";
 import { CharCount } from "@/components/form/CharCount";
+import { DateField } from "@/components/form/DateField";
 import { FIELD_LIMITS } from "@/components/form/fieldLimits";
+import {
+  displayToIso,
+  isDisplayDateBefore,
+  isValidDisplayDate,
+} from "@/lib/displayDate";
 import type { FilterOption } from "@/services/createFormApi";
 import { uploadImage } from "@/services/imageUploadApi";
 
@@ -101,38 +107,6 @@ function sanitizeWeekNumber(value: string): string | null {
   const num = Number(trimmed);
   if (num < 1 || num > 53) return null;
   return trimmed;
-}
-
-const DATE_PATTERN = /^(0[1-9]|1[0-2])\/(0[1-9]|[12]\d|3[01])\/\d{4}$/;
-
-function isoToDisplay(iso: string) {
-  if (!iso) return "";
-  const [year, month, day] = iso.split("-");
-  if (!year || !month || !day) return "";
-  return `${month}/${day}/${year}`;
-}
-
-function displayToIso(display: string) {
-  if (!DATE_PATTERN.test(display)) return "";
-  const [month, day, year] = display.split("/");
-  return `${year}-${month}-${day}`;
-}
-
-function isValidDisplayDate(value: string) {
-  if (!DATE_PATTERN.test(value)) return false;
-  const [month, day, year] = value.split("/").map(Number);
-  const date = new Date(year, month - 1, day);
-  return (
-    date.getFullYear() === year &&
-    date.getMonth() === month - 1 &&
-    date.getDate() === day
-  );
-}
-
-/** Compare mm/dd/yyyy display dates via ISO (yyyy-mm-dd) lexicographic order. */
-function isDisplayDateBefore(a: string, b: string) {
-  if (!isValidDisplayDate(a) || !isValidDisplayDate(b)) return false;
-  return displayToIso(a) < displayToIso(b);
 }
 
 export function AddInitiativeModal({
@@ -731,86 +705,6 @@ function WeekNumberField({
         onChange={(event) => onChange(event.target.value)}
         aria-label="Week number (1 to 53)"
       />
-    </div>
-  );
-}
-
-function DateField({
-  label,
-  required,
-  value,
-  onChange,
-  pickerRef,
-  minIso,
-}: {
-  label: string;
-  required?: boolean;
-  value: string;
-  onChange: (value: string) => void;
-  pickerRef: RefObject<HTMLInputElement | null>;
-  /** ISO yyyy-mm-dd lower bound for the native date picker (e.g. week end ≥ start). */
-  minIso?: string;
-}) {
-  const openPicker = () => {
-    const picker = pickerRef.current;
-    if (!picker) return;
-    if (typeof picker.showPicker === "function") {
-      try {
-        picker.showPicker();
-        return;
-      } catch {
-        // Fall through to focus/click for browsers that block showPicker.
-      }
-    }
-    picker.focus();
-    picker.click();
-  };
-
-  return (
-    <div className="space-y-2">
-      <Label>
-        {label}
-        {required && <span className="text-destructive"> *</span>}
-      </Label>
-      <div className="relative">
-        <Input
-          value={value}
-          readOnly
-          placeholder="mm/dd/yyyy"
-          className="cursor-pointer bg-white pr-10"
-          onClick={openPicker}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" || event.key === " ") {
-              event.preventDefault();
-              openPicker();
-            }
-          }}
-          aria-label={`${label}, open calendar`}
-        />
-        <button
-          type="button"
-          className="absolute top-1/2 right-2 z-20 -translate-y-1/2 cursor-pointer text-muted-foreground hover:text-foreground"
-          onClick={openPicker}
-          aria-label={`Pick ${label}`}
-        >
-          <CalendarDays className="size-4" />
-        </button>
-        {/*
-          Native date pickers anchor to this input's box. `sr-only` left a 1px
-          hit-target on the right, so the popup opened at the far right.
-          Match the visible field so the calendar opens under the input.
-        */}
-        <input
-          ref={pickerRef}
-          type="date"
-          className="pointer-events-none absolute inset-0 h-full w-full opacity-0"
-          value={displayToIso(value)}
-          min={minIso}
-          onChange={(event) => onChange(isoToDisplay(event.target.value))}
-          tabIndex={-1}
-          aria-hidden
-        />
-      </div>
     </div>
   );
 }

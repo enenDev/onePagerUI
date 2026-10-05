@@ -11,4 +11,8 @@ export const API_ENDPOINTS = {
   fetchAllPagers: "api/v1/pagers/fetch-all?skip=0&limit=499",
   pagerById: (id: string) => `api/v1/pagers/${id}`,
   pagerStatus: (id: string) => `api/v1/pagers/${id}/status`,
+  dashboardFunnel: "api/v1/dashboard/funnel",
+  dashboardOnboarding: "api/v1/dashboard/onboarding",
+  dashboardEngagement: "api/v1/dashboard/engagement",
+  dashboardAdoption: "api/v1/dashboard/adoption",
 } as const;

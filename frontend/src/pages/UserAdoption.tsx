@@ -1,87 +1,344 @@
-/**
- * TODO: Layout skeleton for /user-adoption. These boxes are not the metric
- * components. When the three metric API shapes are confirmed, fill this page
- * from counts (percentages calculated in React) and use Recharts for the
- * three rate-by-market charts. Market options come from the markets API.
- * Custom period reuses the shared form date field. Onboarding and adoption
- * are requested twice (current range and previous range); engagement once.
- * Keep this route behind RequireAnalyst. Do not add a back button.
- */
-const SECTIONS = ["Onboarding", "Engagement", "Adoption"] as const;
+import { useEffect, useState } from "react";
 
-const FUNNEL_STAGES = [
-  "Onboarding to Adoption",
-  "Stage 1 · Onboarding",
-  "Stage 2 · Engagement",
-  "Stage 3 · Adoption",
-] as const;
+import { AdoptionFilters } from "@/components/adoption/AdoptionFilters";
+import { DashboardSection } from "@/components/adoption/DashboardSection";
+import { FunnelSummary } from "@/components/adoption/FunnelSummary";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { fetchMetadata } from "@/redux/landingSlice";
+import {
+  DEFAULT_PERIOD,
+  resolveDashboardRanges,
+  type PeriodId,
+} from "@/lib/adoptionPeriod";
+import {
+  displayToIso,
+  isDisplayDateBefore,
+  isValidDisplayDate,
+} from "@/lib/displayDate";
+import {
+  emptyAdoption,
+  emptyEngagement,
+  emptyFunnel,
+  emptyOnboarding,
+  getAdoptionDashboard,
+  getAdoptionEngagement,
+  getAdoptionFunnel,
+  getAdoptionOnboarding,
+  type AdoptionResponse,
+  type DashboardFilterPayload,
+  type EngagementResponse,
+  type FunnelResponse,
+  type OnboardingResponse,
+} from "@/services/adoptionDashboardApi";
 
-export function UserAdoption() {
-  return (
-    <div className="rounded-xl border border-border bg-white p-4 shadow-sm md:p-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div className="flex flex-col gap-4 sm:flex-row">
-          <FilterSlot label="Market" value="All live markets" />
-          <FilterSlot label="Time Period" value="Last 30 Days" />
-        </div>
-        <div className="flex gap-2">
-          <span className="inline-flex h-8 items-center rounded-lg bg-primary px-3 text-sm font-medium text-primary-foreground">
-            Apply Filters
-          </span>
-          <span className="inline-flex h-8 items-center rounded-lg border border-border px-3 text-sm font-medium text-foreground">
-            Clear Filters
-          </span>
-        </div>
-      </div>
+type SectionState<T> = {
+  loading: boolean;
+  data: T;
+};
 
-      <section className="mt-6" aria-label="Adoption funnel">
-        <h2 className="text-xs font-semibold tracking-wide text-muted-foreground">
-          ADOPTION FUNNEL
-        </h2>
-        <div className="mt-3 grid gap-3 md:grid-cols-4">
-          {FUNNEL_STAGES.map((stage) => (
-            <div
-              key={stage}
-              className="flex h-24 items-center rounded-lg bg-primary/10 px-4 text-sm font-medium text-primary"
-            >
-              {stage}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <div className="mt-6 grid gap-4 lg:grid-cols-3">
-        {SECTIONS.map((section, index) => (
-          <section
-            key={section}
-            className="rounded-lg border border-border p-4"
-            aria-label={`Section ${index + 1} ${section}`}
-          >
-            <h2 className="text-sm font-semibold text-foreground">
-              <span className="mr-2 text-xs font-medium tracking-wide text-muted-foreground">
-                SECTION {index + 1}
-              </span>
-              {section}
-            </h2>
-            <div className="mt-4 h-40 rounded-md bg-muted" />
-            <div className="mt-4 space-y-3">
-              <div className="h-10 rounded-md bg-muted/70" />
-              <div className="h-10 rounded-md bg-muted/70" />
-              <div className="h-10 rounded-md bg-muted/70" />
-            </div>
-          </section>
-        ))}
-      </div>
-    </div>
-  );
+function marketsPayload(selected: string[], available: string[]): string[] {
+  const noneSelected = selected.length === 0;
+  const everyMarketChecked =
+    available.length > 0 &&
+    selected.length === available.length &&
+    available.every((market) => selected.includes(market));
+  if (noneSelected || everyMarketChecked) return [];
+  return [...selected];
 }
 
-function FilterSlot({ label, value }: { label: string; value: string }) {
+async function fetchDashboard(body: DashboardFilterPayload) {
+  const [funnelResult, onboardingResult, engagementResult, adoptionResult] =
+    await Promise.allSettled([
+      getAdoptionFunnel(body),
+      getAdoptionOnboarding(body),
+      getAdoptionEngagement(body),
+      getAdoptionDashboard(body),
+    ]);
+
+  return {
+    funnel:
+      funnelResult.status === "fulfilled" ? funnelResult.value : emptyFunnel(),
+    onboarding:
+      onboardingResult.status === "fulfilled"
+        ? onboardingResult.value
+        : emptyOnboarding(),
+    engagement:
+      engagementResult.status === "fulfilled"
+        ? engagementResult.value
+        : emptyEngagement(),
+    adoption:
+      adoptionResult.status === "fulfilled"
+        ? adoptionResult.value
+        : emptyAdoption(),
+  };
+}
+
+export function UserAdoption() {
+  const dispatch = useAppDispatch();
+  const metadata = useAppSelector((state) => state.landing.metadata);
+  const marketsLoading = useAppSelector((state) => state.landing.metadataLoading);
+  const markets = metadata?.market ?? [];
+
+  const [selectedMarkets, setSelectedMarkets] = useState<string[]>([]);
+  const [period, setPeriod] = useState<PeriodId>(DEFAULT_PERIOD);
+  const [customStart, setCustomStart] = useState("");
+  const [customEnd, setCustomEnd] = useState("");
+  const [dateError, setDateError] = useState<string | null>(null);
+  const [applying, setApplying] = useState(false);
+
+  const [funnel, setFunnel] = useState<SectionState<FunnelResponse>>({
+    loading: true,
+    data: emptyFunnel(),
+  });
+  const [onboarding, setOnboarding] = useState<SectionState<OnboardingResponse>>(
+    {
+      loading: true,
+      data: emptyOnboarding(),
+    },
+  );
+  const [engagement, setEngagement] = useState<SectionState<EngagementResponse>>(
+    {
+      loading: true,
+      data: emptyEngagement(),
+    },
+  );
+  const [adoption, setAdoption] = useState<SectionState<AdoptionResponse>>({
+    loading: true,
+    data: emptyAdoption(),
+  });
+
+  const applyBody = async (body: DashboardFilterPayload) => {
+    setApplying(true);
+    setFunnel((current) => ({ ...current, loading: true }));
+    setOnboarding((current) => ({ ...current, loading: true }));
+    setEngagement((current) => ({ ...current, loading: true }));
+    setAdoption((current) => ({ ...current, loading: true }));
+    const result = await fetchDashboard(body);
+    setFunnel({ loading: false, data: result.funnel });
+    setOnboarding({ loading: false, data: result.onboarding });
+    setEngagement({ loading: false, data: result.engagement });
+    setAdoption({ loading: false, data: result.adoption });
+    setApplying(false);
+  };
+
+  useEffect(() => {
+    void dispatch(fetchMetadata());
+    const ranges = resolveDashboardRanges(DEFAULT_PERIOD, new Date(), "", "");
+    if (!ranges) return;
+    let cancelled = false;
+    void fetchDashboard({
+      markets: [],
+      current: ranges.current,
+      previous: ranges.previous,
+    }).then((result) => {
+      if (cancelled) return;
+      setFunnel({ loading: false, data: result.funnel });
+      setOnboarding({ loading: false, data: result.onboarding });
+      setEngagement({ loading: false, data: result.engagement });
+      setAdoption({ loading: false, data: result.adoption });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [dispatch]);
+
+  const applyFilters = () => {
+    if (period === "custom") {
+      if (!isValidDisplayDate(customStart) || !isValidDisplayDate(customEnd)) {
+        setDateError("Choose a start and end date.");
+        return;
+      }
+      if (displayToIso(customEnd) < displayToIso(customStart)) {
+        setDateError("End date must be on or after the start date.");
+        return;
+      }
+    }
+
+    const ranges = resolveDashboardRanges(
+      period,
+      new Date(),
+      customStart,
+      customEnd,
+    );
+    if (!ranges) {
+      setDateError("Choose a start and end date.");
+      return;
+    }
+
+    setDateError(null);
+    void applyBody({
+      markets: marketsPayload(
+        selectedMarkets,
+        markets.map((market) => market.value),
+      ),
+      current: ranges.current,
+      previous: ranges.previous,
+    });
+  };
+
+  const clearFilters = () => {
+    setSelectedMarkets([]);
+    setPeriod(DEFAULT_PERIOD);
+    setCustomStart("");
+    setCustomEnd("");
+    setDateError(null);
+    const ranges = resolveDashboardRanges(DEFAULT_PERIOD, new Date(), "", "");
+    if (!ranges) return;
+    void applyBody({
+      markets: [],
+      current: ranges.current,
+      previous: ranges.previous,
+    });
+  };
+
   return (
-    <div className="min-w-52">
-      <p className="mb-1.5 text-xs font-medium text-muted-foreground">{label}</p>
-      <div className="flex h-8 items-center rounded-lg border border-border bg-white px-3 text-sm text-foreground">
-        {value}
+    <div className="rounded-xl border border-border bg-white p-4 shadow-sm md:p-6">
+      <AdoptionFilters
+        markets={markets}
+        marketsLoading={marketsLoading && markets.length === 0}
+        selectedMarkets={selectedMarkets}
+        onToggleMarket={(value) => {
+          setSelectedMarkets((current) =>
+            current.includes(value)
+              ? current.filter((item) => item !== value)
+              : [...current, value],
+          );
+        }}
+        onClearMarkets={() => setSelectedMarkets([])}
+        period={period}
+        onPeriodChange={(next) => {
+          setPeriod(next);
+          setDateError(null);
+        }}
+        customStart={customStart}
+        customEnd={customEnd}
+        onCustomStart={(value) => {
+          setCustomStart(value);
+          setDateError(null);
+          if (
+            customEnd &&
+            isValidDisplayDate(value) &&
+            isValidDisplayDate(customEnd) &&
+            isDisplayDateBefore(customEnd, value)
+          ) {
+            setCustomEnd("");
+          }
+        }}
+        onCustomEnd={(value) => {
+          setCustomEnd(value);
+          setDateError(null);
+        }}
+        dateError={dateError}
+        applying={applying}
+        onApply={applyFilters}
+        onClear={clearFilters}
+      />
+
+      <div className="mt-6">
+        <FunnelSummary data={funnel.data} loading={funnel.loading} />
+      </div>
+
+      <div className="mt-6 grid gap-4 lg:grid-cols-3">
+        <DashboardSection
+          index={1}
+          title="Onboarding"
+          chartTitle="Onboarded Rate by market"
+          chartHint="Onboarding rate by market for CSP and CBD."
+          rows={onboarding.data.by_market}
+          loading={onboarding.loading}
+          metrics={[
+            {
+              label: "Onboarded Users",
+              hint: "Distinct users who logged in during the selected period.",
+              kind: "count",
+              roles: ["CSP", "CBD"],
+              value: onboarding.data.onboarded_users,
+            },
+            {
+              label: "Onboarded Users Growth Rate",
+              hint: "Change versus the previous period: (current − previous) / previous.",
+              kind: "growth",
+              roles: ["CSP", "CBD"],
+              value: onboarding.data.onboarded_users_growth_rate,
+            },
+            {
+              label: "Total One-Pager Views",
+              hint: "One-pager views during the selected period.",
+              kind: "count",
+              roles: ["CSP", "CBD", "General"],
+              value: onboarding.data.total_one_pager_views,
+            },
+          ]}
+        />
+        <DashboardSection
+          index={2}
+          title="Engagement"
+          chartTitle="Engagement Rate by market"
+          chartHint="Engagement rate by market for CSP and CBD."
+          rows={engagement.data.by_market}
+          loading={engagement.loading}
+          metrics={[
+            {
+              label: "Engaged Users",
+              hint: "Distinct users who created at least one draft.",
+              kind: "count",
+              roles: ["CSP", "CBD"],
+              value: engagement.data.engaged_users,
+            },
+            {
+              label: "Track-to-Publish %",
+              hint: "Published one-pagers that were tracked, divided by published one-pagers.",
+              kind: "percent",
+              roles: ["CSP", "CBD"],
+              value: engagement.data.track_to_publish,
+            },
+            {
+              label: "Total Exports",
+              hint: "One-pager exports during the selected period.",
+              kind: "count",
+              roles: ["CSP", "CBD", "General"],
+              value: engagement.data.total_exports,
+            },
+          ]}
+        />
+        <DashboardSection
+          index={3}
+          title="Adoption"
+          chartTitle="Adoption Rate by market"
+          chartHint="Adoption rate by market for CSP and CBD."
+          rows={adoption.data.by_market}
+          loading={adoption.loading}
+          metrics={[
+            {
+              label: "Adopted Users",
+              hint: "Distinct users who published at least one one-pager.",
+              kind: "count",
+              roles: ["CSP", "CBD"],
+              value: adoption.data.adopted_users,
+            },
+            {
+              label: "Adopted Users Growth Rate",
+              hint: "Change versus the previous period: (current − previous) / previous.",
+              kind: "growth",
+              roles: ["CSP", "CBD"],
+              value: adoption.data.adopted_users_growth_rate,
+            },
+            {
+              label: "Draft-to-Publish %",
+              hint: "Published one-pagers divided by active drafts plus published one-pagers.",
+              kind: "percent",
+              roles: ["CSP", "CBD"],
+              value: adoption.data.draft_to_publish,
+            },
+            {
+              label: "Total One-Pagers Published",
+              hint: "One-pagers published during the selected period.",
+              kind: "count",
+              roles: ["CSP", "CBD"],
+              value: adoption.data.total_one_pagers_published,
+            },
+          ]}
+        />
       </div>
     </div>
   );
