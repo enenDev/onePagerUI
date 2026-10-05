@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { HelpCircle, LayoutDashboard, LogOut, UserRound } from "lucide-react";
 
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -47,6 +47,10 @@ function HeaderBrand() {
 
 export function AppHeader() {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const headerTitle = pathname.startsWith("/user-adoption")
+    ? "CATEGORY ONE-PAGER ADOPTION DASHBOARD"
+    : "CATEGORY ONE-PAGER APP";
   const userGuideURL = VITE_USER_HELP_URL?.trim() ?? "";
   const currentUser = useAppSelector((state) => state.user.currentUser);
   const { name, email, initials, isAnalyst, isAnalystOnly } = currentUser;
@@ -84,8 +88,8 @@ export function AppHeader() {
             </Link>
           )}
           <HeaderDivider />
-          <p className="mt-[5px] font-semibold text-[#ffffff] text-[14px] tracking-[0.2px] whitespace-nowrap">
-            CATEGORY ONE-PAGER APP
+          <p className="mt-[5px] min-w-0 truncate font-semibold text-[#ffffff] text-[14px] tracking-[0.2px]">
+            {headerTitle}
           </p>
         </div>
 
