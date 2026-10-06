@@ -160,6 +160,24 @@
 }
 
 @layer components {
+  .chart-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: #b8c0cc transparent;
+  }
+
+  .chart-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .chart-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .chart-scroll::-webkit-scrollbar-thumb {
+    background: #b8c0cc;
+    border-radius: 999px;
+  }
+
   .app-shell {
     min-height: 100svh;
     width: 100%;

@@ -15,30 +15,33 @@ export type SectionMetric = {
 };
 
 type DashboardSectionProps = {
-  index: number;
   title: string;
+  /** Funnel-box fill for this section, used as the title color. */
+  titleColor: string;
   chartTitle: string;
   chartHint: string;
   rows: MarketRateRow[];
   metrics: SectionMetric[];
   loading: boolean;
+  comparedTo?: string;
 };
 
 export function DashboardSection({
-  index,
   title,
+  titleColor,
   chartTitle,
   chartHint,
   rows,
   metrics,
   loading,
+  comparedTo,
 }: DashboardSectionProps) {
   return (
-    <section className="rounded-lg border border-border p-4">
-      <h2 className="text-sm font-semibold text-foreground">
-        <span className="mr-2 text-xs font-medium tracking-wide text-muted-foreground">
-          SECTION {index}
-        </span>
+    <section className="rounded-xl border border-border bg-white p-4 shadow-sm">
+      <h2
+        className="text-sm font-semibold tracking-wide uppercase"
+        style={{ color: titleColor }}
+      >
         {title}
       </h2>
       <div className="mt-4">
@@ -59,6 +62,7 @@ export function DashboardSection({
             roles={metric.roles}
             value={metric.value}
             loading={loading}
+            comparedTo={comparedTo}
           />
         ))}
       </div>

@@ -31,7 +31,7 @@ export function formatRoleLine(
   for (const role of roles) {
     const value = byRole?.[role];
     if (!isMetricNumber(value)) continue;
-    parts.push(`${role} ${format(value)}`);
+    parts.push(`${role}: ${format(value)}`);
   }
   return parts.length > 0 ? parts.join(" · ") : null;
 }

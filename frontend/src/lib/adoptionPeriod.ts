@@ -22,6 +22,21 @@ export const PERIOD_OPTIONS: { id: PeriodId; label: string }[] = [
 
 export const DEFAULT_PERIOD: PeriodId = "last30";
 
+export function growthComparisonLabel(period: PeriodId): string {
+  switch (period) {
+    case "last7":
+      return "(vs previous 7 days)";
+    case "last30":
+      return "(vs previous 30 days)";
+    case "lastQuarter":
+      return "(vs previous quarter)";
+    case "last6Months":
+      return "(vs previous 6 months)";
+    case "custom":
+      return "(vs previous period)";
+  }
+}
+
 function formatIso(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -41,7 +56,11 @@ function addDays(date: Date, days: number): Date {
 }
 
 function daysInclusive(start: Date, end: Date): number {
-  const utcStart = Date.UTC(start.getFullYear(), start.getMonth(), start.getDate());
+  const utcStart = Date.UTC(
+    start.getFullYear(),
+    start.getMonth(),
+    start.getDate(),
+  );
   const utcEnd = Date.UTC(end.getFullYear(), end.getMonth(), end.getDate());
   return Math.round((utcEnd - utcStart) / 86_400_000) + 1;
 }

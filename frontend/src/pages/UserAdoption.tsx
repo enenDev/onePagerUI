@@ -2,11 +2,15 @@ import { useEffect, useState } from "react";
 
 import { AdoptionFilters } from "@/components/adoption/AdoptionFilters";
 import { DashboardSection } from "@/components/adoption/DashboardSection";
-import { FunnelSummary } from "@/components/adoption/FunnelSummary";
+import {
+  FUNNEL_STAGE_COLORS,
+  FunnelSummary,
+} from "@/components/adoption/FunnelSummary";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { fetchMetadata } from "@/redux/landingSlice";
 import {
   DEFAULT_PERIOD,
+  growthComparisonLabel,
   resolveDashboardRanges,
   type PeriodId,
 } from "@/lib/adoptionPeriod";
@@ -76,7 +80,9 @@ async function fetchDashboard(body: DashboardFilterPayload) {
 export function UserAdoption() {
   const dispatch = useAppDispatch();
   const metadata = useAppSelector((state) => state.landing.metadata);
-  const marketsLoading = useAppSelector((state) => state.landing.metadataLoading);
+  const marketsLoading = useAppSelector(
+    (state) => state.landing.metadataLoading,
+  );
   const markets = metadata?.market ?? [];
 
   const [selectedMarkets, setSelectedMarkets] = useState<string[]>([]);
@@ -85,35 +91,42 @@ export function UserAdoption() {
   const [customEnd, setCustomEnd] = useState("");
   const [dateError, setDateError] = useState<string | null>(null);
   const [applying, setApplying] = useState(false);
+  const [comparedTo, setComparedTo] = useState(() =>
+    growthComparisonLabel(DEFAULT_PERIOD),
+  );
 
   const [funnel, setFunnel] = useState<SectionState<FunnelResponse>>({
     loading: true,
     data: emptyFunnel(),
   });
-  const [onboarding, setOnboarding] = useState<SectionState<OnboardingResponse>>(
-    {
-      loading: true,
-      data: emptyOnboarding(),
-    },
-  );
-  const [engagement, setEngagement] = useState<SectionState<EngagementResponse>>(
-    {
-      loading: true,
-      data: emptyEngagement(),
-    },
-  );
+  const [onboarding, setOnboarding] = useState<
+    SectionState<OnboardingResponse>
+  >({
+    loading: true,
+    data: emptyOnboarding(),
+  });
+  const [engagement, setEngagement] = useState<
+    SectionState<EngagementResponse>
+  >({
+    loading: true,
+    data: emptyEngagement(),
+  });
   const [adoption, setAdoption] = useState<SectionState<AdoptionResponse>>({
     loading: true,
     data: emptyAdoption(),
   });
 
-  const applyBody = async (body: DashboardFilterPayload) => {
+  const applyBody = async (
+    body: DashboardFilterPayload,
+    appliedPeriod: PeriodId,
+  ) => {
     setApplying(true);
     setFunnel((current) => ({ ...current, loading: true }));
     setOnboarding((current) => ({ ...current, loading: true }));
     setEngagement((current) => ({ ...current, loading: true }));
     setAdoption((current) => ({ ...current, loading: true }));
     const result = await fetchDashboard(body);
+    setComparedTo(growthComparisonLabel(appliedPeriod));
     setFunnel({ loading: false, data: result.funnel });
     setOnboarding({ loading: false, data: result.onboarding });
     setEngagement({ loading: false, data: result.engagement });
@@ -145,7 +158,6 @@ export function UserAdoption() {
   const applyFilters = () => {
     if (period === "custom") {
       if (!isValidDisplayDate(customStart) || !isValidDisplayDate(customEnd)) {
-        setDateError("Choose a start and end date.");
         return;
       }
       if (displayToIso(customEnd) < displayToIso(customStart)) {
@@ -160,20 +172,20 @@ export function UserAdoption() {
       customStart,
       customEnd,
     );
-    if (!ranges) {
-      setDateError("Choose a start and end date.");
-      return;
-    }
+    if (!ranges) return;
 
     setDateError(null);
-    void applyBody({
-      markets: marketsPayload(
-        selectedMarkets,
-        markets.map((market) => market.value),
-      ),
-      current: ranges.current,
-      previous: ranges.previous,
-    });
+    void applyBody(
+      {
+        markets: marketsPayload(
+          selectedMarkets,
+          markets.map((market) => market.value),
+        ),
+        current: ranges.current,
+        previous: ranges.previous,
+      },
+      period,
+    );
   };
 
   const clearFilters = () => {
@@ -184,15 +196,18 @@ export function UserAdoption() {
     setDateError(null);
     const ranges = resolveDashboardRanges(DEFAULT_PERIOD, new Date(), "", "");
     if (!ranges) return;
-    void applyBody({
-      markets: [],
-      current: ranges.current,
-      previous: ranges.previous,
-    });
+    void applyBody(
+      {
+        markets: [],
+        current: ranges.current,
+        previous: ranges.previous,
+      },
+      DEFAULT_PERIOD,
+    );
   };
 
   return (
-    <div className="rounded-xl border border-border bg-white p-4 shadow-sm md:p-6">
+    <div className="-mx-6 -my-6 min-h-[calc(100svh-3.5rem)] bg-[#edf2f9] px-6 py-6 lg:-mx-8 lg:px-8">
       <AdoptionFilters
         markets={markets}
         marketsLoading={marketsLoading && markets.length === 0}
@@ -234,18 +249,19 @@ export function UserAdoption() {
         onClear={clearFilters}
       />
 
-      <div className="mt-6">
+      <div className="mt-3">
         <FunnelSummary data={funnel.data} loading={funnel.loading} />
       </div>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-3">
+      <div className="mt-3 grid gap-4 lg:grid-cols-3">
         <DashboardSection
-          index={1}
           title="Onboarding"
+          titleColor={FUNNEL_STAGE_COLORS.onboarding}
           chartTitle="Onboarded Rate by market"
           chartHint="Onboarding rate by market for CSP and CBD."
           rows={onboarding.data.by_market}
           loading={onboarding.loading}
+          comparedTo={comparedTo}
           metrics={[
             {
               label: "Onboarded Users",
@@ -271,12 +287,13 @@ export function UserAdoption() {
           ]}
         />
         <DashboardSection
-          index={2}
           title="Engagement"
+          titleColor={FUNNEL_STAGE_COLORS.engagement}
           chartTitle="Engagement Rate by market"
           chartHint="Engagement rate by market for CSP and CBD."
           rows={engagement.data.by_market}
           loading={engagement.loading}
+          comparedTo={comparedTo}
           metrics={[
             {
               label: "Engaged Users",
@@ -302,12 +319,13 @@ export function UserAdoption() {
           ]}
         />
         <DashboardSection
-          index={3}
           title="Adoption"
+          titleColor={FUNNEL_STAGE_COLORS.adoption}
           chartTitle="Adoption Rate by market"
           chartHint="Adoption rate by market for CSP and CBD."
           rows={adoption.data.by_market}
           loading={adoption.loading}
+          comparedTo={comparedTo}
           metrics={[
             {
               label: "Adopted Users",

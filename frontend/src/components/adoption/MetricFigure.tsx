@@ -1,5 +1,4 @@
-import { Info } from "lucide-react";
-
+import { InfoMark } from "@/components/adoption/InfoMark";
 import { cn } from "@/lib/utils";
 
 import {
@@ -29,6 +28,8 @@ type MetricFigureProps = {
   roles: DashboardRole[];
   value: MetricValue;
   loading: boolean;
+  /** Growth comparison, such as "vs previous 30 days". */
+  comparedTo?: string;
   className?: string;
 };
 
@@ -39,6 +40,7 @@ export function MetricFigure({
   roles,
   value,
   loading,
+  comparedTo,
   className,
 }: MetricFigureProps) {
   const total = value.total;
@@ -59,40 +61,49 @@ export function MetricFigure({
       : "text-foreground";
 
   return (
-    <div className={cn("border-t border-border py-3", className)}>
-      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-        <span>{label}</span>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              type="button"
-              className="cursor-pointer text-muted-foreground"
-              aria-label={`About ${label}`}
-            >
-              <Info className="size-3.5" />
-            </button>
-          </TooltipTrigger>
-          <TooltipContent className="max-w-64">{hint}</TooltipContent>
-        </Tooltip>
+    <div
+      className={cn(
+        "flex items-center justify-between gap-3 border-t border-border py-3",
+        className,
+      )}
+    >
+      <div className="min-w-0">
+        <div className="flex items-center gap-1 text-xs font-medium leading-none text-[#4b5563]">
+          <span>{label}</span>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                className="inline-flex shrink-0 cursor-pointer items-center"
+                aria-label={`About ${label}`}
+              >
+                <InfoMark />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-64">{hint}</TooltipContent>
+          </Tooltip>
+        </div>
+        {!loading && roleLine ? (
+          <p className="text-xs text-muted-foreground">{roleLine}</p>
+        ) : null}
       </div>
       {loading ? (
-        <p className="mt-1 text-sm text-muted-foreground">Loading…</p>
+        <p className="shrink-0 text-sm text-muted-foreground">Loading…</p>
       ) : !isMetricNumber(total) ? (
-        <p className="mt-1 text-sm text-muted-foreground">{NO_METRIC_DATA}</p>
+        <p className="shrink-0 text-sm text-muted-foreground">
+          {NO_METRIC_DATA}
+        </p>
       ) : (
-        <div className="mt-1 text-right">
-          <p className={`text-xl font-semibold tabular-nums ${tone}`}>
-            {format(total)}
-            {kind === "growth" ? (
-              <span className="ml-1.5 text-xs font-normal text-muted-foreground">
-                (vs previous period)
-              </span>
-            ) : null}
-          </p>
-          {roleLine ? (
-            <p className="text-xs text-muted-foreground">{roleLine}</p>
+        <p
+          className={`shrink-0 text-right text-sm font-semibold tabular-nums ${tone}`}
+        >
+          {format(total)}
+          {kind === "growth" && comparedTo ? (
+            <span className="ml-1.5 text-[10px] font-normal text-muted-foreground">
+              {comparedTo}
+            </span>
           ) : null}
-        </div>
+        </p>
       )}
     </div>
   );
