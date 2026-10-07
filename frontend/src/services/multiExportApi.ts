@@ -6,6 +6,7 @@ import {
   composeTitle,
   safeFileName,
 } from "@/services/exportOnePagerPpt";
+import { logPagerActivity } from "@/services/pagerActivityApi";
 import {
   mapGetOnePagerResponse,
   type GetOnePagerApiResponse,
@@ -20,9 +21,11 @@ export async function exportMultipleOnePagersAsZip(pagerIds: string[]) {
   );
 
   const zip = new JSZip();
+  const exportedIds: string[] = [];
 
   for (const item of data) {
     const record = mapGetOnePagerResponse(item);
+    if (record.id) exportedIds.push(record.id);
     const payload = record.payload;
     const blob = await buildOnePagerPptBlob({
       pagerType: record.pager_type,
@@ -45,4 +48,8 @@ export async function exportMultipleOnePagersAsZip(pagerIds: string[]) {
   anchor.click();
   anchor.remove();
   URL.revokeObjectURL(zipUrl);
+
+  for (const pagerId of exportedIds) {
+    logPagerActivity({ pager_id: pagerId, action: "export" });
+  }
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { AdoptionFilters } from "@/components/adoption/AdoptionFilters";
 import { DashboardSection } from "@/components/adoption/DashboardSection";
@@ -94,6 +94,10 @@ export function UserAdoption() {
   const [comparedTo, setComparedTo] = useState(() =>
     growthComparisonLabel(DEFAULT_PERIOD),
   );
+  const appliedQuery = useRef<{
+    body: DashboardFilterPayload;
+    period: PeriodId;
+  } | null>(null);
 
   const [funnel, setFunnel] = useState<SectionState<FunnelResponse>>({
     loading: true,
@@ -120,6 +124,7 @@ export function UserAdoption() {
     body: DashboardFilterPayload,
     appliedPeriod: PeriodId,
   ) => {
+    appliedQuery.current = { body, period: appliedPeriod };
     setApplying(true);
     setFunnel((current) => ({ ...current, loading: true }));
     setOnboarding((current) => ({ ...current, loading: true }));
@@ -138,12 +143,14 @@ export function UserAdoption() {
     void dispatch(fetchMetadata());
     const ranges = resolveDashboardRanges(DEFAULT_PERIOD, new Date(), "", "");
     if (!ranges) return;
-    let cancelled = false;
-    void fetchDashboard({
+    const body: DashboardFilterPayload = {
       markets: [],
       current: ranges.current,
       previous: ranges.previous,
-    }).then((result) => {
+    };
+    appliedQuery.current = { body, period: DEFAULT_PERIOD };
+    let cancelled = false;
+    void fetchDashboard(body).then((result) => {
       if (cancelled) return;
       setFunnel({ loading: false, data: result.funnel });
       setOnboarding({ loading: false, data: result.onboarding });
@@ -186,6 +193,12 @@ export function UserAdoption() {
       },
       period,
     );
+  };
+
+  const refresh = () => {
+    const applied = appliedQuery.current;
+    if (!applied || applying) return;
+    void applyBody(applied.body, applied.period);
   };
 
   const clearFilters = () => {
@@ -250,7 +263,12 @@ export function UserAdoption() {
       />
 
       <div className="mt-3">
-        <FunnelSummary data={funnel.data} loading={funnel.loading} />
+        <FunnelSummary
+          data={funnel.data}
+          loading={funnel.loading}
+          refreshing={applying || funnel.loading}
+          onRefresh={refresh}
+        />
       </div>
 
       <div className="mt-3 grid gap-4 lg:grid-cols-3">

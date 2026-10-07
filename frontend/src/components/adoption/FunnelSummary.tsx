@@ -1,4 +1,6 @@
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, RefreshCw } from "lucide-react";
+
+import { cn } from "@/lib/utils";
 
 import {
   formatCount,
@@ -22,6 +24,8 @@ import type {
 type FunnelSummaryProps = {
   data: FunnelResponse;
   loading: boolean;
+  refreshing: boolean;
+  onRefresh: () => void;
 };
 
 const STAGE_ROLES: DashboardRole[] = ["CSP", "CBD"];
@@ -104,7 +108,12 @@ function StageFigure({
   );
 }
 
-export function FunnelSummary({ data, loading }: FunnelSummaryProps) {
+export function FunnelSummary({
+  data,
+  loading,
+  refreshing,
+  onRefresh,
+}: FunnelSummaryProps) {
   const provisioned = data.provisioned_users;
   const provisionedTotal = provisioned.total;
   const provisionedRoles = formatRoleLine(
@@ -118,12 +127,31 @@ export function FunnelSummary({ data, loading }: FunnelSummaryProps) {
       aria-label="Adoption funnel"
       className="rounded-xl border border-border bg-white px-4 py-4 shadow-sm md:px-5"
     >
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-center">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-xs font-semibold tracking-wide text-primary">
+          ADOPTION FUNNEL
+        </p>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              className="inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full text-primary hover:bg-brand-soft disabled:cursor-not-allowed disabled:opacity-50"
+              aria-label="Refresh"
+              disabled={refreshing}
+              onClick={onRefresh}
+            >
+              <RefreshCw
+                className={cn("size-4", refreshing && "animate-spin")}
+                aria-hidden
+              />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>Refresh</TooltipContent>
+        </Tooltip>
+      </div>
+      <div className="mt-3 flex flex-col gap-4 xl:flex-row xl:items-center">
         <div className="shrink-0 xl:w-56">
-          <p className="text-xs font-semibold tracking-wide text-primary">
-            ADOPTION FUNNEL
-          </p>
-          <p className="mt-1 text-sm font-bold text-foreground">
+          <p className="text-sm font-bold text-foreground">
             Onboarding to Adoption
           </p>
           {loading ? (
