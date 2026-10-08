@@ -9,7 +9,9 @@ import {
   isMetricNumber,
   NO_METRIC_DATA,
 } from "@/components/adoption/formatMetric";
+import { HintTooltipContent } from "@/components/adoption/HintTooltipContent";
 import { InfoMark } from "@/components/adoption/InfoMark";
+import { DASHBOARD_TOOLTIPS } from "@/constants/dashboardTooltips";
 import {
   Tooltip,
   TooltipContent,
@@ -42,19 +44,19 @@ const STAGES = [
   {
     key: "onboarding_rate",
     label: "Stage 1 - Onboarding",
-    hint: "Distinct logged-in users divided by provisioned users.",
+    hint: DASHBOARD_TOOLTIPS.funnel.onboarding,
     color: FUNNEL_STAGE_COLORS.onboarding,
   },
   {
     key: "engagement_rate",
     label: "Stage 2 - Engagement",
-    hint: "Distinct users who created a draft, divided by provisioned users.",
+    hint: DASHBOARD_TOOLTIPS.funnel.engagement,
     color: FUNNEL_STAGE_COLORS.engagement,
   },
   {
     key: "adoption_rate",
     label: "Stage 3 - Adoption",
-    hint: "Distinct users who published a one-pager, divided by provisioned users.",
+    hint: DASHBOARD_TOOLTIPS.funnel.adoption,
     color: FUNNEL_STAGE_COLORS.adoption,
   },
 ] as const;
@@ -88,7 +90,7 @@ function StageFigure({
               <InfoMark />
             </button>
           </TooltipTrigger>
-          <TooltipContent className="max-w-64">{hint}</TooltipContent>
+          <HintTooltipContent hint={hint} />
         </Tooltip>
       </div>
       {loading ? (

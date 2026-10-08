@@ -13,9 +13,9 @@ import {
   isMetricNumber,
   NO_METRIC_DATA,
 } from "@/components/adoption/formatMetric";
+import { HintTooltipContent } from "@/components/adoption/HintTooltipContent";
 import { InfoMark } from "@/components/adoption/InfoMark";
 import {
-  TooltipContent,
   TooltipTrigger,
   Tooltip as UiTooltip,
 } from "@/components/ui/tooltip";
@@ -104,7 +104,7 @@ export function MarketRateChart({
                 <InfoMark />
               </button>
             </TooltipTrigger>
-            <TooltipContent className="max-w-64">{hint}</TooltipContent>
+            <HintTooltipContent hint={hint} />
           </UiTooltip>
         </div>
         {loading || rowCount === 0 ? null : <ChartLegend />}

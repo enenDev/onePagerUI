@@ -6,6 +6,7 @@ import {
   FUNNEL_STAGE_COLORS,
   FunnelSummary,
 } from "@/components/adoption/FunnelSummary";
+import { DASHBOARD_TOOLTIPS } from "@/constants/dashboardTooltips";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { fetchMetadata } from "@/redux/landingSlice";
 import {
@@ -276,28 +277,28 @@ export function UserAdoption() {
           title="Onboarding"
           titleColor={FUNNEL_STAGE_COLORS.onboarding}
           chartTitle="Onboarded Rate by market"
-          chartHint="Onboarding rate by market for CSP and CBD."
+          chartHint={DASHBOARD_TOOLTIPS.onboarding.chart}
           rows={onboarding.data.by_market}
           loading={onboarding.loading}
           comparedTo={comparedTo}
           metrics={[
             {
               label: "Onboarded Users",
-              hint: "Distinct users who logged in during the selected period.",
+              hint: DASHBOARD_TOOLTIPS.onboarding.onboardedUsers,
               kind: "count",
               roles: ["CSP", "CBD", "General"],
               value: onboarding.data.onboarded_users,
             },
             {
               label: "Onboarded Users Growth Rate",
-              hint: "Change versus the previous period: (current − previous) / previous.",
+              hint: DASHBOARD_TOOLTIPS.onboarding.onboardedUsersGrowthRate,
               kind: "growth",
               roles: ["CSP", "CBD"],
               value: onboarding.data.onboarded_users_growth_rate,
             },
             {
               label: "Total One-Pager Views",
-              hint: "One-pager views during the selected period.",
+              hint: DASHBOARD_TOOLTIPS.onboarding.totalOnePagerViews,
               kind: "count",
               roles: ["CSP", "CBD", "General"],
               value: onboarding.data.total_one_pager_views,
@@ -308,28 +309,28 @@ export function UserAdoption() {
           title="Engagement"
           titleColor={FUNNEL_STAGE_COLORS.engagement}
           chartTitle="Engagement Rate by market"
-          chartHint="Engagement rate by market for CSP and CBD."
+          chartHint={DASHBOARD_TOOLTIPS.engagement.chart}
           rows={engagement.data.by_market}
           loading={engagement.loading}
           comparedTo={comparedTo}
           metrics={[
             {
               label: "Engaged Users",
-              hint: "Distinct users who created at least one draft.",
+              hint: DASHBOARD_TOOLTIPS.engagement.engagedUsers,
               kind: "count",
               roles: ["CSP", "CBD"],
               value: engagement.data.engaged_users,
             },
             {
               label: "Track-to-Publish %",
-              hint: "Published one-pagers that were tracked, divided by published one-pagers.",
+              hint: DASHBOARD_TOOLTIPS.engagement.trackToPublish,
               kind: "percent",
               roles: ["CSP", "CBD"],
               value: engagement.data.track_to_publish,
             },
             {
               label: "Total Exports",
-              hint: "One-pager exports during the selected period.",
+              hint: DASHBOARD_TOOLTIPS.engagement.totalExports,
               kind: "count",
               roles: ["CSP", "CBD", "General"],
               value: engagement.data.total_exports,
@@ -340,35 +341,35 @@ export function UserAdoption() {
           title="Adoption"
           titleColor={FUNNEL_STAGE_COLORS.adoption}
           chartTitle="Adoption Rate by market"
-          chartHint="Adoption rate by market for CSP and CBD."
+          chartHint={DASHBOARD_TOOLTIPS.adoption.chart}
           rows={adoption.data.by_market}
           loading={adoption.loading}
           comparedTo={comparedTo}
           metrics={[
             {
               label: "Adopted Users",
-              hint: "Distinct users who published at least one one-pager.",
+              hint: DASHBOARD_TOOLTIPS.adoption.adoptedUsers,
               kind: "count",
               roles: ["CSP", "CBD"],
               value: adoption.data.adopted_users,
             },
             {
               label: "Adopted Users Growth Rate",
-              hint: "Change versus the previous period: (current − previous) / previous.",
+              hint: DASHBOARD_TOOLTIPS.adoption.adoptedUsersGrowthRate,
               kind: "growth",
               roles: ["CSP", "CBD"],
               value: adoption.data.adopted_users_growth_rate,
             },
             {
               label: "Draft-to-Publish %",
-              hint: "Published one-pagers divided by active drafts plus published one-pagers.",
+              hint: DASHBOARD_TOOLTIPS.adoption.draftToPublish,
               kind: "percent",
               roles: ["CSP", "CBD"],
               value: adoption.data.draft_to_publish,
             },
             {
               label: "Total One-Pagers Published",
-              hint: "One-pagers published during the selected period.",
+              hint: DASHBOARD_TOOLTIPS.adoption.totalOnePagersPublished,
               kind: "count",
               roles: ["CSP", "CBD"],
               value: adoption.data.total_one_pagers_published,

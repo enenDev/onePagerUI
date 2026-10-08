@@ -1,9 +1,9 @@
+import { HintTooltipContent } from "@/components/adoption/HintTooltipContent";
 import { InfoMark } from "@/components/adoption/InfoMark";
 import { cn } from "@/lib/utils";
 
 import {
   Tooltip,
-  TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
@@ -80,7 +80,7 @@ export function MetricFigure({
                 <InfoMark />
               </button>
             </TooltipTrigger>
-            <TooltipContent className="max-w-64">{hint}</TooltipContent>
+            <HintTooltipContent hint={hint} />
           </Tooltip>
         </div>
         {!loading && roleLine ? (
