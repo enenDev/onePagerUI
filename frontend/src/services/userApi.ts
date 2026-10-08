@@ -74,7 +74,8 @@ function roleList(role: unknown): string[] {
 
 /**
  * Analyst is stripped before the CSP / CBD / General hierarchy runs.
- * A token with only analyst does not become General.
+ * Analyst alone stays dashboard-only. Any other role with no CSP / CBD /
+ * General match falls back to General, including when analyst is also present.
  */
 function resolveRoles(role: unknown): {
   userType: UserType;
@@ -83,15 +84,14 @@ function resolveRoles(role: unknown): {
 } {
   const roles = roleList(role);
   const isAnalyst = roles.includes("ANALYST");
-  const privilegeRoles = roles.filter((value) => PRIVILEGE_ROLES.has(value));
+  const otherRoles = roles.filter((value) => value !== "ANALYST");
+  const privilegeRoles = otherRoles.filter((value) => PRIVILEGE_ROLES.has(value));
 
   if (privilegeRoles.length === 0) {
     return {
-      // Same fallback as an empty or unrecognized role today. Ignored for
-      // access and the badge when isAnalystOnly is true.
       userType: "user_type_3",
       isAnalyst,
-      isAnalystOnly: isAnalyst,
+      isAnalystOnly: isAnalyst && otherRoles.length === 0,
     };
   }
 
