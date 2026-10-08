@@ -97,7 +97,7 @@ const RATE_ROLES: DashboardRole[] = ["CSP", "CBD"];
 export function emptyFunnel(): FunnelResponse {
   const empty = () => asMetric(null, RATE_ROLES);
   return {
-    provisioned_users: asMetric(null, ["CSP", "CBD"]),
+    provisioned_users: asMetric(null, COUNT_ROLES),
     onboarding_rate: empty(),
     engagement_rate: empty(),
     adoption_rate: empty(),
@@ -107,7 +107,7 @@ export function emptyFunnel(): FunnelResponse {
 export function emptyOnboarding(): OnboardingResponse {
   return {
     by_market: [],
-    onboarded_users: asMetric(null, ["CSP", "CBD"]),
+    onboarded_users: asMetric(null, COUNT_ROLES),
     onboarded_users_growth_rate: asMetric(null, RATE_ROLES),
     total_one_pager_views: asMetric(null, COUNT_ROLES),
   };
@@ -136,7 +136,7 @@ function parseFunnel(data: unknown): FunnelResponse {
   const record = asRecord(data);
   if (!record) return emptyFunnel();
   return {
-    provisioned_users: asMetric(record.provisioned_users, ["CSP", "CBD"]),
+    provisioned_users: asMetric(record.provisioned_users, COUNT_ROLES),
     onboarding_rate: asMetric(record.onboarding_rate, RATE_ROLES),
     engagement_rate: asMetric(record.engagement_rate, RATE_ROLES),
     adoption_rate: asMetric(record.adoption_rate, RATE_ROLES),
@@ -148,7 +148,7 @@ function parseOnboarding(data: unknown): OnboardingResponse {
   if (!record) return emptyOnboarding();
   return {
     by_market: asMarketRows(record.by_market),
-    onboarded_users: asMetric(record.onboarded_users, ["CSP", "CBD"]),
+    onboarded_users: asMetric(record.onboarded_users, COUNT_ROLES),
     onboarded_users_growth_rate: asMetric(
       record.onboarded_users_growth_rate,
       RATE_ROLES,

@@ -5,8 +5,11 @@ import { profileRoleLabel } from "@/redux/userSlice";
 import { getCurrentUser } from "@/services/userApi";
 
 /**
- * TODO: POST user-tracking/login-log after each SSO sign-in.
- * Keep the body { email, role }. Do not call this on refresh or navigation.
+ * TODO: POST user-tracking/login-log once per signed-in app load from MainLayout,
+ * after user-details settles. That covers a fresh SSO sign-in and a restored
+ * Firebase session. Do not call this on in-app navigation or token refresh.
+ * Keep the body { email, role }. Backend stores one row per email and must
+ * refresh login_time (and role) on conflict.
  * Use user-details role when it is already stored for this email; otherwise
  * the token role. A failure must not block entering the app or sign the user out.
  */

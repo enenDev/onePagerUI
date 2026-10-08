@@ -1,5 +1,4 @@
 import { loginUser, logoutUser } from "@/services/authService";
-import { logUserLogin } from "@/services/loginLogApi";
 
 export type LoginWithSsoResult = { ok: true };
 
@@ -8,10 +7,11 @@ export type LoginWithSsoResult = { ok: true };
  * Temporary: redirect only; token is stored in AuthProvider.
  * Keep loginWithSso() → Promise<{ ok: true }> for Login.tsx.
  * Add a backend handshake here only if FastAPI owns the SSO exchange.
+ * Login-log is not called here. MainLayout posts it once per signed-in load
+ * so a restored Firebase session is tracked without a fresh SSO click.
  */
 export async function loginWithSso(): Promise<LoginWithSsoResult> {
   await loginUser();
-  logUserLogin();
   return { ok: true };
 }
 

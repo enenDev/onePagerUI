@@ -285,7 +285,7 @@ export function UserAdoption() {
               label: "Onboarded Users",
               hint: "Distinct users who logged in during the selected period.",
               kind: "count",
-              roles: ["CSP", "CBD"],
+              roles: ["CSP", "CBD", "General"],
               value: onboarding.data.onboarded_users,
             },
             {

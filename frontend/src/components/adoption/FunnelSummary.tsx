@@ -29,6 +29,7 @@ type FunnelSummaryProps = {
 };
 
 const STAGE_ROLES: DashboardRole[] = ["CSP", "CBD"];
+const PROVISIONED_ROLES: DashboardRole[] = ["CSP", "CBD", "General"];
 
 /** Same fills as the three funnel boxes. Section titles use these colors. */
 export const FUNNEL_STAGE_COLORS = {
@@ -118,7 +119,7 @@ export function FunnelSummary({
   const provisionedTotal = provisioned.total;
   const provisionedRoles = formatRoleLine(
     provisioned.by_role,
-    STAGE_ROLES,
+    PROVISIONED_ROLES,
     formatCount,
   );
 

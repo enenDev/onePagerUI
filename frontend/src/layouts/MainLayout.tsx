@@ -7,6 +7,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { Button } from "@/components/ui/button";
 import { useAppDispatch } from "@/redux/hooks";
 import { fetchCurrentUser, fetchUserDetails } from "@/redux/userSlice";
+import { logUserLogin } from "@/services/loginLogApi";
 
 type RouteHandle = {
   headerVariant?: "list" | "simple";
@@ -41,6 +42,11 @@ const MainLayout = () => {
       .unwrap()
       .catch(() => {
         // Activity logging falls back until this succeeds. Do not block the app.
+      })
+      .finally(() => {
+        // Once per full load, including a restored session. Skip the Strict Mode
+        // remount so dev does not post twice. In-app navigation does not remount.
+        if (!cancelled) logUserLogin();
       });
     return () => {
       cancelled = true;
