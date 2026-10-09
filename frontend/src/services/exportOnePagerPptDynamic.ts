@@ -27,7 +27,11 @@ import type {
 import type { RetailerOnePagerCreatePayload } from "@/services/retailerCreateFormApi";
 import { logPagerActivity } from "@/services/pagerActivityApi";
 import { getOnePagerById } from "@/services/onePagerApi";
-import { flattenLineBreaks } from "@/components/form/fieldLimits";
+import {
+  flattenLineBreaks,
+  fontSizeForLength,
+} from "@/components/form/fieldLimits";
+import type { ExportOnePagerInput } from "@/services/exportOnePagerPpt";
 
 type Slide = ReturnType<PptxGenJS["addSlide"]>;
 
@@ -85,10 +89,14 @@ const PRIORITY_COLOR: Record<string, string> = {
   P3: "FEF3C7",
 };
 
-type PlannedInitiative = {
-  initiative: NationalInitiativePayload;
-  font: number;
-  height: number;
+type PlannedColumn = {
+  descriptionFont: number;
+  descriptionH: number;
+  initiatives: Array<{
+    initiative: NationalInitiativePayload;
+    font: number;
+    height: number;
+  }>;
 };
 
 export type PlannedPillar = {
@@ -169,34 +177,55 @@ function measureInitiative(
   return height + 0.04;
 }
 
-function planPillar(
-  pillar: NationalPillarPayload,
-  bodyH: number,
-): PlannedInitiative[] {
+function descriptionHeight(text: string, fontPt: number) {
+  if (!hasText(text)) return 0;
+  return blockHeight(text, fontPt, 0);
+}
+
+/**
+ * Description size comes from the character buckets, so a long paragraph
+ * starts smaller than 7 pt. Line breaks stay. Initiatives start under it.
+ * Initiative font steps down first. Description steps down further only when
+ * the initiatives are already at the floor and the column is still too short.
+ */
+function planColumn(pillar: NationalPillarPayload, contentH: number): PlannedColumn {
   const initiatives = [...pillar.initiatives]
     .sort((a, b) => a.initiative_number - b.initiative_number)
     .slice(0, 3);
-  const count = initiatives.length;
-  if (count === 0) return [];
-
+  const text = pillar.pillar_description || "";
   const gap = 0.06;
-  let font = pillarStartFont(initiatives);
+  let descriptionFont = fontSizeForLength(text.length);
   const stackHeight = (size: number) =>
-    initiatives.reduce(
-      (sum, initiative) => sum + measureInitiative(initiative, size),
-      0,
-    ) +
-    gap * (count - 1);
+    initiatives.length === 0
+      ? 0
+      : initiatives.reduce(
+          (sum, initiative) => sum + measureInitiative(initiative, size),
+          0,
+        ) +
+        gap * (initiatives.length - 1);
 
-  while (stackHeight(font) > bodyH && font > FONT_MIN) {
-    font = stepDown(font);
+  while (true) {
+    const descriptionH = descriptionHeight(text, descriptionFont);
+    const afterDescription = descriptionH > 0 ? gap : 0;
+    const bodyH = contentH - descriptionH - afterDescription;
+    let font = initiatives.length > 0 ? pillarStartFont(initiatives) : 7;
+    while (stackHeight(font) > bodyH && font > FONT_MIN) {
+      font = stepDown(font);
+    }
+    const fits = stackHeight(font) <= bodyH + 0.001;
+    if (fits || descriptionFont <= FONT_MIN) {
+      return {
+        descriptionFont,
+        descriptionH,
+        initiatives: initiatives.map((initiative) => ({
+          initiative,
+          font,
+          height: measureInitiative(initiative, font),
+        })),
+      };
+    }
+    descriptionFont = stepDown(descriptionFont);
   }
-
-  return initiatives.map((initiative) => ({
-    initiative,
-    font,
-    height: measureInitiative(initiative, font),
-  }));
 }
 
 export function describeDynamicLayout(
@@ -207,16 +236,12 @@ export function describeDynamicLayout(
     .sort((a, b) => a.pillar_number - b.pillar_number)
     .slice(0, COL_COUNT)
     .map((pillar) => {
-      const descriptionH = Math.min(
-        0.55,
-        blockHeight(pillar.pillar_description || "", 7, 0),
-      );
-      const bodyH = colH - (0.08 + 0.26 + 0.04 + descriptionH + 0.06) - 0.08;
-      const planned = planPillar(pillar, bodyH);
+      const contentH = colH - (0.08 + 0.26 + 0.04) - 0.08;
+      const planned = planColumn(pillar, contentH);
       return {
         pillarNumber: pillar.pillar_number,
         mode: "stack",
-        initiatives: planned.map((item) => ({
+        initiatives: planned.initiatives.map((item) => ({
           number: item.initiative.initiative_number,
           font: item.font,
           height: Math.round(item.height * 100) / 100,
@@ -567,32 +592,31 @@ function addColumn(
   }
 
   const description = pillar.pillar_description || "";
-  const descriptionH = Math.min(
-    0.55,
-    blockHeight(description, 7, 0),
-  );
-  slide.addText(textRuns(description, 7, "555555"), {
-    x: x + pad,
-    y: y + pad + icon + 0.04,
-    w: w - pad * 2,
-    h: descriptionH,
-    fontFace: "Arial",
-    valign: "top",
-    margin: 0,
-    paraSpaceBefore: 0,
-    paraSpaceAfter: 0,
-  });
+  const contentTop = y + pad + icon + 0.04;
+  const contentH = y + h - pad - contentTop;
+  const planned = planColumn(pillar, contentH);
+  if (planned.descriptionH > 0) {
+    slide.addText(textRuns(description, planned.descriptionFont, "555555"), {
+      x: x + pad,
+      y: contentTop,
+      w: w - pad * 2,
+      h: planned.descriptionH,
+      fontFace: "Arial",
+      valign: "top",
+      margin: 0,
+      paraSpaceBefore: 0,
+      paraSpaceAfter: 0,
+    });
+  }
 
-  const bodyY = y + pad + icon + 0.04 + descriptionH + 0.06;
-  const bodyBottom = y + h - pad;
-  const bodyH = bodyBottom - bodyY;
-  const planned = planPillar(pillar, bodyH);
-  if (planned.length === 0) return;
+  const bodyY =
+    contentTop + planned.descriptionH + (planned.descriptionH > 0 ? 0.06 : 0);
+  if (planned.initiatives.length === 0) return;
 
   const innerX = x + pad;
   const innerW = w - pad * 2;
   let cursor = bodyY;
-  planned.forEach((item, index) => {
+  planned.initiatives.forEach((item, index) => {
     if (index > 0) {
       addSeparator(pptx, slide, innerX, cursor + 0.02, innerW);
       cursor += 0.06;
@@ -871,10 +895,8 @@ export async function exportDynamicOnePager(
 }
 
 /** Local dummy page. Real Export uses exportDynamicOnePager, including the activity log. */
-export async function exportDynamicOnePagerPpt(
-  payload: NationalOnePagerCreatePayload,
-) {
-  await exportDynamicOnePager({ pagerType: "national", payload });
+export async function exportDynamicOnePagerPpt(input: ExportOnePagerInput) {
+  await exportDynamicOnePager(input);
 }
 
 export async function exportDynamicOnePagerById(pagerId: string) {
