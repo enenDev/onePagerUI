@@ -135,16 +135,18 @@
   html {
     height: 100%;
     width: 100%;
-    /* Prevent layout shift when overlays lock body scroll */
-    scrollbar-gutter: stable;
     font-family: "Unilever Desire", "Segoe UI", system-ui, sans-serif;
   }
 
   body,
   #root {
     height: 100%;
-    width: 100%;
     font-family: "Unilever Desire", "Segoe UI", system-ui, sans-serif;
+  }
+
+  #root {
+    width: 100%;
+    min-height: 100svh;
   }
 
   body {
@@ -152,10 +154,6 @@
     @apply text-foreground antialiased;
     background: var(--app-gradient);
     background-attachment: fixed;
-  }
-
-  #root {
-    min-height: 100svh;
   }
 }
 
