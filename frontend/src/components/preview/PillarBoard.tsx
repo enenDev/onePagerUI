@@ -5,6 +5,7 @@ import {
   formatInitiativeTimeline,
   formatSuccessTarget,
 } from "@/components/preview/nationalPreview";
+import { PreviewWrappedText } from "@/components/preview/PreviewWrappedText";
 import { TrackStatusDot } from "@/components/track/TrackStatusDot";
 import { PILLAR_ICON_BY_NUMBER } from "@/assets/pillars/pillarIcons";
 import type { ScoringMode } from "@/components/form/pillars";
@@ -54,9 +55,10 @@ function PreviewSection({
   return (
     <div className="min-w-0 space-y-0.5">
       <p className="text-xs font-semibold text-primary">{label}</p>
-      <p className="text-xs leading-snug break-all whitespace-pre-line text-foreground/90 [overflow-wrap:anywhere]">
-        {children || "—"}
-      </p>
+      <PreviewWrappedText
+        text={children || "—"}
+        className="text-xs leading-snug text-foreground/90"
+      />
     </div>
   );
 }
@@ -127,9 +129,10 @@ function InitiativeBlock({
       ) : null}
 
       {initiative.checklist_compliance_notes ? (
-        <p className="text-xs leading-snug break-all whitespace-pre-line text-muted-foreground [overflow-wrap:anywhere]">
-          {initiative.checklist_compliance_notes}
-        </p>
+        <PreviewWrappedText
+          text={initiative.checklist_compliance_notes}
+          className="text-xs leading-snug text-muted-foreground"
+        />
       ) : null}
     </div>
   );
@@ -182,14 +185,14 @@ export function PillarBoard({ pillars, scoringMode, track }: PillarBoardProps) {
                     />
                   ) : null}
                   <div className="min-w-0 flex-1">
-                    <h3
+                    <PreviewWrappedText
+                      as="h3"
+                      text={pillar.pillar_name}
                       className={cn(
-                        "text-xs font-bold leading-snug break-words",
+                        "text-xs font-bold leading-snug",
                         theme.title,
                       )}
-                    >
-                      {pillar.pillar_name}
-                    </h3>
+                    />
                     {/* <span className="inline-flex w-fit self-end rounded-full bg-brand-soft px-2.5 py-0.5 text-xs font-semibold text-primary">
                   {targetCount} {targetCount === 1 ? "Target" : "Targets"}
                 </span> */}
@@ -206,9 +209,10 @@ export function PillarBoard({ pillars, scoringMode, track }: PillarBoardProps) {
                   </div>
                 </div>
                 {pillar.pillar_description.trim() ? (
-                  <p className="whitespace-pre-line text-[10px] leading-snug text-foreground/70">
-                    {pillar.pillar_description}
-                  </p>
+                  <PreviewWrappedText
+                    text={pillar.pillar_description}
+                    className="text-[10px] leading-snug text-foreground/70"
+                  />
                 ) : null}
               </div>
 

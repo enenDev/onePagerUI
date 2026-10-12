@@ -14,6 +14,7 @@ import {
   PillarBoard,
   type PillarBoardTrack,
 } from "@/components/preview/PillarBoard";
+import { PreviewWrappedText } from "@/components/preview/PreviewWrappedText";
 import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
@@ -96,9 +97,10 @@ function PreviewField({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0 px-4 first:pl-0">
       <p className="text-xs font-medium text-muted-foreground">{label}</p>
-      <p className="mt-0.5 text-sm font-semibold text-foreground">
-        {value || "—"}
-      </p>
+      <PreviewWrappedText
+        text={value || "—"}
+        className="mt-0.5 text-sm font-semibold text-foreground"
+      />
     </div>
   );
 }
@@ -151,9 +153,10 @@ export function NationalPreviewDocument({
             <PreviewField label="Market / Geography" value={payload.market} />
             <PreviewField label="Year" value={payload.year ?? ""} />
           </dl>
-          <p className="mt-4 whitespace-pre-line text-sm leading-relaxed break-words text-foreground/85 [overflow-wrap:anywhere]">
-            {payload.business_outcome_statement || "—"}
-          </p>
+          <PreviewWrappedText
+            text={payload.business_outcome_statement || "—"}
+            className="mt-4 text-sm leading-relaxed text-foreground/85"
+          />
         </div>
 
         <div className="flex shrink-0 flex-col items-end gap-1 text-right">

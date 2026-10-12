@@ -3,7 +3,7 @@ import { displayToIso, isValidDisplayDate } from "@/lib/displayDate";
 export type PeriodId =
   | "last7"
   | "last30"
-  | "lastQuarter"
+  | "last3Months"
   | "last6Months"
   | "custom";
 
@@ -15,7 +15,7 @@ export type IsoDateRange = {
 export const PERIOD_OPTIONS: { id: PeriodId; label: string }[] = [
   { id: "last7", label: "Last 7 days" },
   { id: "last30", label: "Last 30 days" },
-  { id: "lastQuarter", label: "Last quarter" },
+  { id: "last3Months", label: "Last 3 months" },
   { id: "last6Months", label: "Last 6 months" },
   { id: "custom", label: "Custom period" },
 ];
@@ -28,8 +28,8 @@ export function growthComparisonLabel(period: PeriodId): string {
       return "(vs previous 7 days)";
     case "last30":
       return "(vs previous 30 days)";
-    case "lastQuarter":
-      return "(vs previous quarter)";
+    case "last3Months":
+      return "(vs previous 3 months)";
     case "last6Months":
       return "(vs previous 6 months)";
     case "custom":
@@ -79,37 +79,37 @@ function previousSameLength(range: IsoDateRange): IsoDateRange {
   return { start: formatIso(addDays(end, -(length - 1))), end: formatIso(end) };
 }
 
-/** Previous finished calendar quarter. October 2026 → 1 Jul–30 Sep. */
-function lastCalendarQuarter(today: Date): IsoDateRange {
-  const currentQuarter = Math.floor(today.getMonth() / 3);
-  let quarter = currentQuarter - 1;
-  let year = today.getFullYear();
-  if (quarter < 0) {
-    quarter = 3;
-    year -= 1;
-  }
-  const start = new Date(year, quarter * 3, 1);
-  const end = new Date(year, quarter * 3 + 3, 0);
-  return { start: formatIso(start), end: formatIso(end) };
+/** Same calendar day shifted by `months`. 12 Oct − 3 months → 12 Jul. Clamps when that day does not exist (31 Mar − 1 month → 28 or 29 Feb). */
+function addMonths(date: Date, months: number): Date {
+  const target = new Date(date.getFullYear(), date.getMonth() + months, 1);
+  const lastDay = new Date(
+    target.getFullYear(),
+    target.getMonth() + 1,
+    0,
+  ).getDate();
+  return new Date(
+    target.getFullYear(),
+    target.getMonth(),
+    Math.min(date.getDate(), lastDay),
+  );
 }
 
-function previousCalendarQuarter(range: IsoDateRange): IsoDateRange {
-  const end = addDays(parseIso(range.start), -1);
-  const start = new Date(end.getFullYear(), end.getMonth() - 2, 1);
-  return { start: formatIso(start), end: formatIso(end) };
+/** Rolling window that ends today. Start is the same day `monthCount` months earlier. */
+function rollingMonths(today: Date, monthCount: number): IsoDateRange {
+  const end = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  return { start: formatIso(addMonths(end, -monthCount)), end: formatIso(end) };
 }
 
-/** Six finished months before the current month. October 2026 → 1 Apr–30 Sep. */
-function lastSixFullMonths(today: Date): IsoDateRange {
-  const end = new Date(today.getFullYear(), today.getMonth(), 0);
-  const start = new Date(end.getFullYear(), end.getMonth() - 5, 1);
-  return { start: formatIso(start), end: formatIso(end) };
-}
-
-function previousSixFullMonths(range: IsoDateRange): IsoDateRange {
-  const end = addDays(parseIso(range.start), -1);
-  const start = new Date(end.getFullYear(), end.getMonth() - 5, 1);
-  return { start: formatIso(start), end: formatIso(end) };
+/** Same month length immediately before `range`. 12 Jul–12 Oct → 12 Apr–11 Jul. */
+function previousRollingMonths(
+  range: IsoDateRange,
+  monthCount: number,
+): IsoDateRange {
+  const currentStart = parseIso(range.start);
+  return {
+    start: formatIso(addMonths(currentStart, -monthCount)),
+    end: formatIso(addDays(currentStart, -1)),
+  };
 }
 
 export function resolveDashboardRanges(
@@ -142,11 +142,11 @@ export function resolveDashboardRanges(
     return { current, previous: previousSameLength(current) };
   }
 
-  if (period === "lastQuarter") {
-    const current = lastCalendarQuarter(today);
-    return { current, previous: previousCalendarQuarter(current) };
+  if (period === "last3Months") {
+    const current = rollingMonths(today, 3);
+    return { current, previous: previousRollingMonths(current, 3) };
   }
 
-  const current = lastSixFullMonths(today);
-  return { current, previous: previousSixFullMonths(current) };
+  const current = rollingMonths(today, 6);
+  return { current, previous: previousRollingMonths(current, 6) };
 }
