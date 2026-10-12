@@ -94,22 +94,23 @@ function addMonths(date: Date, months: number): Date {
   );
 }
 
-/** Rolling window that ends today. Start is the same day `monthCount` months earlier. */
-function rollingMonths(today: Date, monthCount: number): IsoDateRange {
-  const end = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  return { start: formatIso(addMonths(end, -monthCount)), end: formatIso(end) };
+/**
+ * Window ending on `end`. Start is the day after the same calendar day
+ * `monthCount` months earlier, matching Last 7/30 days: the exact boundary
+ * day is not included. 12 Oct, 3 months → 13 Jul–12 Oct.
+ */
+function rollingMonths(end: Date, monthCount: number): IsoDateRange {
+  const endDate = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+  const start = addDays(addMonths(endDate, -monthCount), 1);
+  return { start: formatIso(start), end: formatIso(endDate) };
 }
 
-/** Same month length immediately before `range`. 12 Jul–12 Oct → 12 Apr–11 Jul. */
+/** Same rule applied to the window ending the day before `range` starts. */
 function previousRollingMonths(
   range: IsoDateRange,
   monthCount: number,
 ): IsoDateRange {
-  const currentStart = parseIso(range.start);
-  return {
-    start: formatIso(addMonths(currentStart, -monthCount)),
-    end: formatIso(addDays(currentStart, -1)),
-  };
+  return rollingMonths(addDays(parseIso(range.start), -1), monthCount);
 }
 
 export function resolveDashboardRanges(
