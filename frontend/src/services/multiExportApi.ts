@@ -1,11 +1,13 @@
 import JSZip from "jszip";
 
 import ApiBase from "@/components/auth/apiBase";
+import { USE_DYNAMIC_PPT_EXPORT } from "@/config/dynamicPPTExport";
 import {
   buildOnePagerPptBlob,
   composeTitle,
   safeFileName,
 } from "@/services/exportOnePagerPpt";
+import { buildDynamicOnePagerPptBlob } from "@/services/exportOnePagerPptDynamic";
 import { logPagerActivity } from "@/services/pagerActivityApi";
 import {
   mapGetOnePagerResponse,
@@ -27,10 +29,14 @@ export async function exportMultipleOnePagersAsZip(pagerIds: string[]) {
     const record = mapGetOnePagerResponse(item);
     if (record.id) exportedIds.push(record.id);
     const payload = record.payload;
-    const blob = await buildOnePagerPptBlob({
+    const exportInput = {
       pagerType: record.pager_type,
       payload,
-    });
+    };
+    // Same switch as exportOnePagerPpt: dynamic column-fit fonts when the flag is on.
+    const blob = USE_DYNAMIC_PPT_EXPORT
+      ? await buildDynamicOnePagerPptBlob(exportInput)
+      : await buildOnePagerPptBlob(exportInput);
 
     const baseFileName = safeFileName(composeTitle(record.pager_type, payload));
 
