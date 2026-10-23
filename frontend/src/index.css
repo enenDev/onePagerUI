@@ -135,6 +135,7 @@
   html {
     height: 100%;
     width: 100%;
+   
     font-family: "Unilever Desire", "Segoe UI", system-ui, sans-serif;
   }
 
@@ -144,7 +145,7 @@
     font-family: "Unilever Desire", "Segoe UI", system-ui, sans-serif;
   }
 
-  #root {
+  #root{
     width: 100%;
     min-height: 100svh;
   }

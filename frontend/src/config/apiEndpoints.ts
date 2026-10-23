@@ -4,6 +4,7 @@ export const API_ENDPOINTS = {
   loginLog: "api/v1/user-tracking/login-log",
   actionLog: "api/v1/user-tracking/action-log",
   metadata: "api/v1/metadata",
+  metadataItems: "api/v1/metadata-items",
   upload: "api/v1/upload",
   campaigns: "api/v1/campaigns",
   updateTrack: "api/v1/update-track",

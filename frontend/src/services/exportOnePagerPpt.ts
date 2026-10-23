@@ -99,8 +99,6 @@ import type {
   NationalOnePagerCreatePayload,
   NationalPillarPayload,
 } from "@/services/createFormApi";
-import { USE_DYNAMIC_PPT_EXPORT } from "@/config/pptExport";
-import { buildDynamicOnePagerPptBlob, exportDynamicOnePager } from "@/services/exportOnePagerPptDynamic";
 import { getOnePagerById } from "@/services/onePagerApi";
 import { logPagerActivity } from "@/services/pagerActivityApi";
 import type { RetailerOnePagerCreatePayload } from "@/services/retailerCreateFormApi";
@@ -109,6 +107,8 @@ import {
   fontSizeForLength,
   PPT_SUCCESS_MEASURE_FONT_SIZE,
 } from "@/components/form/fieldLimits";
+import { exportDynamicOnePagerPpt } from "./exportOnePagerPptDynamic";
+import { USE_DYNAMIC_PPT_EXPORT } from "@/config/dynamicPPTExport";
 
 type Slide = ReturnType<PptxGenJS["addSlide"]>;
 
@@ -853,9 +853,6 @@ function addColumn(
 export async function buildOnePagerPptBlob(
   input: ExportOnePagerInput,
 ): Promise<Blob> {
-  if (USE_DYNAMIC_PPT_EXPORT) {
-    return buildDynamicOnePagerPptBlob(input);
-  }
   const images = await loadImageCache(collectImageUrls(input.payload));
   const pptx = new PptxGenJS();
   pptx.layout = "LAYOUT_WIDE";
@@ -909,9 +906,10 @@ function triggerDownload(blob: Blob, fileName: string) {
  */
 export async function exportOnePagerPpt(input: ExportOnePagerInput) {
   if (USE_DYNAMIC_PPT_EXPORT) {
-    await exportDynamicOnePager(input);
+    await exportDynamicOnePagerPpt(input);
     return;
   }
+
   if (exportBusy) return;
   exportBusy = true;
   try {

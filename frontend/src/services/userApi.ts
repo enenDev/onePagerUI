@@ -85,7 +85,9 @@ function resolveRoles(role: unknown): {
   const roles = roleList(role);
   const isAnalyst = roles.includes("ANALYST");
   const otherRoles = roles.filter((value) => value !== "ANALYST");
-  const privilegeRoles = otherRoles.filter((value) => PRIVILEGE_ROLES.has(value));
+  const privilegeRoles = otherRoles.filter((value) =>
+    PRIVILEGE_ROLES.has(value),
+  );
 
   if (privilegeRoles.length === 0) {
     return {
@@ -134,9 +136,7 @@ export async function getCurrentUser(): Promise<CurrentUser> {
     try {
       const tokenResult = await firebaseUser.getIdTokenResult();
       const claims = tokenResult.claims as FirebaseCustomClaims;
-      const resolved = resolveRoles(
-        claims.firebase?.sign_in_attributes?.role,
-      );
+      const resolved = resolveRoles(claims.firebase?.sign_in_attributes?.role);
       userType = resolved.userType;
       isAnalyst = resolved.isAnalyst;
       isAnalystOnly = resolved.isAnalystOnly;

@@ -31,6 +31,7 @@ import {
   flattenLineBreaks,
   fontSizeForLength,
 } from "@/components/form/fieldLimits";
+import type { ExportOnePagerInput } from "@/services/exportOnePagerPpt";
 
 type Slide = ReturnType<PptxGenJS["addSlide"]>;
 
@@ -96,6 +97,12 @@ type PlannedColumn = {
     font: number;
     height: number;
   }>;
+};
+
+export type PlannedPillar = {
+  pillarNumber: number;
+  mode: "stack" | "thirds";
+  initiatives: Array<{ number: number; font: number; height: number }>;
 };
 
 function lineSpacingPt(fontPt: number) {
@@ -181,7 +188,10 @@ function descriptionHeight(text: string, fontPt: number) {
  * Initiative font steps down first. Description steps down further only when
  * the initiatives are already at the floor and the column is still too short.
  */
-function planColumn(pillar: NationalPillarPayload, contentH: number): PlannedColumn {
+function planColumn(
+  pillar: NationalPillarPayload,
+  contentH: number,
+): PlannedColumn {
   const initiatives = [...pillar.initiatives]
     .sort((a, b) => a.initiative_number - b.initiative_number)
     .slice(0, 3);
@@ -219,6 +229,28 @@ function planColumn(pillar: NationalPillarPayload, contentH: number): PlannedCol
     }
     descriptionFont = stepDown(descriptionFont);
   }
+}
+
+export function describeDynamicLayout(
+  payload: NationalOnePagerCreatePayload,
+): PlannedPillar[] {
+  const colH = SLIDE_H - (HEADER_H + 0.08) - 0.08;
+  return [...payload.pillars]
+    .sort((a, b) => a.pillar_number - b.pillar_number)
+    .slice(0, COL_COUNT)
+    .map((pillar) => {
+      const contentH = colH - (0.08 + 0.26 + 0.04) - 0.08;
+      const planned = planColumn(pillar, contentH);
+      return {
+        pillarNumber: pillar.pillar_number,
+        mode: "stack",
+        initiatives: planned.initiatives.map((item) => ({
+          number: item.initiative.initiative_number,
+          font: item.font,
+          height: Math.round(item.height * 100) / 100,
+        })),
+      };
+    });
 }
 
 function textRuns(text: string, fontSize: number, color: string) {
@@ -613,7 +645,8 @@ async function urlToImageData(url: string): Promise<string | null> {
     const response = await fetch(url);
     if (!response.ok) return null;
     const blob = await response.blob();
-    const isSvg = blob.type.includes("svg") || url.toLowerCase().includes(".svg");
+    const isSvg =
+      blob.type.includes("svg") || url.toLowerCase().includes(".svg");
     if (!isSvg) {
       return await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
@@ -730,7 +763,10 @@ function addHeader(
   const minSegW = 0.78;
   const maxSegW = 1.75;
   const segmentWidths = labels.map((label) =>
-    Math.min(maxSegW, Math.max(minSegW, segmentPadX * 2 + label.length * charW)),
+    Math.min(
+      maxSegW,
+      Math.max(minSegW, segmentPadX * 2 + label.length * charW),
+    ),
   );
   const barW = segmentWidths.reduce((sum, width) => sum + width, 0);
   const barX = labels.length > 0 ? barRight - barW : barRight;
@@ -863,6 +899,11 @@ export async function exportDynamicOnePager(
   } finally {
     exportBusy = false;
   }
+}
+
+/** Local dummy page. Real Export uses exportDynamicOnePager, including the activity log. */
+export async function exportDynamicOnePagerPpt(input: ExportOnePagerInput) {
+  await exportDynamicOnePager(input);
 }
 
 export async function exportDynamicOnePagerById(pagerId: string) {

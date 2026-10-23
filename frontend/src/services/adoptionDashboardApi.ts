@@ -80,7 +80,8 @@ function asMarketRows(value: unknown): MarketRateRow[] {
   const rows: MarketRateRow[] = [];
   for (const item of value) {
     const record = asRecord(item);
-    const market = typeof record?.market === "string" ? record.market.trim() : "";
+    const market =
+      typeof record?.market === "string" ? record.market.trim() : "";
     if (!market) continue;
     const roles = asRecord(record?.roles);
     const csp = asNumber(roles?.CSP);

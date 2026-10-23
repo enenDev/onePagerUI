@@ -5,58 +5,97 @@
 export const DASHBOARD_TOOLTIPS = {
   funnel: {
     onboarding: `
-      Distinct logged-in users divided by provisioned users.
+      Percentage of provisioned CSP and CBD users who logged into the application at least once during the selected period.
+      
+      Formula:
+      ((Number of CSP + CBD Users Who Logged In) ÷ (Total Provisioned CSP + CBD Users)) × 100
     `,
     engagement: `
-      Distinct users who created a draft, divided by provisioned users.
+      Percentage of provisioned CSP and CBD users who created at least one draft during the selected period.
+
+      Formula:
+      ((Number of CSP + CBD Users Who Created a Draft) ÷ (Total Provisioned CSP + CBD Users)) × 100
     `,
     adoption: `
-      Distinct users who published a one-pager, divided by provisioned users.
+      Percentage of provisioned CSP and CBD users who published at least one One-Pager during the selected period.
+
+      Formula:
+      ((Number of CSP + CBD Users Who Published a One-Pager) ÷ (Total Provisioned CSP + CBD Users)) × 100
     `,
   },
   onboarding: {
     chart: `
-      Onboarding rate by market for CSP and CBD.
+      Onboarding rate by market for CSP and CBD Users.
     `,
     onboardedUsers: `
-      Distinct users who logged in during the selected period.
+      Total distinct CSP, CBD and General users who logged into the application at least once during the selected period.
+
+      Formula:
+      Count(Distinct CSP + CBD + General Users Who Logged In) 
     `,
     onboardedUsersGrowthRate: `
-      Change versus the previous period: (current − previous) / previous.
+      Percentage change in onboarded CSP and CBD users compared to the previous period.
+
+      Formula:
+      ((Current Period Onboarded CSP + CBD Users − Previous Period Onboarded CSP + CBD Users) ÷ Previous Period Onboarded CSP + CBD Users) × 100
     `,
     totalOnePagerViews: `
-      One-pager views during the selected period.
+      Total number of One-Pager views across all user types, including CSP, CBD, and General Users.
+
+      Formula: 
+      Count(All One-Pager Views)
     `,
   },
   engagement: {
     chart: `
-      Engagement rate by market for CSP and CBD.
+      Engagement rate by market for CSP and CBD Users.
     `,
     engagedUsers: `
-      Distinct users who created at least one draft.
+      Total distinct CSP and CBD users who created at least one draft during the selected period.
+
+      Formula: 
+      Count(Distinct CSP + CBD Users Who Created a Draft)
     `,
     trackToPublish: `
-      Published one-pagers that were tracked, divided by published one-pagers.
+      Percentage of published One-Pagers that were subsequently tracked.
+
+      Formula:
+      ((Number of Tracked One-Pagers) ÷ (Number of Published One-Pagers)) × 100
     `,
     totalExports: `
-      One-pager exports during the selected period.
+      Total number of One-Pager export actions performed across all user types, including CSP, CBD, and General Users.
+
+      Formula:
+      Count(All One-Pager Export Actions)
     `,
   },
   adoption: {
     chart: `
-      Adoption rate by market for CSP and CBD.
+      Adoption rate by market for CSP and CBD Users.
     `,
     adoptedUsers: `
-      Distinct users who published at least one one-pager.
+      Total distinct CSP and CBD users who published at least one One-Pager during the selected period.
+
+      Formula:
+      Count(Distinct CSP + CBD Users Who Published a One-Pager)
     `,
     adoptedUsersGrowthRate: `
-      Change versus the previous period: (current − previous) / previous.
+      Percentage change in CSP and CBD users who published One-Pagers compared to the previous period.
+
+      Formula: 
+      ((Current Period CSP + CBD Publishing Users − Previous Period CSP + CBD Publishing Users) ÷ Previous Period CSP + CBD Publishing Users) × 100
     `,
     draftToPublish: `
-      Published one-pagers divided by active drafts plus published one-pagers.
+      Comparison of the total drafted One-Pagers against the total published One-Pagers created by CSP and CBD users.
+
+      Formula:
+      ((Total Drafted One-Pagers Created by CSP + CBD Users) ÷ (Total Published One-Pagers Created by CSP + CBD Users)) × 100
     `,
     totalOnePagersPublished: `
-      One-pagers published during the selected period.
+      Total number of One-Pagers published by CSP and CBD users during the selected period.
+
+      Formula:
+      Count(Published One-Pagers Created by CSP + CBD Users)
     `,
   },
 } as const;

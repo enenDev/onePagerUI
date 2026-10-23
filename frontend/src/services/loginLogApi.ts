@@ -28,7 +28,7 @@ export function logUserLogin(): void {
 
     await ApiBase.post(
       API_ENDPOINTS.loginLog,
-      { email, role },
+      { user_email: email, role },
       { skipAuthRedirect: true },
     );
   })().catch(() => {

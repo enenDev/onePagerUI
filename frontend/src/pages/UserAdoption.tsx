@@ -1,11 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 
-import { AdoptionFilters } from "@/components/adoption/AdoptionFilters";
-import { DashboardSection } from "@/components/adoption/DashboardSection";
-import {
-  FUNNEL_STAGE_COLORS,
-  FunnelSummary,
-} from "@/components/adoption/FunnelSummary";
+import { AdoptionFilters } from "@/components/user-adoption/AdoptionFilters";
+import { DashboardSection } from "@/components/user-adoption/DashboardSection";
+import { FunnelSummary } from "@/components/user-adoption/FunnelSummary";
 import { DASHBOARD_TOOLTIPS } from "@/constants/dashboardTooltips";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { fetchMetadata } from "@/redux/landingSlice";
@@ -35,6 +32,7 @@ import {
   type FunnelResponse,
   type OnboardingResponse,
 } from "@/services/adoptionDashboardApi";
+import { FUNNEL_STAGE_COLORS } from "@/constants/dashboardColors";
 
 type SectionState<T> = {
   loading: boolean;
@@ -47,7 +45,7 @@ function marketsPayload(selected: string[], available: string[]): string[] {
     available.length > 0 &&
     selected.length === available.length &&
     available.every((market) => selected.includes(market));
-  if (noneSelected || everyMarketChecked) return [];
+  if (noneSelected || everyMarketChecked) return available;
   return [...selected];
 }
 
@@ -139,13 +137,14 @@ export function UserAdoption() {
     setAdoption({ loading: false, data: result.adoption });
     setApplying(false);
   };
-
   useEffect(() => {
     void dispatch(fetchMetadata());
+  }, [dispatch])
+  useEffect(() => {
     const ranges = resolveDashboardRanges(DEFAULT_PERIOD, new Date(), "", "");
-    if (!ranges) return;
+    if (!ranges || !markets?.length) return;
     const body: DashboardFilterPayload = {
-      markets: [],
+      markets: markets.map((market) => market.value).filter(Boolean),
       current: ranges.current,
       previous: ranges.previous,
     };
@@ -161,7 +160,7 @@ export function UserAdoption() {
     return () => {
       cancelled = true;
     };
-  }, [dispatch]);
+  }, [markets]);
 
   const applyFilters = () => {
     if (period === "custom") {
@@ -212,7 +211,7 @@ export function UserAdoption() {
     if (!ranges) return;
     void applyBody(
       {
-        markets: [],
+        markets: markets.map((market) => market.value).filter(Boolean),
         current: ranges.current,
         previous: ranges.previous,
       },

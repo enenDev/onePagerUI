@@ -9,9 +9,7 @@ type RequireAnalystProps = {
 
 /** User Adoption is only for a token whose role array includes analyst. */
 export function RequireAnalyst({ children }: RequireAnalystProps) {
-  const isAnalyst = useAppSelector(
-    (state) => state.user.currentUser.isAnalyst,
-  );
+  const isAnalyst = useAppSelector((state) => state.user.currentUser.isAnalyst);
 
   if (!isAnalyst) {
     return <Navigate to="/home" replace />;

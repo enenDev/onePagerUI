@@ -29,18 +29,10 @@ function HeaderDivider() {
 function HeaderBrand() {
   return (
     <>
-      <img
-        src={perfectStoreLogo}
-        alt=""
-        className="size-28 object-contain"
-      />
+      <img src={perfectStoreLogo} alt="" className="size-28 object-contain" />
       <HeaderDivider />
       {/* TODO: Swap /logo-secondary.svg for the real second brand logo asset. */}
-      <img
-        src={unileverBrandLogo}
-        alt=""
-        className="size-16 object-contain"
-      />
+      <img src={unileverBrandLogo} alt="" className="size-16 object-contain" />
     </>
   );
 }
@@ -139,7 +131,7 @@ export function AppHeader() {
                   onClick={() => navigate("/user-adoption")}
                 >
                   <LayoutDashboard className="size-4" />
-                  Dashboard
+                  Usage Tracking Dashboard
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="m-0" />
               </>

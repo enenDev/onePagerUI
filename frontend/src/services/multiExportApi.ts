@@ -1,18 +1,11 @@
 import JSZip from "jszip";
 
 import ApiBase from "@/components/auth/apiBase";
-import { USE_DYNAMIC_PPT_EXPORT } from "@/config/pptExport";
 import {
   buildOnePagerPptBlob,
   composeTitle,
   safeFileName,
 } from "@/services/exportOnePagerPpt";
-import {
-  buildDynamicOnePagerPptBlob,
-  dynamicSafeFileName,
-  dynamicSlideTitle,
-  recordDynamicExport,
-} from "@/services/exportOnePagerPptDynamic";
 import { logPagerActivity } from "@/services/pagerActivityApi";
 import {
   mapGetOnePagerResponse,
@@ -34,19 +27,25 @@ export async function exportMultipleOnePagersAsZip(pagerIds: string[]) {
     const record = mapGetOnePagerResponse(item);
     if (record.id) exportedIds.push(record.id);
     const payload = record.payload;
-    const exportInput = {
+    const blob = await buildOnePagerPptBlob({
       pagerType: record.pager_type,
       payload,
-    };
-    const blob = USE_DYNAMIC_PPT_EXPORT
-      ? await buildDynamicOnePagerPptBlob(exportInput)
-      : await buildOnePagerPptBlob(exportInput);
+    });
 
-    const fileName = USE_DYNAMIC_PPT_EXPORT
-      ? dynamicSafeFileName(dynamicSlideTitle(exportInput))
-      : safeFileName(composeTitle(record.pager_type, payload));
+    const baseFileName = safeFileName(composeTitle(record.pager_type, payload));
 
-    zip.file(fileName, blob);
+    // Ensure unique filenames inside the zip when multiple one-pagers share the same title.
+    // JSZip will overwrite entries with the same name, so append a numeric suffix
+    // when a collision is detected (e.g., "Title.pptx", "Title (1).pptx", ...).
+    let uniqueName = baseFileName;
+    let counter = 1;
+    while (zip.file(uniqueName)) {
+      // Use underscore suffix (e.g., Title_1.pptx) for uniqueness — more standard for file systems.
+      uniqueName = baseFileName.replace(/\.pptx$/i, `_${counter}.pptx`);
+      counter += 1;
+    }
+
+    zip.file(uniqueName, blob);
   }
 
   const zipBlob = await zip.generateAsync({ type: "blob" });
@@ -60,10 +59,6 @@ export async function exportMultipleOnePagersAsZip(pagerIds: string[]) {
   URL.revokeObjectURL(zipUrl);
 
   for (const pagerId of exportedIds) {
-    if (USE_DYNAMIC_PPT_EXPORT) {
-      recordDynamicExport(pagerId);
-    } else {
-      logPagerActivity({ pager_id: pagerId, action: "export" });
-    }
+    logPagerActivity({ pager_id: pagerId, action: "export" });
   }
 }
