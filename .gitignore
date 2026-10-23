@@ -29,3 +29,15 @@ backend/.env.local
 *.njsproj
 *.sln
 *.sw?
+
+# Local documentation and notes. README files stay tracked.
+*.md
+!README.md
+*.mdc
+
+# Cursor local environment and project rules
+.cursor/
+
+# Python cache
+__pycache__/
+*.py[cod]

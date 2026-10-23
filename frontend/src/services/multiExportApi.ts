@@ -1,11 +1,18 @@
 import JSZip from "jszip";
 
 import ApiBase from "@/components/auth/apiBase";
+import { USE_DYNAMIC_PPT_EXPORT } from "@/config/pptExport";
 import {
   buildOnePagerPptBlob,
   composeTitle,
   safeFileName,
 } from "@/services/exportOnePagerPpt";
+import {
+  buildDynamicOnePagerPptBlob,
+  dynamicSafeFileName,
+  dynamicSlideTitle,
+  recordDynamicExport,
+} from "@/services/exportOnePagerPptDynamic";
 import { logPagerActivity } from "@/services/pagerActivityApi";
 import {
   mapGetOnePagerResponse,
@@ -27,14 +34,17 @@ export async function exportMultipleOnePagersAsZip(pagerIds: string[]) {
     const record = mapGetOnePagerResponse(item);
     if (record.id) exportedIds.push(record.id);
     const payload = record.payload;
-    const blob = await buildOnePagerPptBlob({
+    const exportInput = {
       pagerType: record.pager_type,
       payload,
-    });
+    };
+    const blob = USE_DYNAMIC_PPT_EXPORT
+      ? await buildDynamicOnePagerPptBlob(exportInput)
+      : await buildOnePagerPptBlob(exportInput);
 
-    const fileName = safeFileName(
-      composeTitle(record.pager_type, payload),
-    );
+    const fileName = USE_DYNAMIC_PPT_EXPORT
+      ? dynamicSafeFileName(dynamicSlideTitle(exportInput))
+      : safeFileName(composeTitle(record.pager_type, payload));
 
     zip.file(fileName, blob);
   }
@@ -50,6 +60,10 @@ export async function exportMultipleOnePagersAsZip(pagerIds: string[]) {
   URL.revokeObjectURL(zipUrl);
 
   for (const pagerId of exportedIds) {
-    logPagerActivity({ pager_id: pagerId, action: "export" });
+    if (USE_DYNAMIC_PPT_EXPORT) {
+      recordDynamicExport(pagerId);
+    } else {
+      logPagerActivity({ pager_id: pagerId, action: "export" });
+    }
   }
 }
