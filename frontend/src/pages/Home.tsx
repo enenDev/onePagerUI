@@ -184,7 +184,7 @@ export const Home = () => {
               type="button"
               onClick={() => handleStatusTabChange(tab.id)}
               className={cn(
-                "cursor-pointer rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
+                "cursor-pointer rounded-full px-2.5 py-1.5 text-sm font-medium transition-colors sm:px-4",
                 statusTab === tab.id
                   ? "bg-primary text-primary-foreground"
                   : "text-primary hover:bg-white/50",
@@ -202,7 +202,7 @@ export const Home = () => {
         <Loading label="Loading one-pagers…" />
       ) : (
         <>
-          <div className="flex items-end justify-between border-b border-border">
+          <div className="flex flex-col border-b border-border sm:flex-row sm:items-end sm:justify-between">
             <div className="flex gap-6">
               {showMyTab && (
                 <button
@@ -247,7 +247,7 @@ export const Home = () => {
               )}
             </div>
 
-            <div className="mb-2 flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 pb-3 sm:mb-2 sm:pb-0">
               {showMultiExportControls && (
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -378,7 +378,7 @@ export const Home = () => {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {visibleItems.map((item, index) => (
                 <OnePagerCard
                   key={`${item.title}-${item.created_by}-${item.status}-${index}`}

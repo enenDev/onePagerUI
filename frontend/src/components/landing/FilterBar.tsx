@@ -1,3 +1,7 @@
+import { useEffect, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
+import { X } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { MarketRequiredTooltip } from "@/components/ui/market-required-tooltip";
@@ -17,6 +21,7 @@ import {
 } from "@/lib/homeFilterStorage";
 import type {
   FilterKey,
+  FilterMetadata,
   FilterOption,
   MarketScopedFilterKey,
 } from "@/types/onePager";
@@ -39,17 +44,88 @@ const FILTER_FIELDS: {
 
 const YEAR_OPTIONS = getYearOptions();
 
-export function FilterBar() {
+function FilterControl({
+  field,
+}: {
+  field: (typeof FILTER_FIELDS)[number];
+}) {
   const dispatch = useAppDispatch();
-  const { metadata, filters, listLoading, metadataLoading } = useAppSelector(
+  const { metadata, filters, metadataLoading } = useAppSelector(
     (state) => state.landing,
   );
-
   const marketSelected = filters.market.length > 0;
   const dependentsDisabled = metadataLoading || !metadata || !marketSelected;
-  // Tooltip only when Market is empty — not while metadata is still loading.
   const showMarketRequiredTooltip =
     !marketSelected && !metadataLoading && Boolean(metadata);
+  const options = optionsFor(field.key, metadata, filters.market);
+  const selected = filters[field.key];
+  const disabled = field.independent
+    ? false
+    : field.key === "market"
+      ? metadataLoading || !metadata
+      : dependentsDisabled;
+
+  return (
+    <div className="min-w-0 space-y-1">
+      <Label className="text-xs font-medium text-foreground">
+        {field.label}
+      </Label>
+      <MarketRequiredTooltip
+        show={
+          field.key !== "market" &&
+          !field.independent &&
+          showMarketRequiredTooltip
+        }
+      >
+        <SearchableMultiSelect
+          label={field.label}
+          placeholder="Select"
+          options={options}
+          selected={selected}
+          disabled={disabled}
+          onToggle={(value) =>
+            dispatch(toggleFilterValue({ key: field.key, value }))
+          }
+          onClear={() => dispatch(clearFilterValue({ key: field.key }))}
+        />
+      </MarketRequiredTooltip>
+    </div>
+  );
+}
+
+function optionsFor(
+  key: FilterKey,
+  metadata: FilterMetadata | null,
+  markets: string[],
+): FilterOption[] {
+  if (key === "year") return YEAR_OPTIONS;
+  if (!metadata) return [];
+  if (key === "market") return metadata.market;
+  if (markets.length === 0) return [];
+  return unionMarketScopedOptions(
+    metadata,
+    markets,
+    key as MarketScopedFilterKey,
+  );
+}
+
+export function FilterBar() {
+  const dispatch = useAppDispatch();
+  const { filters, listLoading } = useAppSelector((state) => state.landing);
+
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const appliedCount = FILTER_FIELDS.filter(
+    (field) => filters[field.key].length > 0,
+  ).length;
+
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 1024px)");
+    const closeSheet = () => {
+      if (media.matches) setSheetOpen(false);
+    };
+    media.addEventListener("change", closeSheet);
+    return () => media.removeEventListener("change", closeSheet);
+  }, []);
 
   const handleSubmit = () => {
     // TODO: Replace submit with real FastAPI search.
@@ -80,78 +156,148 @@ export function FilterBar() {
     void dispatch(fetchOnePagers(createEmptyFilters()));
   };
 
-  const optionsFor = (key: FilterKey): FilterOption[] => {
-    if (key === "year") return YEAR_OPTIONS;
-    if (!metadata) return [];
-    if (key === "market") return metadata.market;
-    if (!marketSelected) return [];
-    return unionMarketScopedOptions(
-      metadata,
-      filters.market,
-      key as MarketScopedFilterKey,
-    );
+  const submitAndClose = () => {
+    handleSubmit();
+    setSheetOpen(false);
+  };
+
+  const clearAndClose = () => {
+    handleClear();
+    setSheetOpen(false);
   };
 
   return (
-    <div className="flex w-full items-end gap-2 rounded-lg border border-border bg-white/80 px-3 pt-1.5 pb-2.5">
-      <div className="flex min-w-0 flex-1 items-end gap-2">
-        {FILTER_FIELDS.map((field) => {
-          const options = optionsFor(field.key);
-          const selected = filters[field.key];
-          const disabled = field.independent
-            ? false
-            : field.key === "market"
-              ? metadataLoading || !metadata
-              : dependentsDisabled;
-
-          return (
-            <div key={field.key} className="min-w-0 flex-1 space-y-1">
-              <Label className="text-xs font-medium text-foreground">
-                {field.label}
-              </Label>
-              <MarketRequiredTooltip
-                show={
-                  field.key !== "market" &&
-                  !field.independent &&
-                  showMarketRequiredTooltip
-                }
-              >
-                <SearchableMultiSelect
-                  label={field.label}
-                  placeholder="Select"
-                  options={options}
-                  selected={selected}
-                  disabled={disabled}
-                  onToggle={(value) =>
-                    dispatch(toggleFilterValue({ key: field.key, value }))
-                  }
-                  onClear={() => dispatch(clearFilterValue({ key: field.key }))}
-                />
-              </MarketRequiredTooltip>
+    <>
+      <div className="hidden w-full items-end gap-2 rounded-lg border border-border bg-white/80 px-3 pt-1.5 pb-2.5 lg:flex">
+        <div className="flex min-w-0 flex-1 items-end gap-2">
+          {FILTER_FIELDS.map((field) => (
+            <div key={field.key} className="min-w-0 flex-1">
+              <FilterControl field={field} />
             </div>
-          );
-        })}
+          ))}
+        </div>
+
+        <FilterActions
+          listLoading={listLoading}
+          onSubmit={handleSubmit}
+          onClear={handleClear}
+        />
       </div>
 
-      <div className="flex shrink-0 items-center gap-1">
+      <div className="lg:hidden">
         <Button
           type="button"
-          onClick={handleSubmit}
-          disabled={listLoading}
-          className="h-9 cursor-pointer rounded-full bg-primary px-5 text-primary-foreground"
+          variant="outline"
+          onClick={() => setSheetOpen(true)}
+          className="h-9 cursor-pointer rounded-lg border-primary px-4 text-primary hover:bg-accent hover:text-primary"
         >
-          Submit
+          {appliedCount > 0 ? `Filters (${appliedCount})` : "Filters"}
         </Button>
+        <FilterSheet
+          open={sheetOpen}
+          onClose={() => setSheetOpen(false)}
+        >
+          <h2 className="text-base font-semibold text-foreground">Filters</h2>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {FILTER_FIELDS.map((field) => (
+              <FilterControl key={field.key} field={field} />
+            ))}
+          </div>
+          <FilterActions
+            listLoading={listLoading}
+            onSubmit={submitAndClose}
+            onClear={clearAndClose}
+          />
+        </FilterSheet>
+      </div>
+    </>
+  );
+}
+
+function FilterActions({
+  listLoading,
+  onSubmit,
+  onClear,
+}: {
+  listLoading: boolean;
+  onSubmit: () => void;
+  onClear: () => void;
+}) {
+  return (
+    <div className="flex shrink-0 flex-wrap items-center justify-end gap-1">
+      <Button
+        type="button"
+        onClick={onSubmit}
+        disabled={listLoading}
+        className="h-9 cursor-pointer rounded-full bg-primary px-5 text-primary-foreground"
+      >
+        Submit
+      </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        onClick={onClear}
+        disabled={listLoading}
+        className="h-9 cursor-pointer rounded-full bg-brand-soft px-3 text-primary hover:bg-brand-soft-hover hover:text-primary"
+      >
+        Clear all
+      </Button>
+    </div>
+  );
+}
+
+function FilterSheet({
+  open,
+  onClose,
+  children,
+}: {
+  open: boolean;
+  onClose: () => void;
+  children: ReactNode;
+}) {
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [onClose, open]);
+
+  if (!open) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-50">
+      <button
+        type="button"
+        aria-label="Close filters"
+        className="absolute inset-0 bg-black/10"
+        onClick={onClose}
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Filters"
+        className="absolute inset-x-0 bottom-0 flex max-h-[85vh] flex-col overflow-hidden rounded-t-xl bg-white p-4 shadow-lg ring-1 ring-foreground/10"
+      >
         <Button
           type="button"
           variant="ghost"
-          onClick={handleClear}
-          disabled={listLoading}
-          className="h-9 cursor-pointer rounded-full bg-brand-soft px-3 text-primary hover:bg-brand-soft-hover hover:text-primary"
+          size="icon-sm"
+          onClick={onClose}
+          className="absolute top-1 right-1 size-11"
+          aria-label="Close filters"
         >
-          Clear all
+          <X />
         </Button>
+        <div className="flex flex-col gap-4 overflow-y-auto pr-12">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

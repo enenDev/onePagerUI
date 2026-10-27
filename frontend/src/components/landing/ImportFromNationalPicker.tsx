@@ -208,12 +208,12 @@ export function ImportFromNationalPicker({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4">
-      <div className="flex items-center gap-2">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-2">
         <span className="shrink-0 text-sm font-semibold text-foreground">
           Filters
         </span>
 
-        <div className="flex min-w-0 flex-1 items-center gap-2">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:flex lg:min-w-0 lg:flex-1 lg:items-center lg:gap-2">
           {IMPORT_FILTER_FIELDS.map((field) => {
             const disabled = field.independent
               ? false
@@ -222,7 +222,7 @@ export function ImportFromNationalPicker({
                 : dependentsDisabled;
 
             return (
-              <div key={field.key} className="min-w-0 w-0 flex-1">
+              <div key={field.key} className="min-w-0 lg:w-0 lg:flex-1">
                 <MarketRequiredTooltip
                   show={
                     field.key !== "market" &&
@@ -246,7 +246,7 @@ export function ImportFromNationalPicker({
 
         <button
           type="button"
-          className="shrink-0 cursor-pointer text-sm font-medium text-primary hover:underline"
+          className="shrink-0 cursor-pointer self-start text-sm font-medium text-primary hover:underline lg:self-auto"
           onClick={() => {
             setFilters({ ...EMPTY_FILTERS });
             setFilterResetKey((key) => key + 1);
@@ -311,7 +311,7 @@ export function ImportFromNationalPicker({
       <div className="flex justify-end">
         <Button
           type="button"
-          className="h-9 cursor-pointer rounded-full px-5"
+          className="h-9 w-full cursor-pointer rounded-full px-5 sm:w-auto"
           disabled={!selectedItem || !selectedVisible}
           onClick={() => {
             if (selectedItem && selectedVisible) {
