@@ -61,7 +61,7 @@ export const Login = () => {
   const displayError = error ?? redirectError;
 
   return (
-    <div className="relative flex min-h-svh flex-col overflow-hidden">
+    <div className="relative flex min-h-svh flex-col overflow-x-hidden overflow-y-auto sm:overflow-hidden">
       <img
         src={darkBg}
         alt=""
@@ -74,8 +74,8 @@ export const Login = () => {
         className="absolute top-6 left-6 h-7 w-auto object-contain md:top-8 md:left-8"
       />
 
-      <div className="flex flex-1 items-center justify-center px-4 py-16">
-        <div className="w-full max-w-[400px] rounded-xl bg-white px-8 py-10 text-center shadow-[0_8px_32px_rgba(0,0,0,0.18)]">
+      <div className="flex flex-1 items-start justify-center px-4 pt-20 pb-10 sm:items-center sm:py-16">
+        <div className="w-full max-w-[400px] rounded-xl bg-white px-6 py-10 text-center shadow-[0_8px_32px_rgba(0,0,0,0.18)] sm:px-8">
           <div
             role="img"
             aria-label="Perfect Store"

@@ -41,3 +41,9 @@ Each line says what changed and what to check. Phone means under 640px unless th
 - Five pillars stack on a phone and tablet, check one full-width card under 1024px on Preview, View, and Track. From 1024px the five-column board stays.
 - Track status is a dot only, open Track and check there is no Clear / Red / Amber / Green label beside the dot. Tap the dot and check those names still appear in the menu. The tap area is a little larger under 1024px.
 - Preview Edit and Publish are equal width on a narrow phone, open Preview and check both buttons share one row under 400px and stay 36px tall. From 400px they sit on the right at their usual width.
+
+## Login card
+
+- Login card starts below the Unilever mark on a phone, open /login and check the logo does not cover the card. From 640px the card is centered again.
+- Login card side padding is 24px on a phone, check the sign-in button keeps space on a narrow screen and the button stays 44px tall. From 640px the card padding is 32px again.
+- Short phone can scroll the login card, check the sign-in button is reachable when the screen is short. From 640px the page does not scroll.
