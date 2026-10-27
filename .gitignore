@@ -33,6 +33,7 @@ backend/.env.local
 # Local documentation and notes. README files stay tracked.
 *.md
 !README.md
+!docs/mobile-responsive-changes.md
 *.mdc
 
 # Cursor local environment and project rules
