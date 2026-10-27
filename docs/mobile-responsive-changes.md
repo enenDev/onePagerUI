@@ -33,3 +33,11 @@ Each line says what changed and what to check. Phone means under 640px unless th
 - Scoring toggle labels shortened on a phone, check Unweighted and Weighted. From 640px check Unweighted Pillar and Weighted Pillar.
 - Scoring toggle stays on the right on a phone, check it sits under the pillars heading, aligned right. From 640px it stays on the right of that heading, on the same line.
 - Pillar name no longer cut off by the recommendation note, check the full name on the first line and "Atleast 1 initiative is recommended" on the next line, lined up under the name. From 640px the name and the note are on one row.
+
+## One-pager document, pillar board, and track dots
+
+- One-pager details become a list on a phone, open View or Track and check Channel, Category, Market, and the rest each sit on their own line. From 640px they sit on one row again. More Options stays on the right.
+- Business outcome uses the full content width on a phone, check it lines up with the fields and only the page padding remains on the sides.
+- Five pillars stack on a phone and tablet, check one full-width card under 1024px on Preview, View, and Track. From 1024px the five-column board stays.
+- Track status is a dot only, open Track and check there is no Clear / Red / Amber / Green label beside the dot. Tap the dot and check those names still appear in the menu. The tap area is a little larger under 1024px.
+- Preview Edit and Publish are equal width on a narrow phone, open Preview and check both buttons share one row under 400px and stay 36px tall. From 400px they sit on the right at their usual width.

@@ -147,8 +147,8 @@ type PillarBoardProps = {
 export function PillarBoard({ pillars, scoringMode, track }: PillarBoardProps) {
   const showWeight = scoringMode === "WEIGHTED";
   return (
-    <div className="overflow-x-auto p-1.5">
-      <div className="grid min-w-[72rem] grid-cols-5 gap-2">
+    <div className="min-w-0 p-1.5 lg:overflow-x-auto">
+      <div className="grid grid-cols-1 gap-2 lg:min-w-[72rem] lg:grid-cols-5">
         {pillars.map((pillar) => {
           // const targetCount = pillar.initiatives.length;
           const theme = PILLAR_THEME[pillar.pillar_number] ?? PILLAR_THEME[1];

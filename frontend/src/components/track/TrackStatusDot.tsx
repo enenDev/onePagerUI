@@ -62,7 +62,7 @@ export function TrackStatusDot({
         <TooltipTrigger asChild>
           <span
             aria-label={ariaLabel}
-            className="inline-flex cursor-not-allowed"
+            className="inline-flex cursor-not-allowed rounded-full p-2 lg:p-0.5"
           >
             {dot}
           </span>
@@ -80,7 +80,7 @@ export function TrackStatusDot({
         <button
           type="button"
           aria-label={ariaLabel}
-          className="inline-flex cursor-pointer rounded-full p-0.5 hover:opacity-80"
+          className="inline-flex cursor-pointer rounded-full p-2 hover:opacity-80 lg:p-0.5"
         >
           {dot}
         </button>

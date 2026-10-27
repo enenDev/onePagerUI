@@ -235,7 +235,7 @@ export function PreviewNationalOnePager() {
             <Button
               type="button"
               variant="outline"
-              className="h-9 cursor-pointer rounded-lg border-primary px-4 text-primary hover:bg-accent hover:text-primary"
+              className="h-9 w-[calc(50%-0.25rem)] min-w-0 shrink cursor-pointer rounded-lg border-primary px-4 text-primary hover:bg-accent hover:text-primary min-[400px]:w-auto min-[400px]:shrink-0"
               onClick={goBackToEdit}
             >
               <Pencil className="size-4" />
@@ -244,7 +244,7 @@ export function PreviewNationalOnePager() {
             <Button
               type="button"
               disabled={publishing}
-              className="h-9 cursor-pointer rounded-lg bg-primary px-5 text-primary-foreground"
+              className="h-9 w-[calc(50%-0.25rem)] min-w-0 shrink cursor-pointer rounded-lg bg-primary px-4 text-primary-foreground min-[400px]:w-auto min-[400px]:shrink-0 min-[400px]:px-5"
               onClick={() => {
                 const hasEmptyPillar = payload.pillars.some(
                   (pillar) => pillar.initiatives.length === 0,

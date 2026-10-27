@@ -95,7 +95,7 @@ type NationalPreviewDocumentProps = {
 
 function PreviewField({ label, value }: { label: string; value: string }) {
   return (
-    <div className="min-w-0 px-4 first:pl-0">
+    <div className="min-w-0 sm:px-4 sm:first:pl-0">
       <p className="text-xs font-medium text-muted-foreground">{label}</p>
       <PreviewWrappedText
         text={value || "—"}
@@ -134,9 +134,9 @@ export function NationalPreviewDocument({
   const showEdit = canModify && (status === "PUBLISHED" || status === "DRAFT");
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-start justify-between gap-6">
+      <div className="flex flex-col-reverse gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
         <div className="min-w-0 flex-1">
-          <dl className="flex flex-wrap items-start gap-y-2 divide-x divide-border">
+          <dl className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:gap-y-2 sm:divide-x sm:divide-border">
             {payload.target_retailer ? (
               <PreviewField
                 label="Target Retailer"
@@ -159,7 +159,7 @@ export function NationalPreviewDocument({
           />
         </div>
 
-        <div className="flex shrink-0 flex-col items-end gap-1 text-right">
+        <div className="flex w-full shrink-0 flex-col items-end gap-1 text-right sm:w-auto">
           {moreOptionsEnabled ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
