@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.Python
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+venv2/
+
+# Environment files
+.env
+.env.example
+*.env.local
+ul-cd-d-931156-cs-prj-bee86775b42e.json
+# SQLite database
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+
+# Distribution
+dist/
+build/
+*.egg-info/

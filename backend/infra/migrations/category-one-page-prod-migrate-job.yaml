@@ -1,0 +1,27 @@
+apiVersion: run.googleapis.com/v1
+kind: Job
+metadata:
+  name: category-one-page-prod-migrate-job
+spec:
+  template:
+    metadata:
+      annotations:
+        run.googleapis.com/vpc-access-connector: projects/ul-cd-d-931156-cs-prj/locations/us-east1/connectors/prd-931156-one-pager
+        run.googleapis.com/vpc-access-egress: private-ranges-only
+        run.googleapis.com/cloudsql-instances: ul-cd-d-931156-cs-prj:us-east1:gfr-cd-prd-931156-one-pager-sql
+    spec:
+      taskCount: 1
+      template:
+        spec:
+          containers:
+            - image: gcr.io/ul-cd-d-931156-cs-prj/category-one-page-unilever-backend/category-one-page:prod
+              command: ["bash", "-c", "alembic upgrade head && python app/seed.py"]
+              env:
+                - name: APP_DATABASE_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: appuser-prod
+                      key: latest
+          serviceAccountName: gfr-cd-one-pager-devops-sa@ul-cd-d-931156-cs-prj.iam.gserviceaccount.com
+          maxRetries: 1
+          timeoutSeconds: 600

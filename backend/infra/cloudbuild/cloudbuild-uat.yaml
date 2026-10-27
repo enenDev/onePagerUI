@@ -1,0 +1,78 @@
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+serviceAccount: projects/ul-cd-d-931156-cs-prj/serviceAccounts/gfr-cd-one-pager-devops-sa@ul-cd-d-931156-cs-prj.iam.gserviceaccount.com
+
+substitutions:
+  _ENV: uat
+  _SERVICE: category-one-page-uat
+  _REGION: us-east1
+  _VPC_CONNECTOR: stg-931156-one-pager
+  _CLOUDSQL: gfr-cd-stg-931156-one-pager-sql
+  _BUCKET: gfr-cd-stg-one-pager-bucket
+  _SHORT_SHA: manual-uat
+  _SERVICE_ACCOUNT_EMAIL: gfr-cd-one-pager-devops-sa@ul-cd-d-931156-cs-prj.iam.gserviceaccount.com
+  _FIREBASE_PROJECT_ID: ul-cd-d-931156-cs-prj
+
+steps:
+# 1) Auth Docker
+- name: gcr.io/google.com/cloudsdktool/cloud-sdk
+  entrypoint: bash
+  args: ["-c", "gcloud auth configure-docker gcr.io/ul-cd-d-931156-cs-prj --quiet"]
+
+# 2) Build image with both tags
+- name: gcr.io/cloud-builders/docker
+  args:
+    - build
+    - -t
+    - gcr.io/ul-cd-d-931156-cs-prj/category-one-page-unilever-backend/category-one-page:${_ENV}
+    - -t
+    - gcr.io/ul-cd-d-931156-cs-prj/category-one-page-unilever-backend/category-one-page:${_SHORT_SHA}
+    - -f
+    - Dockerfile
+    - .
+
+# 3) Push both tags
+- name: gcr.io/cloud-builders/docker
+  args: ["push", "gcr.io/ul-cd-d-931156-cs-prj/category-one-page-unilever-backend/category-one-page:${_ENV}"]
+- name: gcr.io/cloud-builders/docker
+  args: ["push", "gcr.io/ul-cd-d-931156-cs-prj/category-one-page-unilever-backend/category-one-page:${_SHORT_SHA}"]
+
+# 4) Run migrations (replace IMAGE_PLACEHOLDER)
+- name: gcr.io/google.com/cloudsdktool/cloud-sdk
+  entrypoint: bash
+  args:
+    - -c
+    - |
+      sed "s|IMAGE_PLACEHOLDER|gcr.io/ul-cd-d-931156-cs-prj/category-one-page-unilever-backend/category-one-page:${_ENV}|g" infra/migrations/category-one-page-uat-migrate-job.yaml > infra/migrations/category-one-page-uat-migrate-job-resolved.yaml
+
+      gcloud run jobs replace infra/migrations/category-one-page-uat-migrate-job-resolved.yaml \
+        --region=${_REGION} \
+        --project=ul-cd-d-931156-cs-prj
+
+      gcloud run jobs execute category-one-page-uat-migrate-job \
+        --region=${_REGION} \
+        --project=ul-cd-d-931156-cs-prj \
+        --wait
+
+# 5) Deploy service
+- name: gcr.io/google.com/cloudsdktool/cloud-sdk
+  entrypoint: gcloud
+  args:
+    - run
+    - deploy
+    - ${_SERVICE}
+    - --image=gcr.io/ul-cd-d-931156-cs-prj/category-one-page-unilever-backend/category-one-page:${_ENV}
+    - --region=${_REGION}
+    - --platform=managed
+    - --allow-unauthenticated
+    - --port=8080
+    - --set-env-vars=ENV=${_ENV},GCS_BUCKET_NAME=${_BUCKET},DB_INSTANCE=${_CLOUDSQL},SERVICE_ACCOUNT_EMAIL=${_SERVICE_ACCOUNT_EMAIL},FIREBASE_PROJECT_ID=${_FIREBASE_PROJECT_ID}
+    - --set-secrets=APP_DATABASE_URL=projects/1035637254888/secrets/appuser-stg:latest
+    - --add-cloudsql-instances=${_CLOUDSQL}
+    - --vpc-connector=${_VPC_CONNECTOR}
+    - --service-account=gfr-cd-one-pager-devops-sa@ul-cd-d-931156-cs-prj.iam.gserviceaccount.com
+
+images:
+- gcr.io/ul-cd-d-931156-cs-prj/category-one-page-unilever-backend/category-one-page:${_ENV}
+- gcr.io/ul-cd-d-931156-cs-prj/category-one-page-unilever-backend/category-one-page:${_SHORT_SHA}
