@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 /** Shared horizontal inset for header content + page body across the app. */
-export const PAGE_INSET_CLASS = "px-6 lg:px-8";
+export const PAGE_INSET_CLASS = "px-4 sm:px-6 lg:px-8";
 
 type PageContainerProps = {
   children: ReactNode;

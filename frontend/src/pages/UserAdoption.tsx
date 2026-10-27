@@ -220,7 +220,7 @@ export function UserAdoption() {
   };
 
   return (
-    <div className="-mx-6 -my-6 min-h-[calc(100svh-3.5rem)] bg-[#edf2f9] px-6 py-6 lg:-mx-8 lg:px-8">
+    <div className="-mx-4 -my-6 min-h-[calc(100svh-3.5rem)] bg-[#edf2f9] px-4 py-6 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
       <AdoptionFilters
         markets={markets}
         marketsLoading={marketsLoading && markets.length === 0}

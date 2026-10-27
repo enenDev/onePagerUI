@@ -89,8 +89,8 @@ export function CreateOnePagerModal({
         className={cn(
           "flex flex-col overflow-hidden",
           step === "import"
-            ? "h-[min(36rem,85vh)] max-w-5xl gap-4 sm:max-w-5xl"
-            : "h-[18rem] max-w-xl gap-6 sm:max-w-xl",
+            ? "h-[min(36rem,85vh)] gap-4 sm:max-w-5xl"
+            : "h-[18rem] gap-6 sm:max-w-xl",
         )}
       >
         <DialogHeader className="min-h-10 shrink-0 justify-center pr-8">

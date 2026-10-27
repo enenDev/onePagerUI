@@ -391,7 +391,7 @@ export function AddInitiativeModal({
   return (
     <Dialog open={open} onOpenChange={dismiss}>
       <DialogContent
-        className="max-h-[90vh] max-w-3xl gap-4 overflow-y-auto sm:max-w-3xl"
+        className="max-h-[90vh] gap-4 overflow-y-auto sm:max-w-3xl"
         onCloseAutoFocus={(event) => event.preventDefault()}
         onInteractOutside={(event) => {
           // Native file picker focus loss can look like an outside interact.

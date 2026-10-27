@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { HelpCircle, LayoutDashboard, LogOut, UserRound } from "lucide-react";
 
 import { PageContainer } from "@/components/layout/PageContainer";
+import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -20,19 +21,30 @@ import unileverBrandLogo from "@/assets/Unilever_Brand_Logo.svg";
 import { VITE_USER_HELP_URL } from "@/constants/constants";
 import { clearPersistedFilters } from "@/lib/homeFilterStorage";
 
-function HeaderDivider() {
+function HeaderDivider({ className }: { className?: string }) {
   return (
-    <span aria-hidden="true" className="mx-1 h-7 w-px shrink-0 bg-white/90" />
+    <span
+      aria-hidden="true"
+      className={cn("mx-1 h-5 w-px shrink-0 bg-white/90 sm:h-7", className)}
+    />
   );
 }
 
 function HeaderBrand() {
   return (
     <>
-      <img src={perfectStoreLogo} alt="" className="size-28 object-contain" />
+      <img
+        src={perfectStoreLogo}
+        alt=""
+        className="h-5 w-auto max-w-[6.5rem] object-contain sm:h-28 sm:w-28 sm:max-w-none"
+      />
       <HeaderDivider />
       {/* TODO: Swap /logo-secondary.svg for the real second brand logo asset. */}
-      <img src={unileverBrandLogo} alt="" className="size-16 object-contain" />
+      <img
+        src={unileverBrandLogo}
+        alt=""
+        className="h-3.5 w-auto max-w-12 object-contain sm:h-16 sm:w-16 sm:max-w-none"
+      />
     </>
   );
 }
@@ -64,23 +76,23 @@ export function AppHeader() {
 
   return (
     <header className="sticky top-0 z-40 w-full overflow-hidden bg-primary">
-      <PageContainer className="relative flex h-14 items-center justify-between gap-4">
+      <PageContainer className="relative flex h-14 items-center justify-between gap-2 sm:gap-4">
         <div className="flex min-w-0 items-center gap-2">
           {isAnalystOnly ? (
-            <div className="flex h-14 shrink-0 items-center gap-2">
+            <div className="flex h-14 shrink-0 items-center gap-1.5 sm:gap-2">
               <HeaderBrand />
             </div>
           ) : (
             <Link
               to="/home"
-              className="flex h-14 shrink-0 cursor-pointer items-center gap-2 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+              className="flex h-14 shrink-0 cursor-pointer items-center gap-1.5 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-white/60 sm:gap-2"
               aria-label="Go to home"
             >
               <HeaderBrand />
             </Link>
           )}
-          <HeaderDivider />
-          <p className="mt-[5px] min-w-0 truncate font-semibold text-[#ffffff] text-[14px] tracking-[0.2px]">
+          <HeaderDivider className="hidden sm:block" />
+          <p className="mt-[5px] hidden min-w-0 truncate font-semibold text-[#ffffff] text-[14px] tracking-[0.2px] sm:block">
             {headerTitle}
           </p>
         </div>
@@ -89,7 +101,7 @@ export function AppHeader() {
           <DropdownMenuTrigger asChild>
             <button
               type="button"
-              className="cursor-pointer rounded-full outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+              className="inline-flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-white/60"
               aria-label="User menu"
             >
               <Avatar className="size-9">
@@ -99,7 +111,10 @@ export function AppHeader() {
               </Avatar>
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-72 p-0">
+          <DropdownMenuContent
+            align="end"
+            className="w-72 max-w-[calc(100vw-2rem)] p-0"
+          >
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-3 px-3 py-2.5">
                 <div className="flex min-w-0 flex-1 items-center gap-2.5">
@@ -127,7 +142,7 @@ export function AppHeader() {
             {showDashboard ? (
               <>
                 <DropdownMenuItem
-                  className="cursor-pointer gap-2"
+                  className="min-h-11 cursor-pointer gap-2"
                   onClick={() => navigate("/user-adoption")}
                 >
                   <LayoutDashboard className="size-4" />
@@ -137,7 +152,7 @@ export function AppHeader() {
               </>
             ) : null}
             <DropdownMenuItem
-              className="cursor-pointer gap-2"
+              className="min-h-11 cursor-pointer gap-2"
               onClick={handleHelp}
             >
               <HelpCircle className="size-4 " />
@@ -146,7 +161,7 @@ export function AppHeader() {
             </DropdownMenuItem>
             <DropdownMenuSeparator className="m-0" />
             <DropdownMenuItem
-              className="cursor-pointer gap-2 rounded-none px-3 py-2.5"
+              className="min-h-11 cursor-pointer gap-2 rounded-none px-3 py-2.5"
               onClick={handleLogout}
             >
               <LogOut className="size-4" />

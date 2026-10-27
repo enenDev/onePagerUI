@@ -27,7 +27,7 @@ export function DeleteOnePagerModal({
 }: DeleteOnePagerModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg gap-4 sm:max-w-lg">
+      <DialogContent className="gap-4 sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="pr-6 font-semibold text-foreground">
             Delete One-Pager

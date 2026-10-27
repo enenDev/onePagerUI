@@ -68,7 +68,7 @@ export function AddCampaignModal({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-md gap-4 sm:max-w-md">
+      <DialogContent className="gap-4 sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Add New Campaign</DialogTitle>
         </DialogHeader>
