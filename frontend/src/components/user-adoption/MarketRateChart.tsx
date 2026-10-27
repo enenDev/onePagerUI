@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type HTMLAttributes } from "react";
 import {
   Bar,
   BarChart,
@@ -7,6 +7,7 @@ import {
   Tooltip,
   XAxis,
   YAxis,
+  type YAxisTickContentProps,
 } from "recharts";
 
 import {
@@ -57,26 +58,25 @@ function usePhoneLayout() {
   return phone;
 }
 
-function WrappingMarketTick({
-  x = 0,
-  y = 0,
-  payload,
-}: {
-  x?: number;
-  y?: number;
-  payload?: { value?: string };
-}) {
-  const label = payload?.value ?? "";
+function axisOffset(value: number | string | undefined) {
+  const offset = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(offset) ? offset : 0;
+}
+
+function WrappingMarketTick({ x, y, payload }: YAxisTickContentProps) {
+  const tickX = axisOffset(x);
+  const tickY = axisOffset(y);
+  const label = payload?.value == null ? "" : String(payload.value);
 
   return (
     <foreignObject
-      x={x - PHONE_AXIS_WIDTH}
-      y={y - 18}
+      x={tickX - PHONE_AXIS_WIDTH}
+      y={tickY - 18}
       width={PHONE_AXIS_WIDTH}
       height={36}
     >
       <div
-        xmlns="http://www.w3.org/1999/xhtml"
+        {...({ xmlns: "http://www.w3.org/1999/xhtml" } as HTMLAttributes<HTMLDivElement>)}
         style={{
           display: "flex",
           alignItems: "center",

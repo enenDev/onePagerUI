@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { X } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -110,16 +111,29 @@ export function ImportFromNationalPicker({
   const [filterResetKey, setFilterResetKey] = useState(0);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
+  const [sheetOpen, setSheetOpen] = useState(false);
   const marketSelected = Boolean(filters.market);
   const dependentsDisabled =
     metadataLoading || !filterMetadata || !marketSelected;
   const showMarketRequiredTooltip =
     !marketSelected && !metadataLoading && Boolean(filterMetadata);
+  const appliedCount = IMPORT_FILTER_FIELDS.filter((field) =>
+    Boolean(filters[field.key]),
+  ).length;
 
   useEffect(() => {
     if (filterMetadata) return;
     void dispatch(fetchMetadata());
   }, [dispatch, filterMetadata]);
+
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 1024px)");
+    const closeSheet = () => {
+      if (media.matches) setSheetOpen(false);
+    };
+    media.addEventListener("change", closeSheet);
+    return () => media.removeEventListener("change", closeSheet);
+  }, []);
 
   useEffect(() => {
     // TODO: Import list still uses submitOnePagerSearch(createEmptyFilters()) —
@@ -206,54 +220,101 @@ export function ImportFromNationalPicker({
     }
   };
 
+  const clearFilters = () => {
+    setFilters({ ...EMPTY_FILTERS });
+    setFilterResetKey((key) => key + 1);
+  };
+
+  const clearAndClose = () => {
+    clearFilters();
+    setSheetOpen(false);
+  };
+
+  const filterControls = (labeled: boolean) =>
+    IMPORT_FILTER_FIELDS.map((field) => {
+      const disabled = field.independent
+        ? false
+        : field.key === "market"
+          ? metadataLoading || !filterMetadata
+          : dependentsDisabled;
+
+      return (
+        <div
+          key={field.key}
+          className={labeled ? "min-w-0 space-y-1" : "min-w-0 lg:w-0 lg:flex-1"}
+        >
+          {labeled ? (
+            <Label className="text-xs font-medium text-foreground">
+              {field.label}
+            </Label>
+          ) : null}
+          <MarketRequiredTooltip
+            show={
+              field.key !== "market" &&
+              !field.independent &&
+              showMarketRequiredTooltip
+            }
+          >
+            <PillSelect
+              key={`${field.key}-${filterResetKey}`}
+              placeholder={labeled ? "Select" : field.label}
+              searchLabel={field.label}
+              value={filters[field.key]}
+              options={optionsFor(field.key)}
+              disabled={disabled}
+              onChange={(value) => patchFilter(field.key, value)}
+              contentClassName={labeled ? "z-[70]" : undefined}
+            />
+          </MarketRequiredTooltip>
+        </div>
+      );
+    });
+
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-2">
+      <div className="hidden items-center gap-2 lg:flex">
         <span className="shrink-0 text-sm font-semibold text-foreground">
           Filters
         </span>
 
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:flex lg:min-w-0 lg:flex-1 lg:items-center lg:gap-2">
-          {IMPORT_FILTER_FIELDS.map((field) => {
-            const disabled = field.independent
-              ? false
-              : field.key === "market"
-                ? metadataLoading || !filterMetadata
-                : dependentsDisabled;
-
-            return (
-              <div key={field.key} className="min-w-0 lg:w-0 lg:flex-1">
-                <MarketRequiredTooltip
-                  show={
-                    field.key !== "market" &&
-                    !field.independent &&
-                    showMarketRequiredTooltip
-                  }
-                >
-                  <PillSelect
-                    key={`${field.key}-${filterResetKey}`}
-                    placeholder={field.label}
-                    value={filters[field.key]}
-                    options={optionsFor(field.key)}
-                    disabled={disabled}
-                    onChange={(value) => patchFilter(field.key, value)}
-                  />
-                </MarketRequiredTooltip>
-              </div>
-            );
-          })}
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          {filterControls(false)}
         </div>
 
         <button
           type="button"
-          className="shrink-0 cursor-pointer self-start text-sm font-medium text-primary hover:underline lg:self-auto"
-          onClick={() => {
-            setFilters({ ...EMPTY_FILTERS });
-            setFilterResetKey((key) => key + 1);
-          }}
+          className="shrink-0 cursor-pointer text-sm font-medium text-primary hover:underline"
+          onClick={clearFilters}
         >
           Clear all
         </button>
+      </div>
+
+      <div className="flex justify-end lg:hidden">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => setSheetOpen(true)}
+          className="h-9 cursor-pointer rounded-lg border-primary px-4 text-primary hover:bg-accent hover:text-primary"
+        >
+          {appliedCount > 0 ? `Filters (${appliedCount})` : "Filters"}
+        </Button>
+        <ImportFilterSheet open={sheetOpen} onClose={() => setSheetOpen(false)}>
+          <h2 className="text-base font-semibold text-foreground">Filters</h2>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {filterControls(true)}
+          </div>
+          <div className="flex justify-end">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={clearAndClose}
+              className="h-9 cursor-pointer rounded-full bg-brand-soft px-3 text-primary hover:bg-brand-soft-hover hover:text-primary"
+            >
+              Clear all
+            </Button>
+          </div>
+        </ImportFilterSheet>
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col gap-2">
@@ -326,18 +387,75 @@ export function ImportFromNationalPicker({
   );
 }
 
+function ImportFilterSheet({
+  open,
+  onClose,
+  children,
+}: {
+  open: boolean;
+  onClose: () => void;
+  children: ReactNode;
+}) {
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      event.stopPropagation();
+      onClose();
+    };
+    document.addEventListener("keydown", onKeyDown, true);
+    return () => document.removeEventListener("keydown", onKeyDown, true);
+  }, [onClose, open]);
+
+  if (!open) return null;
+
+  return (
+    <div data-import-filter-sheet="" className="fixed inset-0 z-20">
+      <button
+        type="button"
+        aria-label="Close filters"
+        className="absolute inset-0 bg-black/10"
+        onClick={onClose}
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Filters"
+        className="absolute inset-x-0 bottom-0 flex max-h-[85%] flex-col overflow-hidden rounded-t-xl bg-white p-4 shadow-lg ring-1 ring-foreground/10"
+      >
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          onClick={onClose}
+          className="absolute top-1 right-1 size-11"
+          aria-label="Close filters"
+        >
+          <X />
+        </Button>
+        <div className="flex flex-col gap-4 overflow-y-auto pr-12">{children}</div>
+      </div>
+    </div>
+  );
+}
+
 function PillSelect({
   placeholder,
+  searchLabel,
   value,
   options,
   onChange,
   disabled = false,
+  contentClassName,
 }: {
   placeholder: string;
+  searchLabel?: string;
   value: string;
   options: FilterOption[];
   onChange: (value: string) => void;
   disabled?: boolean;
+  contentClassName?: string;
 }) {
   return (
     <SearchableSelect
@@ -345,8 +463,9 @@ function PillSelect({
       value={value}
       onValueChange={onChange}
       placeholder={placeholder}
-      searchPlaceholder={`Search ${placeholder}…`}
+      searchPlaceholder={`Search ${searchLabel ?? placeholder}…`}
       disabled={disabled}
+      contentClassName={contentClassName}
       className="h-8 min-w-0 w-full cursor-pointer overflow-hidden bg-white px-3"
     />
   );

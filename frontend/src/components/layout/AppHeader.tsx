@@ -92,6 +92,8 @@ export function AppHeader() {
             </Link>
           )}
           <HeaderDivider className="hidden sm:block" />
+          {/* Phone header title. Uncomment once the copy is agreed. */}
+          {/* <p className="mt-[5px] min-w-0 truncate font-semibold text-[#ffffff] text-[14px] tracking-[0.2px] sm:hidden">CATEGORY ONE-PAGER APP</p> */}
           <p className="mt-[5px] hidden min-w-0 truncate font-semibold text-[#ffffff] text-[14px] tracking-[0.2px] sm:block">
             {headerTitle}
           </p>

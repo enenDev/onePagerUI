@@ -30,6 +30,8 @@ type SearchableSelectProps = {
   searchPlaceholder?: string;
   disabled?: boolean;
   className?: string;
+  /** Extra classes for the portaled menu, such as a higher layer over a sheet. */
+  contentClassName?: string;
   /** Remount key when dependent options reset (e.g. market change). */
   selectKey?: string;
 };
@@ -46,6 +48,7 @@ export function SearchableSelect({
   searchPlaceholder = "Search…",
   disabled = false,
   className,
+  contentClassName,
   selectKey,
 }: SearchableSelectProps) {
   const [open, setOpen] = useState(false);
@@ -109,7 +112,10 @@ export function SearchableSelect({
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="min-w-(--radix-popover-trigger-width) w-max max-w-(--radix-popover-content-available-width) p-0"
+        className={cn(
+          "min-w-(--radix-popover-trigger-width) w-max max-w-(--radix-popover-content-available-width) p-0",
+          contentClassName,
+        )}
       >
         <Command
           key={selectKey ?? (open ? "open" : "closed")}

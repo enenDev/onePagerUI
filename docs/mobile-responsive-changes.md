@@ -51,3 +51,13 @@ Each line says what changed and what to check. Phone means under 640px unless th
 ## Adoption chart market names
 
 - Long market names wrap on a phone, open /user-adoption and check a long market name breaks onto more than one line beside the bars. A short name stays on one line. From 640px every market name is one line again. Chart row height is unchanged.
+
+## Create popup and import filters
+
+- Phone header title is commented out, check the header still has no title on a phone and the usual title from 640px.
+- Create New options fully visible on a phone, open Create New and check National One-Pager and Retailer One-Pager both show. Open Retailer and check Build from Scratch and Import From National both show. From 640px the dialog stays the same height with the two options side by side.
+- Import filters collapsed into a Filters button under 1024px, open Create New → Retailer → Import and check the button sits on the right above the list.
+- Filter count shown on the button, select one field and check the label reads Filters (1).
+- Filters open from the bottom of the import popup, check the six fields and Clear all stay inside the popup. There is no Submit in that sheet. A choice filters the list right away. Clear all resets and closes the sheet.
+- Import Submit still imports the selected one-pager, check it stays at the bottom of the popup.
+- Desktop import filters unchanged from 1024px, check Market through Year still sit on one row with Clear all.

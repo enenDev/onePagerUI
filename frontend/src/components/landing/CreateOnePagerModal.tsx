@@ -30,6 +30,18 @@ type CreateOnePagerModalProps = {
 const NATIONAL_CREATE_CSP_ONLY_TOOLTIP =
   "National one pager creation is only accessible for the CSP users";
 
+/** The import filter sheet and its menus are portaled outside this dialog. */
+function isImportFilterLayer(target: EventTarget | null) {
+  return (
+    target instanceof Element &&
+    Boolean(
+      target.closest(
+        "[data-import-filter-sheet], [data-slot=popover-content]",
+      ),
+    )
+  );
+}
+
 const TYPE_OPTIONS = [
   {
     id: "national",
@@ -87,11 +99,20 @@ export function CreateOnePagerModal({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         className={cn(
-          "flex flex-col overflow-hidden",
+          "flex flex-col",
           step === "import"
-            ? "h-[min(36rem,85vh)] gap-4 sm:max-w-5xl"
-            : "h-[18rem] gap-6 sm:max-w-xl",
+            ? "h-[min(36rem,85vh)] gap-4 overflow-hidden sm:max-w-5xl"
+            : "max-h-[calc(100dvh-2rem)] gap-6 overflow-y-auto sm:h-[18rem] sm:max-w-xl sm:overflow-hidden",
         )}
+        onPointerDownOutside={(event) => {
+          if (isImportFilterLayer(event.target)) event.preventDefault();
+        }}
+        onInteractOutside={(event) => {
+          if (isImportFilterLayer(event.target)) event.preventDefault();
+        }}
+        onFocusOutside={(event) => {
+          if (isImportFilterLayer(event.target)) event.preventDefault();
+        }}
       >
         <DialogHeader className="min-h-10 shrink-0 justify-center pr-8">
           {step === "type" ? (
@@ -130,7 +151,7 @@ export function CreateOnePagerModal({
         {step === "import" ? (
           <ImportFromNationalPicker onSubmit={handleImportSubmit} />
         ) : (
-          <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:min-h-0 sm:flex-1 sm:grid-cols-2">
             {(step === "type" ? TYPE_OPTIONS : RETAILER_OPTIONS).map(
               (option) => {
                 const Icon = option.icon;
