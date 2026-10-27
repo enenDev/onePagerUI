@@ -44,6 +44,10 @@ Each line says what changed and what to check. Phone means under 640px unless th
 
 ## Login card
 
-- Login card starts below the Unilever mark on a phone, open /login and check the logo does not cover the card. From 640px the card is centered again.
+- Login card is vertically centered on a phone, open /login and check the white card sits in the middle and the Unilever mark does not cover it. From 640px it stays centered.
 - Login card side padding is 24px on a phone, check the sign-in button keeps space on a narrow screen and the button stays 44px tall. From 640px the card padding is 32px again.
 - Short phone can scroll the login card, check the sign-in button is reachable when the screen is short. From 640px the page does not scroll.
+
+## Adoption chart market names
+
+- Long market names wrap on a phone, open /user-adoption and check a long market name breaks onto more than one line beside the bars. A short name stays on one line. From 640px every market name is one line again. Chart row height is unchanged.

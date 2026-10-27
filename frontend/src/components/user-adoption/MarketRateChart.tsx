@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   Bar,
   BarChart,
@@ -22,6 +23,9 @@ const VISIBLE_MARKETS = 4;
 const ROW_HEIGHT = 52;
 const MARKET_LABEL_SIZE = 10;
 const MARKET_NAME_COLOR = "#334155";
+/** Fixed label column on a phone so a long market name wraps instead of widening the axis. */
+const PHONE_AXIS_WIDTH = 76;
+const PHONE_QUERY = "(max-width: 639px)";
 /** CSP matches the adoption stage. CBD matches the onboarding stage. */
 const CSP_COLOR = "#004f9e";
 const CBD_COLOR = "#1890ff";
@@ -35,6 +39,61 @@ type MarketRateChartProps = {
 
 function percentLabel(value: unknown) {
   return isMetricNumber(value) ? formatPercent(value) : "";
+}
+
+function usePhoneLayout() {
+  const [phone, setPhone] = useState(
+    () => typeof window !== "undefined" && window.matchMedia(PHONE_QUERY).matches,
+  );
+
+  useEffect(() => {
+    const query = window.matchMedia(PHONE_QUERY);
+    const onChange = () => setPhone(query.matches);
+    onChange();
+    query.addEventListener("change", onChange);
+    return () => query.removeEventListener("change", onChange);
+  }, []);
+
+  return phone;
+}
+
+function WrappingMarketTick({
+  x = 0,
+  y = 0,
+  payload,
+}: {
+  x?: number;
+  y?: number;
+  payload?: { value?: string };
+}) {
+  const label = payload?.value ?? "";
+
+  return (
+    <foreignObject
+      x={x - PHONE_AXIS_WIDTH}
+      y={y - 18}
+      width={PHONE_AXIS_WIDTH}
+      height={36}
+    >
+      <div
+        xmlns="http://www.w3.org/1999/xhtml"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "flex-end",
+          width: PHONE_AXIS_WIDTH,
+          height: 36,
+          overflowWrap: "anywhere",
+          textAlign: "right",
+          fontSize: MARKET_LABEL_SIZE,
+          lineHeight: 1.2,
+          color: MARKET_NAME_COLOR,
+        }}
+      >
+        {label}
+      </div>
+    </foreignObject>
+  );
 }
 
 /** Thicker bars when few markets share the row; slim bars once four or more fit. */
@@ -76,6 +135,7 @@ export function MarketRateChart({
   rows,
   loading,
 }: MarketRateChartProps) {
+  const phone = usePhoneLayout();
   const rowCount = rows.length;
   const viewportHeight = VISIBLE_MARKETS * ROW_HEIGHT;
   const plotHeight = Math.max(rowCount, 1) * ROW_HEIGHT;
@@ -133,14 +193,18 @@ export function MarketRateChart({
                 <YAxis
                   type="category"
                   dataKey="market"
-                  width="auto"
+                  width={phone ? PHONE_AXIS_WIDTH : "auto"}
                   axisLine={false}
                   tickLine={false}
                   tickMargin={2}
-                  tick={{
-                    fontSize: MARKET_LABEL_SIZE,
-                    fill: MARKET_NAME_COLOR,
-                  }}
+                  tick={
+                    phone
+                      ? WrappingMarketTick
+                      : {
+                          fontSize: MARKET_LABEL_SIZE,
+                          fill: MARKET_NAME_COLOR,
+                        }
+                  }
                 />
                 <Tooltip
                   cursor={{ fill: "rgba(24, 144, 255, 0.1)" }}
