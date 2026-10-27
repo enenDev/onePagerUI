@@ -249,9 +249,10 @@ export function PillarsSection({
           The 5 Category Execution Pillars
         </h2>
 
-        <div className="flex items-center rounded-full bg-brand-soft p-1">
+        <div className="flex w-fit items-center self-end rounded-full bg-brand-soft p-1 sm:self-center">
           <button
             type="button"
+            aria-label="Unweighted Pillar"
             className={cn(
               "inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors",
               !isWeighted
@@ -261,10 +262,12 @@ export function PillarsSection({
             onClick={() => onScoringModeChange("UNWEIGHTED")}
           >
             <Scale className="size-3.5" />
-            Unweighted Pillar
+            <span className="sm:hidden">Unweighted</span>
+            <span className="hidden sm:inline">Unweighted Pillar</span>
           </button>
           <button
             type="button"
+            aria-label="Weighted Pillar"
             className={cn(
               "inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors",
               isWeighted
@@ -274,7 +277,8 @@ export function PillarsSection({
             onClick={() => onScoringModeChange("WEIGHTED")}
           >
             <Scale className="size-3.5" />
-            Weighted Pillar
+            <span className="sm:hidden">Weighted</span>
+            <span className="hidden sm:inline">Weighted Pillar</span>
           </button>
         </div>
       </div>
@@ -340,38 +344,38 @@ export function PillarsSection({
               key={pillar.pillar_number}
               className="rounded-xl border border-border bg-[#fbfbfb]"
             >
-              <div className="flex flex-wrap items-center gap-3 px-4 py-3">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3">
                 <div
                   className={cn(
-                    "flex size-9 shrink-0 items-center justify-center rounded-full",
+                    "order-1 flex size-9 shrink-0 items-center justify-center rounded-full",
                     meta?.iconClass ?? "bg-muted",
                   )}
                 >
                   <Icon className="size-4" />
                 </div>
 
-                <div className="min-w-0 flex-1">
+                <div className="order-2 min-w-0 flex-1">
                   <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                     Pillar {pillar.pillar_number}
                   </p>
-                  <h3 className="truncate text-sm font-semibold text-foreground">
+                  <h3 className="text-sm font-semibold text-foreground sm:truncate">
                     {pillar.pillar_name}
                   </h3>
                 </div>
 
                 {initiativeCount > 0 ? (
-                  <span className="rounded-full bg-brand-soft px-2.5 py-1 text-xs font-medium text-primary">
+                  <span className="order-4 shrink-0 rounded-full bg-brand-soft px-2.5 py-1 text-xs font-medium text-primary sm:order-3">
                     {initiativeCount} Initiative
                     {initiativeCount > 1 ? "s" : ""}
                   </span>
                 ) : (
-                  <span className="text-xs font-medium text-amber-600">
+                  <span className="order-4 basis-full pl-12 text-xs font-medium text-amber-600 sm:order-3 sm:basis-auto sm:shrink-0 sm:pl-0">
                     Atleast 1 initiative is recommended
                   </span>
                 )}
 
                 {isWeighted && (
-                  <div className="flex items-center gap-2 rounded-lg bg-white px-2 py-1">
+                  <div className="order-5 ml-12 flex items-center gap-2 rounded-lg bg-white px-2 py-1 sm:order-4 sm:ml-0">
                     <span className="text-xs font-medium text-muted-foreground">
                       Pillar Score
                     </span>
@@ -418,7 +422,7 @@ export function PillarsSection({
 
                 <button
                   type="button"
-                  className="flex size-8 cursor-pointer items-center justify-center rounded-full border border-border text-muted-foreground hover:bg-muted"
+                  className="order-3 flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border text-muted-foreground hover:bg-muted sm:order-last"
                   onClick={() => toggleExpanded(pillar.pillar_number)}
                   aria-expanded={isOpen}
                   aria-label={isOpen ? "Collapse pillar" : "Expand pillar"}

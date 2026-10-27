@@ -25,3 +25,11 @@ Each line says what changed and what to check. Phone means under 640px unless th
 - One-pager cards stack by screen width, check 1 column on a phone, 2 from 640px, 3 from 1024px, and 4 from 1280px.
 - Import filters stack on a phone, open Create New → Retailer → Import and check one column on a phone, two columns from 640px, and one row from 1024px.
 - Import Submit full width only on a phone, check it is full width under 640px and the usual width from 640px. Dialog height is unchanged.
+
+## Form action bar and pillar header
+
+- Form buttons stack on a phone, open Create National and check Preview & Publish, Save Draft, then Cancel are full width. From 640px, Cancel is on the left and Save Draft with Preview & Publish are on the right. Button height stays 36px.
+- Blocked-reason text is left aligned on a phone, check it sits on the left on a phone and on the right from 640px.
+- Scoring toggle labels shortened on a phone, check Unweighted and Weighted. From 640px check Unweighted Pillar and Weighted Pillar.
+- Scoring toggle stays on the right on a phone, check it sits under the pillars heading, aligned right. From 640px it stays on the right of that heading, on the same line.
+- Pillar name no longer cut off by the recommendation note, check the full name on the first line and "Atleast 1 initiative is recommended" on the next line, lined up under the name. From 640px the name and the note are on one row.
