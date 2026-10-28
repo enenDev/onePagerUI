@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react";
+import { Download, Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { Loading } from "@/components/common/Loading";
@@ -126,6 +126,10 @@ export const Home = () => {
   );
 
   const selectedCount = selectedPagerIds.length;
+  const exportCountLabel =
+    selectedCount > 0
+      ? `${selectedCount}/${MAX_MULTI_EXPORT_COUNT}`
+      : `${MAX_MULTI_EXPORT_COUNT}`;
   const showMultiExportControls = statusTab !== "drafts";
   const bulkExportDisabled =
     !showMultiExportControls ||
@@ -175,16 +179,16 @@ export const Home = () => {
   };
 
   return (
-    <div className="flex w-full flex-col gap-6">
+    <div className="flex w-full flex-col gap-6 pb-20 sm:pb-0">
       <div className="flex justify-center">
-        <div className="flex items-center rounded-full bg-brand-soft p-1">
+        <div className="flex w-full items-center rounded-full bg-brand-soft p-1 sm:w-auto">
           {visibleStatusTabs.map((tab) => (
             <button
               key={tab.id}
               type="button"
               onClick={() => handleStatusTabChange(tab.id)}
               className={cn(
-                "cursor-pointer rounded-full px-2.5 py-1.5 text-sm font-medium transition-colors sm:px-4",
+                "min-w-0 flex-1 cursor-pointer rounded-full px-2.5 py-1.5 text-center text-sm font-medium transition-colors sm:flex-none sm:px-4",
                 statusTab === tab.id
                   ? "bg-primary text-primary-foreground"
                   : "text-primary hover:bg-white/50",
@@ -196,26 +200,28 @@ export const Home = () => {
         </div>
       </div>
 
-      <FilterBar />
+      <div className="sm:flex sm:flex-col sm:gap-6 max-sm:grid max-sm:grid-cols-[minmax(0,1fr)_auto] max-sm:items-end max-sm:gap-x-3">
+        <div className="max-sm:col-start-2 max-sm:row-start-1">
+          <FilterBar />
+        </div>
 
-      {listLoading ? (
-        <Loading label="Loading one-pagers…" />
-      ) : (
-        <>
-          <div className="flex flex-col border-b border-border sm:flex-row sm:items-end sm:justify-between">
+        {listLoading ? null : (
+          <div className="flex flex-col gap-3 border-b border-border max-sm:col-start-1 max-sm:row-start-1 max-sm:min-w-0 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
             <div className="flex gap-6">
               {showMyTab && (
                 <button
                   type="button"
                   onClick={() => dispatch(setScopeTab("my"))}
                   className={cn(
-                    "relative cursor-pointer pb-3 text-sm font-medium transition-colors",
+                    "relative cursor-pointer pb-3 text-sm font-medium whitespace-nowrap transition-colors",
                     effectiveScope === "my"
                       ? "text-primary"
                       : "text-muted-foreground hover:text-foreground",
                   )}
                 >
-                  My One-Pagers
+                  My
+                  <span className="hidden sm:inline"> One-Pagers</span>
+                  <span className="sr-only sm:hidden"> One-Pagers</span>
                   <span className="ml-2 inline-flex size-5 items-center justify-center rounded-full bg-brand-soft text-xs text-primary">
                     {myCount}
                   </span>
@@ -230,13 +236,15 @@ export const Home = () => {
                   type="button"
                   onClick={() => dispatch(setScopeTab("all"))}
                   className={cn(
-                    "relative cursor-pointer pb-3 text-sm font-medium transition-colors",
+                    "relative cursor-pointer pb-3 text-sm font-medium whitespace-nowrap transition-colors",
                     effectiveScope === "all"
                       ? "text-primary"
                       : "text-muted-foreground hover:text-foreground",
                   )}
                 >
-                  All One-Pagers
+                  All
+                  <span className="hidden sm:inline"> One-Pagers</span>
+                  <span className="sr-only sm:hidden"> One-Pagers</span>
                   <span className="ml-2 inline-flex size-5 items-center justify-center rounded-full bg-brand-soft text-xs text-primary">
                     {allCount}
                   </span>
@@ -247,7 +255,7 @@ export const Home = () => {
               )}
             </div>
 
-            <div className="flex flex-wrap items-center gap-2 pb-3 sm:mb-2 sm:pb-0">
+            <div className="fixed right-4 bottom-8 z-30 flex items-center gap-2 sm:static sm:z-auto sm:mb-2">
               {showMultiExportControls && (
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -256,11 +264,20 @@ export const Home = () => {
                         type="button"
                         onClick={() => void handleBulkExport()}
                         disabled={bulkExportDisabled}
-                        className="h-9 shrink-0 cursor-pointer rounded-lg bg-primary px-4 text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60"
+                        className="relative h-9 w-9 shrink-0 cursor-pointer rounded-lg bg-primary px-0 text-primary-foreground shadow-md disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:px-4 sm:shadow-none"
                       >
-                        {exportingSelection
-                          ? "Exporting..."
-                          : `Export ${selectedCount > 0 ? `(${selectedCount}/${MAX_MULTI_EXPORT_COUNT})` : `(${MAX_MULTI_EXPORT_COUNT})`}`}
+                        <Download className="size-4 sm:hidden" aria-hidden />
+                        <span className="max-sm:sr-only">
+                          {exportingSelection
+                            ? "Exporting..."
+                            : `Export (${exportCountLabel})`}
+                        </span>
+                        <span
+                          aria-hidden
+                          className="absolute -top-1.5 -right-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-white px-1 text-[10px] leading-none font-semibold text-primary ring-1 ring-primary sm:hidden"
+                        >
+                          {exportCountLabel}
+                        </span>
                       </Button>
                     </span>
                   </TooltipTrigger>
@@ -274,14 +291,21 @@ export const Home = () => {
                 <Button
                   type="button"
                   onClick={() => setCreateOpen(true)}
-                  className="h-9 shrink-0 cursor-pointer rounded-lg bg-primary px-4 text-primary-foreground"
+                  className="h-9 w-9 shrink-0 cursor-pointer rounded-lg bg-primary px-0 text-primary-foreground shadow-md sm:w-auto sm:px-4 sm:shadow-none"
                 >
                   <Plus className="size-4" />
-                  Create New
+                  <span className="max-sm:sr-only">Create New</span>
                 </Button>
               )}
             </div>
           </div>
+        )}
+      </div>
+
+      {listLoading ? (
+        <Loading label="Loading one-pagers…" />
+      ) : (
+        <>
 
           {error && (
             <p className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">

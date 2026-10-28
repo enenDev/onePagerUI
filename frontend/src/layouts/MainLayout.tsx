@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { Outlet, useLocation, useNavigate, useMatches } from "react-router-dom";
 
 import { Loading } from "@/components/common/Loading";
@@ -60,6 +60,12 @@ const MainLayout = () => {
   const setHeaderTitle = useCallback((title: string | null) => {
     setHeaderTitleState(title);
   }, []);
+
+  // Client-side navigation keeps the window where it was. A pager opened from
+  // the bottom of Home would otherwise open already scrolled down.
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
 
   const handle = [...matches].reverse().find((match) => match.handle)
     ?.handle as RouteHandle | undefined;

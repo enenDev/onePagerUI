@@ -61,3 +61,12 @@ Each line says what changed and what to check. Phone means under 640px unless th
 - Filters open from the bottom of the import popup, check the six fields and Clear all stay inside the popup. There is no Submit in that sheet. A choice filters the list right away. Clear all resets and closes the sheet.
 - Import Submit still imports the selected one-pager, check it stays at the bottom of the popup.
 - Desktop import filters unchanged from 1024px, check Market through Year still sit on one row with Clear all.
+
+## Home phone actions, route scroll, and one-pager details
+
+- Opening a one-pager starts at the top of the page, open a card near the bottom of Home and check View or Track opens at the top. Go back and check Home also opens at the top.
+- Status tabs use the full width on a phone, check Active, Drafts, and Archive share one row. For a general user check only Active and Archive, still full width, with only the All tab underneath.
+- My and All are short on a phone, check the counts sit beside My and All. From 640px check My One-Pagers and All One-Pagers again.
+- Filters sits on the My / All row on a phone, check the filter icon is on the left of the label. From 640px the Filters button is on its own row. From 1024px the full filter row is back.
+- Export and Create New float at the bottom right on a phone, check icons only, Export shows 10 or 1/10, and the last card can scroll clear of them. From 640px both buttons are labeled and sit on the My / All row.
+- One-pager details use the width on a phone, open View or Track and check Active, the published date, and the owner start on the left, More Options stays on the right, and each field is one row with the value on the right. From 640px the fields are one divided row again and More Options, the badge, the date, and the owner stay on the right.

@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { X } from "lucide-react";
+import { Filter, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -189,8 +189,9 @@ export function FilterBar() {
           type="button"
           variant="outline"
           onClick={() => setSheetOpen(true)}
-          className="h-9 cursor-pointer rounded-lg border-primary px-4 text-primary hover:bg-accent hover:text-primary"
+          className="h-9 cursor-pointer gap-1.5 rounded-lg border-primary px-4 text-primary hover:bg-accent hover:text-primary"
         >
+          <Filter className="size-4" aria-hidden />
           {appliedCount > 0 ? `Filters (${appliedCount})` : "Filters"}
         </Button>
         <FilterSheet

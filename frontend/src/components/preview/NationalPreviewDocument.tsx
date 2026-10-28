@@ -95,11 +95,11 @@ type NationalPreviewDocumentProps = {
 
 function PreviewField({ label, value }: { label: string; value: string }) {
   return (
-    <div className="min-w-0 sm:px-4 sm:first:pl-0">
-      <p className="text-xs font-medium text-muted-foreground">{label}</p>
+    <div className="flex min-w-0 items-baseline justify-between gap-3 sm:block sm:px-4 sm:first:pl-0">
+      <p className="shrink-0 text-xs font-medium text-muted-foreground">{label}</p>
       <PreviewWrappedText
         text={value || "—"}
-        className="mt-0.5 text-sm font-semibold text-foreground"
+        className="min-w-0 flex-1 text-right text-sm font-semibold text-foreground sm:mt-0.5 sm:flex-none sm:text-left"
       />
     </div>
   );
@@ -159,7 +159,8 @@ export function NationalPreviewDocument({
           />
         </div>
 
-        <div className="flex w-full shrink-0 flex-col items-end gap-1 text-right sm:w-auto">
+        <div className="flex w-full shrink-0 flex-wrap items-center gap-x-3 gap-y-1 text-left sm:w-auto sm:flex-col sm:flex-nowrap sm:items-end sm:gap-1 sm:text-right">
+          <div className="order-2 ml-auto sm:order-none sm:ml-0">
           {moreOptionsEnabled ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -329,26 +330,30 @@ export function NationalPreviewDocument({
               <MoreVertical className="size-4" />
             </span>
           )}
+          </div>
 
           <Badge
-            className={cn("mt-1 rounded-full px-2.5", statusBadge.className)}
+            className={cn(
+              "order-1 w-fit rounded-full px-2.5 sm:order-none sm:mt-1",
+              statusBadge.className,
+            )}
           >
             {statusBadge.label}
           </Badge>
           {status === "PUBLISHED" && (
-            <p className="text-xs text-muted-foreground">
+            <p className="order-3 w-full text-xs text-muted-foreground sm:order-none sm:w-auto">
               <span className="font-semibold text-foreground">Published:</span>{" "}
               {moreOptionsEnabled
                 ? formatPublishedAt(new Date(publishedAt))
                 : "NA"}
             </p>
           )}
-          <p className="text-xs text-muted-foreground">
+          <p className="order-4 w-full text-xs text-muted-foreground sm:order-none sm:w-auto">
             <span className="font-semibold text-foreground">Owner:</span>{" "}
             {owner}
           </p>
           {payload.scoring_mode === "WEIGHTED" ? (
-            <p className="text-xs text-muted-foreground">
+            <p className="order-5 w-full text-xs text-muted-foreground sm:order-none sm:w-auto">
               <span className="font-semibold text-foreground">Total :</span>{" "}
               100pts
             </p>
