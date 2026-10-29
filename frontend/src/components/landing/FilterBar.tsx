@@ -284,19 +284,23 @@ function FilterSheet({
         role="dialog"
         aria-modal="true"
         aria-label="Filters"
-        className="absolute inset-x-0 bottom-0 flex max-h-[85vh] flex-col overflow-hidden rounded-t-xl bg-white p-4 shadow-lg ring-1 ring-foreground/10"
+        className="absolute inset-x-0 bottom-0 flex max-h-[85vh] flex-col overflow-hidden rounded-t-xl bg-white shadow-lg ring-1 ring-foreground/10"
       >
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          onClick={onClose}
-          className="absolute top-1 right-1 size-11"
-          aria-label="Close filters"
-        >
-          <X />
-        </Button>
-        <div className="flex flex-col gap-4 overflow-y-auto pr-12">{children}</div>
+        <div className="flex shrink-0 justify-end p-1">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            onClick={onClose}
+            className="size-11"
+            aria-label="Close filters"
+          >
+            <X />
+          </Button>
+        </div>
+        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pb-4">
+          {children}
+        </div>
       </div>
     </div>,
     document.body,
