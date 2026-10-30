@@ -113,7 +113,7 @@ const MainLayout = () => {
             </Button>
             <h1
               title={title}
-              className="pointer-events-none min-w-0 truncate text-sm font-semibold text-foreground md:text-base"
+              className="pointer-events-none min-w-0 truncate text-[11px] font-semibold text-foreground sm:text-sm md:text-base"
             >
               {title}
             </h1>

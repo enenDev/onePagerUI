@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LayoutGrid, MapPin, Store, FileInput } from "lucide-react";
+import { ChevronLeft, FileInput, LayoutGrid, MapPin, Store } from "lucide-react";
 
 import { ImportFromNationalPicker } from "@/components/landing/ImportFromNationalPicker";
 import {
@@ -118,32 +118,51 @@ export function CreateOnePagerModal({
           {step === "type" ? (
             <DialogTitle>Create New One-Pager</DialogTitle>
           ) : (
-            <DialogTitle className="flex flex-wrap items-center gap-1.5 text-base font-semibold">
-              <button
-                type="button"
-                className="cursor-pointer text-primary underline-offset-2 hover:underline"
-                onClick={() => setStep("type")}
-              >
-                Create New One-Pager
-              </button>
-              <span className="text-muted-foreground">&gt;</span>
-              {step === "import" ? (
-                <>
-                  <button
-                    type="button"
-                    className="cursor-pointer text-primary underline-offset-2 hover:underline"
-                    onClick={() => setStep("retailer")}
-                  >
-                    Retailer One Pager
-                  </button>
-                  <span className="text-muted-foreground">&gt;</span>
-                  <span className="text-foreground">
-                    Import from National One Pager
-                  </span>
-                </>
-              ) : (
-                <span className="text-foreground">Retailer One Pager</span>
-              )}
+            <DialogTitle className="text-base font-semibold">
+              <span className="flex min-w-0 items-center gap-1 sm:hidden">
+                <button
+                  type="button"
+                  className="inline-flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-md text-primary hover:bg-accent"
+                  aria-label="Back"
+                  onClick={() =>
+                    setStep(step === "import" ? "retailer" : "type")
+                  }
+                >
+                  <ChevronLeft className="size-5" />
+                </button>
+                <span className="min-w-0 truncate">
+                  {step === "import"
+                    ? "Import from National"
+                    : "Retailer One Pager"}
+                </span>
+              </span>
+              <span className="hidden flex-wrap items-center gap-1.5 sm:flex">
+                <button
+                  type="button"
+                  className="cursor-pointer text-primary underline-offset-2 hover:underline"
+                  onClick={() => setStep("type")}
+                >
+                  Create New One-Pager
+                </button>
+                <span className="text-muted-foreground">&gt;</span>
+                {step === "import" ? (
+                  <>
+                    <button
+                      type="button"
+                      className="cursor-pointer text-primary underline-offset-2 hover:underline"
+                      onClick={() => setStep("retailer")}
+                    >
+                      Retailer One Pager
+                    </button>
+                    <span className="text-muted-foreground">&gt;</span>
+                    <span className="text-foreground">
+                      Import from National One Pager
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-foreground">Retailer One Pager</span>
+                )}
+              </span>
             </DialogTitle>
           )}
         </DialogHeader>

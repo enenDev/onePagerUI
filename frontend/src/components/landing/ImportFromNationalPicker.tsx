@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { X } from "lucide-react";
+import { Filter, X } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -290,7 +290,7 @@ export function ImportFromNationalPicker({
         </button>
       </div>
 
-      <div className="flex justify-end lg:hidden">
+      <div className="flex justify-end max-sm:hidden lg:hidden">
         <Button
           type="button"
           variant="outline"
@@ -299,7 +299,8 @@ export function ImportFromNationalPicker({
         >
           {appliedCount > 0 ? `Filters (${appliedCount})` : "Filters"}
         </Button>
-        <ImportFilterSheet open={sheetOpen} onClose={() => setSheetOpen(false)}>
+      </div>
+      <ImportFilterSheet open={sheetOpen} onClose={() => setSheetOpen(false)}>
           <h2 className="text-base font-semibold text-foreground">Filters</h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {filterControls(true)}
@@ -315,13 +316,33 @@ export function ImportFromNationalPicker({
             </Button>
           </div>
         </ImportFilterSheet>
-      </div>
 
       <div className="flex min-h-0 flex-1 flex-col gap-2">
-        <Label className="text-sm font-medium text-foreground">
-          Select to Import National One-Pager{" "}
-          <span className="text-destructive">*</span>
-        </Label>
+        <div className="flex items-center justify-between gap-3">
+          <Label className="min-w-0 text-sm font-medium text-foreground">
+            Select to Import National One-Pager{" "}
+            <span className="text-destructive">*</span>
+          </Label>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setSheetOpen(true)}
+            aria-label={
+              appliedCount > 0 ? `Filters (${appliedCount})` : "Filters"
+            }
+            className="relative size-9 shrink-0 cursor-pointer rounded-lg border-primary p-0 text-primary hover:bg-accent hover:text-primary sm:hidden"
+          >
+            <Filter className="size-4" aria-hidden />
+            {appliedCount > 0 ? (
+              <span
+                aria-hidden
+                className="absolute -top-1.5 -right-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] leading-none font-semibold text-primary-foreground"
+              >
+                {appliedCount}
+              </span>
+            ) : null}
+          </Button>
+        </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto rounded-lg border border-border">
           {listLoading ? (

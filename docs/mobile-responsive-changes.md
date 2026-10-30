@@ -70,3 +70,11 @@ Each line says what changed and what to check. Phone means under 640px unless th
 - Filters sits on the My / All row on a phone, check the filter icon is on the left of the label. From 640px the Filters button is on its own row. From 1024px the full filter row is back.
 - Export and Create New float at the bottom right on a phone, check icons only, Export shows 10 or 1/10, and the last card can scroll clear of them. From 640px both buttons are labeled and sit on the My / All row.
 - One-pager details use the width on a phone, open View or Track and check Active, the published date, and the owner start on the left, More Options stays on the right, and each field is one row with the value on the right. From 640px the fields are one divided row again and More Options, the badge, the date, and the owner stay on the right.
+
+## Phone title, import header, touch search, and Home filter count
+
+- One-pager title is 11px on a phone, open View, Track, Preview, or Edit and check a long title fits more of the name. The bar height is unchanged. From 640px the title is 14px, and from 768px it is 16px.
+- Create popup uses a back arrow on a phone, open Create New, then Retailer, then Import and check the title is only the current step with a back arrow. Back from Import returns to Retailer. Back from Retailer returns to the type step. From 640px the full Create New > Retailer > Import trail is back.
+- Import filters are an icon on a phone, check the icon sits on the same line as Select to Import National One-Pager. A number badge appears when a filter is selected. From 640px to 1024px the Filters text button is back. From 1024px the full filter row is back.
+- Search stays unfocused on a touch screen, open any filter dropdown with a finger and check the keyboard stays closed until you tap search. A mouse or trackpad still focuses search, at any width.
+- Home filter count waits for Submit, pick a filter and close the sheet and check the button still says Filters. Press Submit and check it becomes Filters (1). Clear all removes the number. A reload keeps the last submitted count. Import still updates its count as you pick, because that list filters immediately.

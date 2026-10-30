@@ -17,6 +17,7 @@ import { unionMarketScopedOptions } from "@/services/metadataApi";
 import { getYearOptions } from "@/lib/years";
 import {
   clearPersistedFilters,
+  loadPersistedFilters,
   savePersistedFilters,
 } from "@/lib/homeFilterStorage";
 import type {
@@ -93,6 +94,10 @@ function FilterControl({
   );
 }
 
+function countFilledFilters(filters: Record<FilterKey, string[]>): number {
+  return FILTER_FIELDS.filter((field) => filters[field.key].length > 0).length;
+}
+
 function optionsFor(
   key: FilterKey,
   metadata: FilterMetadata | null,
@@ -114,9 +119,11 @@ export function FilterBar() {
   const { filters, listLoading } = useAppSelector((state) => state.landing);
 
   const [sheetOpen, setSheetOpen] = useState(false);
-  const appliedCount = FILTER_FIELDS.filter(
-    (field) => filters[field.key].length > 0,
-  ).length;
+  // Count only filters already sent to the list. Picking values updates the
+  // dropdowns immediately, and the badge waits for Submit or Clear all.
+  const [appliedCount, setAppliedCount] = useState(() =>
+    countFilledFilters(loadPersistedFilters() ?? createEmptyFilters()),
+  );
 
   useEffect(() => {
     const media = window.matchMedia("(min-width: 1024px)");
@@ -139,6 +146,7 @@ export function FilterBar() {
     // Redux filters state, OnePagerListItem[] response.
     // Persist the applied filters so they survive reload / return to Home.
     savePersistedFilters(filters);
+    setAppliedCount(countFilledFilters(filters));
     void dispatch(fetchOnePagers(filters));
   };
 
@@ -152,6 +160,7 @@ export function FilterBar() {
     // and that all five filter keys reset together.
     // Drop the persisted selection so a reload starts clean too.
     clearPersistedFilters();
+    setAppliedCount(0);
     dispatch(clearFilters());
     void dispatch(fetchOnePagers(createEmptyFilters()));
   };
