@@ -1,6 +1,17 @@
 @import "tailwindcss";
 
 @custom-variant dark (&:is(.dark *));
+/* Phone on its side: wide enough for the detail rows, too short for a stacked meta column. */
+@custom-variant land (@media (min-width: 640px) and (max-width: 1023px) and (max-height: 500px));
+/* Side-by-side details: desktop, or a screen that is both 640px wide and tall enough. */
+@custom-variant wide {
+  @media (min-width: 1024px) {
+    @slot;
+  }
+  @media (min-width: 640px) and (min-height: 501px) {
+    @slot;
+  }
+}
 
 /* Not @theme inline — that skips emitting --font-sans on :root, so Preflight stays on Segoe UI. */
 @theme {

@@ -36,7 +36,7 @@ function HeaderBrand() {
       <img
         src={perfectStoreLogo}
         alt=""
-        className="h-5 w-auto max-w-[6.5rem] object-contain sm:h-28 sm:w-28 sm:max-w-none"
+        className="h-5 w-auto max-w-[5rem] object-contain sm:h-28 sm:w-28 sm:max-w-none"
       />
       <HeaderDivider />
       {/* TODO: Swap /logo-secondary.svg for the real second brand logo asset. */}
@@ -76,7 +76,7 @@ export function AppHeader() {
 
   return (
     <header className="sticky top-0 z-40 w-full overflow-hidden bg-primary">
-      <PageContainer className="relative flex h-14 items-center justify-between gap-2 sm:gap-4">
+      <PageContainer className="relative flex h-14 items-center justify-between gap-3 sm:gap-4">
         <div className="flex min-w-0 items-center gap-2">
           {isAnalystOnly ? (
             <div className="flex h-14 shrink-0 items-center gap-1.5 sm:gap-2">
@@ -92,8 +92,9 @@ export function AppHeader() {
             </Link>
           )}
           <HeaderDivider className="hidden sm:block" />
-          {/* Phone header title. Uncomment once the copy is agreed. */}
-          {/* <p className="mt-[5px] min-w-0 truncate font-semibold text-[#ffffff] text-[14px] tracking-[0.2px] sm:hidden">CATEGORY ONE-PAGER APP</p> */}
+          <p className="min-w-0 translate-y-1 truncate pr-1 text-[10px] font-semibold leading-[18px] tracking-[0.2px] text-[#ffffff] sm:hidden">
+            CATEGORY ONE-PAGER APP
+          </p>
           <p className="mt-[5px] hidden min-w-0 truncate font-semibold text-[#ffffff] text-[14px] tracking-[0.2px] sm:block">
             {headerTitle}
           </p>

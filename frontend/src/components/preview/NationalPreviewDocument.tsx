@@ -134,7 +134,7 @@ export function NationalPreviewDocument({
   const showEdit = canModify && (status === "PUBLISHED" || status === "DRAFT");
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col-reverse gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+      <div className="flex flex-col-reverse gap-4 wide:flex-row wide:items-start wide:justify-between wide:gap-6">
         <div className="min-w-0 flex-1">
           <dl className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:gap-y-2 sm:divide-x sm:divide-border">
             {payload.target_retailer ? (
@@ -159,7 +159,7 @@ export function NationalPreviewDocument({
           />
         </div>
 
-        <div className="flex w-full shrink-0 flex-wrap items-center gap-x-3 gap-y-1 text-left sm:w-auto sm:flex-col sm:flex-nowrap sm:items-end sm:gap-1 sm:text-right">
+        <div className="flex w-full shrink-0 flex-wrap items-center gap-x-3 gap-y-1 text-left land:flex-nowrap land:flex-row-reverse land:justify-start land:text-right wide:w-auto wide:flex-col wide:flex-nowrap wide:items-end wide:gap-1 wide:text-right">
           <div className="order-2 ml-auto sm:order-none sm:ml-0">
           {moreOptionsEnabled ? (
             <DropdownMenu>
@@ -334,7 +334,7 @@ export function NationalPreviewDocument({
 
           <Badge
             className={cn(
-              "order-1 w-fit rounded-full px-2.5 sm:order-none sm:mt-1",
+              "order-1 w-fit rounded-full px-2.5 sm:order-none wide:mt-1",
               statusBadge.className,
             )}
           >

@@ -369,13 +369,16 @@ export function ImportFromNationalPicker({
                       )}
                       onClick={() => setSelectedId(item.pager_id)}
                     >
-                      <span className="min-w-0 truncate text-sm text-foreground">
+                      <span
+                        title={item.title}
+                        className="min-w-0 flex-1 overflow-x-auto text-sm whitespace-nowrap text-foreground sm:overflow-hidden sm:text-ellipsis"
+                      >
                         {item.title}
                       </span>
                       <Badge
                         variant="secondary"
                         className={cn(
-                          "rounded-full hover:bg-inherit",
+                          "shrink-0 rounded-full hover:bg-inherit",
                           statusBadgeClass(item.status),
                         )}
                       >

@@ -78,3 +78,9 @@ Each line says what changed and what to check. Phone means under 640px unless th
 - Import filters are an icon on a phone, check the icon sits on the same line as Select to Import National One-Pager. A number badge appears when a filter is selected. From 640px to 1024px the Filters text button is back. From 1024px the full filter row is back.
 - Search stays unfocused on a touch screen, open any filter dropdown with a finger and check the keyboard stays closed until you tap search. A mouse or trackpad still focuses search, at any width.
 - Home filter count waits for Submit, pick a filter and close the sheet and check the button still says Filters. Press Submit and check it becomes Filters (1). Clear all removes the number. A reload keeps the last submitted count. Import still updates its count as you pick, because that list filters immediately.
+
+## Phone header, import names, and landscape details
+
+- Phone header shows CATEGORY ONE-PAGER APP at 10px, check it lines up with the two logos, the tops of the letters are complete, and it does not touch the profile. From 640px the 14px title and the larger logos are back.
+- Import names scroll sideways on a phone, open Create New, then Retailer, then Import and check a long name stays on one line and can be swiped. The status badge stays on the right. From 640px the name is cut with an ellipsis again.
+- Landscape details sit on one line, turn a phone sideways (about 874 by 402) and open View or Track. Check More Options is at the right, then the status badge, then Published, then Owner. The fields stay in a row under that line. A portrait phone still stacks the date and the owner. A taller screen, and from 1024px, that block stays in a column on the right.
