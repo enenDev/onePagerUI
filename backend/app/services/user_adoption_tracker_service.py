@@ -9,6 +9,7 @@ from app.repositories.user_adoption_tracker_repository import (
 )
 from app.schemas.dashboard_schema import (
     AdoptionResponse,
+    CoverageResponse,
     DashboardFilterRequest,
     DateRange,
     EngagementResponse,
@@ -71,6 +72,14 @@ class UserAdoptionTrackerService:
         repo = user_adoption_tracker_repository
         return await run_in_threadpool(
             repo.get_adoption_metrics, db, c_start, c_end, p_start, p_end, payload.markets
+        )
+
+    async def get_coverage(self, db: Session, payload: DashboardFilterRequest) -> CoverageResponse:
+        """Current period only. The previous period is accepted and ignored."""
+        c_start, c_end = self.parse_date_range(payload.current)
+        repo = user_adoption_tracker_repository
+        return await run_in_threadpool(
+            repo.get_coverage_metrics, db, c_start, c_end, payload.markets
         )
 
 

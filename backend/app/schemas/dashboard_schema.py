@@ -106,3 +106,38 @@ class AdoptionResponse(BaseModel):
     adopted_users_growth_rate: RateWithRoles
     draft_to_publish: RateWithRoles
     total_one_pagers_published: CountWithRoles
+
+
+# ---------------------------------------------------------------------------
+# API 5: Coverage grid
+# ---------------------------------------------------------------------------
+
+class CoverageChannelGroup(BaseModel):
+    channel: str
+    rows: List[str] = Field(default_factory=list)
+
+
+class CoverageBusinessGroup(BaseModel):
+    business_group: str
+    categories: List[str] = Field(default_factory=list)
+
+
+class CoverageFilledCell(BaseModel):
+    channel: str
+    row: str
+    business_group: str
+    category: str
+
+
+class CoverageMarketBlock(BaseModel):
+    market: str
+    channels: List[CoverageChannelGroup] = Field(default_factory=list)
+    business_groups: List[CoverageBusinessGroup] = Field(default_factory=list)
+    filled_cells: List[CoverageFilledCell] = Field(default_factory=list)
+    filled: int = 0
+    possible: int = 0
+    unmapped_count: int = 0
+
+
+class CoverageResponse(BaseModel):
+    by_market: List[CoverageMarketBlock] = Field(default_factory=list)

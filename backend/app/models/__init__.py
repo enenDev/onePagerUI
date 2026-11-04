@@ -8,6 +8,7 @@ from app.models.pager_log import PagerLog
 from app.models.action_log import ActionLog
 from app.models.login_log import LoginLog
 from app.models.user_details import UserDetails
+from app.models.coverage_mapping import CoverageMapping
 __all__ = [
     "Pager",
     "Pillar",
@@ -19,4 +20,5 @@ __all__ = [
     "ActionLog",
     "LoginLog",
     "UserDetails",
+    "CoverageMapping",
 ]

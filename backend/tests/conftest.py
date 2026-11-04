@@ -7,7 +7,10 @@ import os
 
 TEST_DATABASE_URL = "sqlite:///:memory:"
 os.environ["DATABASE_URL"] = TEST_DATABASE_URL
+os.environ["APP_DATABASE_URL"] = TEST_DATABASE_URL
 os.environ["TESTING"] = "1"
+# Auth reads this at import. Tests override the token check and do not call Firebase.
+os.environ.setdefault("FIREBASE_PROJECT_ID", "test-project")
 
 import pytest
 from fastapi.testclient import TestClient

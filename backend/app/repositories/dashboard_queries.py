@@ -815,3 +815,62 @@ def build_adoption_kpi_query(
         ) pb_tot
     """
     return sql.strip(), params
+
+
+# ===========================================================================
+# 5. API 5: COVERAGE GRID QUERIES
+# ===========================================================================
+def build_coverage_published_pagers_query(
+    start_date: datetime,
+    end_date: datetime,
+    markets: List[str],
+) -> Tuple[str, Dict[str, Any]]:
+    """
+    Published pager rows for the coverage grid (/api/v1/dashboard/coverage).
+
+    Same publish rule as the Adoption card: status PUBLISHED, published_at set,
+    and published_at inside the selected period. One row per pager. The grid
+    reads the current pager row, not pager_log.
+    """
+    placeholders, params = _build_market_in_clause(markets, prefix="cov_m")
+    market_clause = f"\n          AND market IN ({placeholders})" if placeholders else ""
+    params["start_date"] = start_date
+    params["end_date"] = end_date
+
+    sql = f"""
+        SELECT
+            market,
+            pager_type,
+            channel,
+            retailer,
+            business_group,
+            category
+        FROM pager
+        WHERE UPPER(status) = 'PUBLISHED'
+          AND published_at IS NOT NULL
+          AND published_at BETWEEN :start_date AND :end_date{market_clause}
+    """
+    return sql.strip(), params
+
+
+def build_coverage_mapping_query(
+    markets: List[str],
+) -> Tuple[str, Dict[str, Any]]:
+    """
+    Channel→retailer and business group→category rows for the same markets.
+    sort_order is the file order from the seed, so the grid can keep that order.
+    """
+    placeholders, params = _build_market_in_clause(markets, prefix="map_m")
+    market_clause = f"\n        WHERE market IN ({placeholders})" if placeholders else ""
+
+    sql = f"""
+        SELECT
+            market,
+            parent_type,
+            parent_value,
+            child_value,
+            sort_order
+        FROM coverage_mapping{market_clause}
+        ORDER BY market, parent_type, sort_order
+    """
+    return sql.strip(), params

@@ -50,6 +50,7 @@ from app.schemas.dashboard_schema import (
     OnboardingResponse,
     EngagementResponse,
     AdoptionResponse,
+    CoverageResponse,
 )
 from app.services.user_adoption_tracker_service import user_adoption_tracker_service
 from app.services.user_tracking_service import user_tracking_service
@@ -584,3 +585,20 @@ async def get_dashboard_adoption(
     - Total one-pagers published (total & by role)
     """
     return await user_adoption_tracker_service.get_adoption(db, payload)
+
+
+@router.post(
+    "/dashboard/coverage",
+    response_model=CoverageResponse,
+    summary="Published one-pager coverage grid",
+    tags=["Dashboard"],
+)
+async def get_dashboard_coverage(
+    payload: DashboardFilterRequest,
+    db: Session = Depends(get_db),
+):
+    """
+    One block per market for the current period.
+    The previous period is accepted and ignored.
+    """
+    return await user_adoption_tracker_service.get_coverage(db, payload)

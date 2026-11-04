@@ -18,10 +18,13 @@ from app.repositories.dashboard_queries import (
     build_engagement_kpi_query,
     build_adoption_market_query,
     build_adoption_kpi_query,
+    build_coverage_published_pagers_query,
+    build_coverage_mapping_query,
 )
 from app.schemas.dashboard_schema import (
     AdoptionResponse,
     CountWithRoles,
+    CoverageResponse,
     EngagementResponse,
     FunnelResponse,
     MarketRateItem,
@@ -30,6 +33,145 @@ from app.schemas.dashboard_schema import (
 )
 
 logger = logging.getLogger(__name__)
+
+NATIONAL_ROW = "National"
+_NATIONAL_TYPE = "national"
+_RETAILER_TYPE = "retailer"
+
+
+def _cell_text(value: Any) -> str:
+    if value is None:
+        return ""
+    return str(value).strip()
+
+
+def match_coverage_grid(
+    pager_rows: List[Any],
+    mapping_rows: List[Any],
+) -> List[Dict[str, Any]]:
+    """
+    Build one coverage block per market.
+
+    Mapping rows draw the empty grid. A published pager fills one cell, and a
+    second pager on that same cell does not increase the count. A pager that
+    fits no cell is counted in unmapped_count.
+    """
+    markets: Dict[str, Dict[str, Any]] = {}
+
+    def block_for(market: str) -> Dict[str, Any]:
+        block = markets.get(market)
+        if block is None:
+            block = {
+                "channel_order": [],
+                "retailers": {},
+                "retailer_sets": {},
+                "group_order": [],
+                "categories": {},
+                "category_pairs": set(),
+            }
+            markets[market] = block
+        return block
+
+    for row in mapping_rows:
+        market = _cell_text(row["market"])
+        parent_type = _cell_text(row["parent_type"])
+        parent_value = _cell_text(row["parent_value"])
+        child_value = _cell_text(row["child_value"])
+        if not market or not parent_value or not child_value:
+            continue
+        block = block_for(market)
+        if parent_type == "channel":
+            retailers = block["retailers"].setdefault(parent_value, [])
+            retailer_set = block["retailer_sets"].setdefault(parent_value, set())
+            if parent_value not in block["channel_order"]:
+                block["channel_order"].append(parent_value)
+            if child_value not in retailer_set:
+                retailer_set.add(child_value)
+                retailers.append(child_value)
+        elif parent_type == "business_group":
+            categories = block["categories"].setdefault(parent_value, [])
+            if parent_value not in block["group_order"]:
+                block["group_order"].append(parent_value)
+            pair = (parent_value, child_value)
+            if pair not in block["category_pairs"]:
+                block["category_pairs"].add(pair)
+                categories.append(child_value)
+
+    filled_by_market: Dict[str, set] = {market: set() for market in markets}
+    unmapped_by_market: Dict[str, int] = {market: 0 for market in markets}
+
+    for row in pager_rows:
+        market = _cell_text(row["market"])
+        if market not in markets:
+            block_for(market)
+            filled_by_market[market] = set()
+            unmapped_by_market[market] = 0
+        block = markets[market]
+        pager_type = _cell_text(row["pager_type"]).lower()
+        channel = _cell_text(row["channel"])
+        retailer = _cell_text(row["retailer"])
+        business_group = _cell_text(row["business_group"])
+        category = _cell_text(row["category"])
+        pair = (business_group, category)
+        cell = None
+        if channel in block["retailers"] and pair in block["category_pairs"]:
+            if pager_type == _NATIONAL_TYPE:
+                cell = (channel, NATIONAL_ROW, business_group, category)
+            elif (
+                pager_type == _RETAILER_TYPE
+                and retailer in block["retailer_sets"].get(channel, ())
+            ):
+                cell = (channel, retailer, business_group, category)
+        if cell is None:
+            unmapped_by_market[market] += 1
+        else:
+            filled_by_market[market].add(cell)
+
+    blocks: List[Dict[str, Any]] = []
+    for market, block in markets.items():
+        channels = []
+        row_count = 0
+        for channel in block["channel_order"]:
+            rows = [NATIONAL_ROW, *block["retailers"][channel]]
+            row_count += len(rows)
+            channels.append({"channel": channel, "rows": rows})
+
+        business_groups = []
+        category_order = []
+        for group in block["group_order"]:
+            categories = block["categories"][group]
+            business_groups.append(
+                {"business_group": group, "categories": categories}
+            )
+            category_order.extend((group, category) for category in categories)
+
+        filled_set = filled_by_market.get(market, set())
+        filled_cells = []
+        for channel in block["channel_order"]:
+            for row_name in (NATIONAL_ROW, *block["retailers"][channel]):
+                for group, category in category_order:
+                    if (channel, row_name, group, category) in filled_set:
+                        filled_cells.append(
+                            {
+                                "channel": channel,
+                                "row": row_name,
+                                "business_group": group,
+                                "category": category,
+                            }
+                        )
+
+        blocks.append(
+            {
+                "market": market,
+                "channels": channels,
+                "business_groups": business_groups,
+                "filled_cells": filled_cells,
+                "filled": len(filled_set),
+                "possible": row_count * len(category_order),
+                "unmapped_count": unmapped_by_market.get(market, 0),
+            }
+        )
+    return blocks
 
 
 class UserAdoptionTrackerRepository:
@@ -290,6 +432,25 @@ class UserAdoptionTrackerRepository:
             draft_to_publish=RateWithRoles(total=dtp_total, by_role=dtp_by_role),
             total_one_pagers_published=CountWithRoles(total=pub_total, by_role=pub_by_role),
         )
+
+    def get_coverage_metrics(
+        self,
+        db: Session,
+        start: datetime,
+        end: datetime,
+        markets: List[str],
+    ) -> CoverageResponse:
+        """
+        Coverage grid for the selected markets and current period.
+        Previous period is not used. One block per market.
+        """
+        pager_sql, pager_params = build_coverage_published_pagers_query(start, end, markets)
+        pager_rows = self._execute_sql(db, "Coverage Published Pagers", pager_sql, pager_params)
+
+        mapping_sql, mapping_params = build_coverage_mapping_query(markets)
+        mapping_rows = self._execute_sql(db, "Coverage Mapping", mapping_sql, mapping_params)
+
+        return CoverageResponse(by_market=match_coverage_grid(pager_rows, mapping_rows))
 
 
 user_adoption_tracker_repository = UserAdoptionTrackerRepository()

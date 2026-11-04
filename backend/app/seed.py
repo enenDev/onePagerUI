@@ -3,13 +3,22 @@ Seed script for development data.
 
 Creates:
 - Metadata rows (market/retailer/channel/category/campaign combinations)
+- Coverage mapping rows (channel → retailer, business group → category)
 """
+
+import json
+from pathlib import Path
 
 from sqlalchemy.orm import Session
 from sqlalchemy import select, func
 from app.models.metadata import Metadata
 from app.models.metadata_item import MetadataItem
+from app.models.coverage_mapping import CoverageMapping
 from app.db import SessionLocal  # assumes you have a db.py with SessionLocal
+
+COVERAGE_MAPPING_PATH = Path(__file__).with_name("data") / "coverage_mapping.json"
+CHANNEL_PARENT = "channel"
+BUSINESS_GROUP_PARENT = "business_group"
 
 METADATA_ROWS = [
     {
@@ -400,12 +409,85 @@ def seed_metadata_items(db: Session) -> None:
     print(f"  + Seeded {inserted_count} metadata_item rows")
 
 
+def _coverage_rows(market: str, grouped: dict, parent_type: str) -> list[tuple]:
+    """One tuple per child, in file order. sort_order keeps parent order too."""
+    rows = []
+    sort_order = 0
+    for parent_value, children in grouped.items():
+        for child_value in children:
+            rows.append((market, parent_type, parent_value, child_value, sort_order))
+            sort_order += 1
+    return rows
+
+
+def seed_coverage_mapping(db: Session) -> None:
+    """
+    Load channel→retailer and business group→category rows from
+    app/data/coverage_mapping.json. Re-runs update sort order and insert
+    new children. Rows for these markets that are no longer in the file
+    are removed. Other markets are left as they are.
+    """
+    payload = json.loads(COVERAGE_MAPPING_PATH.read_text(encoding="utf-8"))
+    markets = payload.get("markets") or {}
+
+    desired: dict[tuple, int] = {}
+    for market, body in markets.items():
+        for row in _coverage_rows(market, body.get("channels") or {}, CHANNEL_PARENT):
+            desired[row[:4]] = row[4]
+        for row in _coverage_rows(
+            market, body.get("businessGroups") or {}, BUSINESS_GROUP_PARENT
+        ):
+            desired[row[:4]] = row[4]
+
+    existing = (
+        db.query(CoverageMapping)
+        .filter(CoverageMapping.market.in_(list(markets)))
+        .all()
+        if markets
+        else []
+    )
+    seen = set()
+    inserted_count = 0
+    removed_count = 0
+
+    for row in existing:
+        key = (row.market, row.parent_type, row.parent_value, row.child_value)
+        if key not in desired:
+            db.delete(row)
+            removed_count += 1
+            continue
+        row.sort_order = desired[key]
+        seen.add(key)
+
+    for key, sort_order in desired.items():
+        if key in seen:
+            continue
+        market, parent_type, parent_value, child_value = key
+        db.add(
+            CoverageMapping(
+                market=market,
+                parent_type=parent_type,
+                parent_value=parent_value,
+                child_value=child_value,
+                sort_order=sort_order,
+            )
+        )
+        inserted_count += 1
+
+    db.flush()
+    print(
+        f"  + Coverage mapping: {inserted_count} inserted, "
+        f"{len(seen)} updated, {removed_count} removed"
+    )
+
+
 def run_seed() -> None:
     print("Running seed data...")
     db = SessionLocal()
     try:
         seed_metadata(db)
         seed_metadata_items(db)
+        seed_coverage_mapping(db)
         db.commit()
         print("Seed complete.")
     except Exception as e:

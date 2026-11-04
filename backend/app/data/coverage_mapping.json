@@ -1,0 +1,197 @@
+{
+  "markets": {
+    "US": {
+      "channels": {
+        "Grocery": [
+          "Kroger",
+          "Giant Eagle",
+          "Wegmans",
+          "Wakefern",
+          "Meijer",
+          "ADUSA (Ahold + Delhaize)",
+          "Publix",
+          "Albertsons"
+        ],
+        "Drugs": [
+          "Walgreens",
+          "CVS"
+        ],
+        "Mass": [
+          "Target",
+          "Walmart"
+        ],
+        "Value": [
+          "Dollar General",
+          "Dollar Tree",
+          "Family Dollar"
+        ],
+        "Club": [
+          "Sam's Club",
+          "Costco",
+          "BJs Wholesale"
+        ],
+        "Dcomm": [
+          "Amazon"
+        ],
+        "National": [
+          "All Channels"
+        ]
+      },
+      "businessGroups": {
+        "Beauty & Wellbeing": [
+          "Hair Care",
+          "Skin Care"
+        ],
+        "Personal Care": [
+          "Skin Cleansing",
+          "Deodorants"
+        ],
+        "Home Care": [
+          "Laundry",
+          "Cleaners",
+          "Dish"
+        ],
+        "Foods": [
+          "Savoury",
+          "Meal Makers",
+          "Condiments",
+          "Broth / Bouillon"
+        ]
+      }
+    },
+    "Turkey": {
+      "channels": {
+        "National Account": [
+          "Migros"
+        ],
+        "Discounter": [
+          "BIM",
+          "A101",
+          "SOK"
+        ],
+        "H&B": [
+          "Watsons",
+          "Gratis"
+        ]
+      },
+      "businessGroups": {
+        "Home Care": [
+          "Fabclean",
+          "FabEnh",
+          "Surface Cleaners",
+          "T&B"
+        ],
+        "Beauty & Wellbeing": [
+          "Hair",
+          "Hand & Body"
+        ],
+        "Personal Care": [
+          "Deo",
+          "Oral",
+          "SCL"
+        ],
+        "Foods": [
+          "Ketchup",
+          "Mayonnaise",
+          "CMS",
+          "SOUP",
+          "BOUILLION"
+        ]
+      }
+    },
+    "Belgium": {
+      "channels": {
+        "Supermarket": [
+          "Carrefour",
+          "Delhaize",
+          "Intermarché",
+          "Spar"
+        ],
+        "Soft discount": [
+          "Colruyt"
+        ],
+        "Drugstore": [
+          "Kruidvat"
+        ]
+      },
+      "businessGroups": {
+        "Foods": [
+          "Bouillon",
+          "Beverages ( Lipton )"
+        ],
+        "Personal Care": [
+          "Deodorant",
+          "Oral Care",
+          "Shower"
+        ]
+      }
+    },
+    "Netherlands": {
+      "channels": {
+        "Supermarket": [
+          "Albert Heijn",
+          "Jumbo",
+          "Plus",
+          "Dirk",
+          "Hoogvliet",
+          "Nettorama",
+          "Deka Markt",
+          "Spar",
+          "Vomar",
+          "Boon",
+          "Poiesz"
+        ],
+        "Drug": [
+          "AS Watson",
+          "Kruidvat",
+          "Etos"
+        ],
+        "Value": [
+          "Aldi",
+          "Lidl"
+        ],
+        "Ecommerce pureplay": [
+          "Bol"
+        ],
+        "Supermarket eCom": [
+          "Albert Heijn eCom",
+          "Jumbo eCom",
+          "Plus eCom",
+          "Picnic"
+        ],
+        "E-Commerce": [
+          "Amazon"
+        ]
+      },
+      "businessGroups": {
+        "Home Care": [
+          "Cleaners",
+          "Dish",
+          "Home Care",
+          "Laundry"
+        ],
+        "Foods": [
+          "Condiments",
+          "Dressings & Spreads",
+          "Meal Makers",
+          "Savoury",
+          "Cooking Aids",
+          "Breakfast",
+          "Mini Meals",
+          "Softdrinks",
+          "Ready to drink Tea",
+          "Kombucha"
+        ],
+        "Personal Care": [
+          "Deodorants",
+          "Oral Care",
+          "Skin Cleansing"
+        ],
+        "Beauty & Wellbeing": [
+          "Hair Care",
+          "Skin Care"
+        ]
+      }
+    }
+  }
+}

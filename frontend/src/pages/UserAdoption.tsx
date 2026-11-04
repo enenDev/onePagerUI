@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 
 import { AdoptionFilters } from "@/components/user-adoption/AdoptionFilters";
+import { CoverageGrid } from "@/components/user-adoption/CoverageGrid";
 import { DashboardSection } from "@/components/user-adoption/DashboardSection";
 import { FunnelSummary } from "@/components/user-adoption/FunnelSummary";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DASHBOARD_TOOLTIPS } from "@/constants/dashboardTooltips";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { fetchMetadata } from "@/redux/landingSlice";
@@ -19,14 +21,17 @@ import {
 } from "@/lib/displayDate";
 import {
   emptyAdoption,
+  emptyCoverage,
   emptyEngagement,
   emptyFunnel,
   emptyOnboarding,
+  getAdoptionCoverage,
   getAdoptionDashboard,
   getAdoptionEngagement,
   getAdoptionFunnel,
   getAdoptionOnboarding,
   type AdoptionResponse,
+  type CoverageResponse,
   type DashboardFilterPayload,
   type EngagementResponse,
   type FunnelResponse,
@@ -50,13 +55,19 @@ function marketsPayload(selected: string[], available: string[]): string[] {
 }
 
 async function fetchDashboard(body: DashboardFilterPayload) {
-  const [funnelResult, onboardingResult, engagementResult, adoptionResult] =
-    await Promise.allSettled([
-      getAdoptionFunnel(body),
-      getAdoptionOnboarding(body),
-      getAdoptionEngagement(body),
-      getAdoptionDashboard(body),
-    ]);
+  const [
+    funnelResult,
+    onboardingResult,
+    engagementResult,
+    adoptionResult,
+    coverageResult,
+  ] = await Promise.allSettled([
+    getAdoptionFunnel(body),
+    getAdoptionOnboarding(body),
+    getAdoptionEngagement(body),
+    getAdoptionDashboard(body),
+    getAdoptionCoverage(body),
+  ]);
 
   return {
     funnel:
@@ -73,6 +84,10 @@ async function fetchDashboard(body: DashboardFilterPayload) {
       adoptionResult.status === "fulfilled"
         ? adoptionResult.value
         : emptyAdoption(),
+    coverage:
+      coverageResult.status === "fulfilled"
+        ? coverageResult.value
+        : emptyCoverage(),
   };
 }
 
@@ -118,6 +133,10 @@ export function UserAdoption() {
     loading: true,
     data: emptyAdoption(),
   });
+  const [coverage, setCoverage] = useState<SectionState<CoverageResponse>>({
+    loading: true,
+    data: emptyCoverage(),
+  });
 
   const applyBody = async (
     body: DashboardFilterPayload,
@@ -129,12 +148,14 @@ export function UserAdoption() {
     setOnboarding((current) => ({ ...current, loading: true }));
     setEngagement((current) => ({ ...current, loading: true }));
     setAdoption((current) => ({ ...current, loading: true }));
+    setCoverage((current) => ({ ...current, loading: true }));
     const result = await fetchDashboard(body);
     setComparedTo(growthComparisonLabel(appliedPeriod));
     setFunnel({ loading: false, data: result.funnel });
     setOnboarding({ loading: false, data: result.onboarding });
     setEngagement({ loading: false, data: result.engagement });
     setAdoption({ loading: false, data: result.adoption });
+    setCoverage({ loading: false, data: result.coverage });
     setApplying(false);
   };
   useEffect(() => {
@@ -156,6 +177,7 @@ export function UserAdoption() {
       setOnboarding({ loading: false, data: result.onboarding });
       setEngagement({ loading: false, data: result.engagement });
       setAdoption({ loading: false, data: result.adoption });
+      setCoverage({ loading: false, data: result.coverage });
     });
     return () => {
       cancelled = true;
@@ -262,7 +284,27 @@ export function UserAdoption() {
         onClear={clearFilters}
       />
 
-      <div className="mt-3">
+      <Tabs defaultValue="dashboard" className="mt-3 w-full flex-col gap-3">
+        <TabsList
+          variant="line"
+          className="h-10 w-full justify-start gap-1 border-b border-slate-200 bg-transparent"
+        >
+          <TabsTrigger
+            value="dashboard"
+            className="flex-none rounded-none px-3 pb-2 text-sm data-[state=active]:font-semibold data-[state=active]:text-[#004f9e]"
+          >
+            Dashboard
+          </TabsTrigger>
+          <TabsTrigger
+            value="coverage"
+            className="flex-none rounded-none px-3 pb-2 text-sm data-[state=active]:font-semibold data-[state=active]:text-[#004f9e]"
+          >
+            Coverage
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="dashboard">
+      <div>
         <FunnelSummary
           data={funnel.data}
           loading={funnel.loading}
@@ -376,6 +418,12 @@ export function UserAdoption() {
           ]}
         />
       </div>
+        </TabsContent>
+
+        <TabsContent value="coverage">
+          <CoverageGrid data={coverage.data} loading={coverage.loading} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

@@ -4,6 +4,7 @@ Test suite for One-Pager User Adoption Tracker Dashboard APIs:
 - POST /api/v1/dashboard/onboarding
 - POST /api/v1/dashboard/engagement
 - POST /api/v1/dashboard/adoption
+- POST /api/v1/dashboard/coverage
 """
 
 import pytest
@@ -12,6 +13,7 @@ from app.models.user_details import UserDetails
 from app.models.login_log import LoginLog
 from app.models.action_log import ActionLog
 from app.models.pager import Pager
+from app.models.coverage_mapping import CoverageMapping
 from app.utils.enums import PagerStatus, ScoringMode
 from app.utils.helpers import generate_uuid
 
@@ -344,3 +346,92 @@ def test_api_dashboard_invalid_date_ranges(client):
     }
     resp2 = client.post("/api/v1/dashboard/funnel", json=bad_payload)
     assert resp2.status_code == 400
+
+
+def _coverage_pager(**overrides):
+    values = {
+        "pager_id": generate_uuid(),
+        "title": "Coverage pager",
+        "market": "US",
+        "channel": "Grocery",
+        "business_group": "Beauty & Wellbeing",
+        "category": "Hair Care",
+        "scoring_mode": ScoringMode.UNWEIGHTED,
+        "status": PagerStatus.PUBLISHED,
+        "pager_type": "retailer",
+        "published_by": "csp_us_1@example.com",
+        "published_at": datetime(2026, 9, 15, tzinfo=timezone.utc),
+    }
+    values.update(overrides)
+    return Pager(**values)
+
+
+@pytest.fixture
+def seed_coverage_data(db):
+    """Small US map: Grocery has Kroger and Giant Eagle. Two categories."""
+    mapping = [
+        ("channel", "Grocery", "Kroger", 0),
+        ("channel", "Grocery", "Giant Eagle", 1),
+        ("business_group", "Beauty & Wellbeing", "Hair Care", 0),
+        ("business_group", "Beauty & Wellbeing", "Skin Care", 1),
+    ]
+    for parent_type, parent_value, child_value, sort_order in mapping:
+        db.add(
+            CoverageMapping(
+                market="US",
+                parent_type=parent_type,
+                parent_value=parent_value,
+                child_value=child_value,
+                sort_order=sort_order,
+            )
+        )
+
+    db.add_all(
+        [
+            _coverage_pager(pager_type="national", retailer=None, year="2026"),
+            _coverage_pager(retailer="Kroger", year="2026"),
+            _coverage_pager(retailer="Kroger", category="Skin Care", year="2026"),
+            _coverage_pager(retailer="Kroger", category="Skin Care", year="2027"),
+            _coverage_pager(
+                pager_type="national",
+                retailer=None,
+                category="Skin Care",
+                year="2026",
+                published_at=datetime(2026, 8, 15, tzinfo=timezone.utc),
+            ),
+            _coverage_pager(retailer="Walmart", year="2026"),
+        ]
+    )
+    db.commit()
+
+
+def test_api_dashboard_coverage(client, seed_coverage_data):
+    """National hit, retailer hit, blank row, two years in one cell, old date, unmapped pager."""
+    resp = client.post("/api/v1/dashboard/coverage", json=COMMON_PAYLOAD)
+    assert resp.status_code == 200
+    data = resp.json()
+
+    assert len(data["by_market"]) == 1
+    us = data["by_market"][0]
+    assert us["market"] == "US"
+    assert us["channels"] == [
+        {"channel": "Grocery", "rows": ["National", "Kroger", "Giant Eagle"]}
+    ]
+    assert us["business_groups"] == [
+        {
+            "business_group": "Beauty & Wellbeing",
+            "categories": ["Hair Care", "Skin Care"],
+        }
+    ]
+
+    filled = {(cell["row"], cell["category"]) for cell in us["filled_cells"]}
+    assert filled == {
+        ("National", "Hair Care"),
+        ("Kroger", "Hair Care"),
+        ("Kroger", "Skin Care"),
+    }
+    assert ("Giant Eagle", "Hair Care") not in filled
+    assert ("National", "Skin Care") not in filled
+    assert us["filled"] == 3
+    assert us["possible"] == 6
+    assert us["unmapped_count"] == 1

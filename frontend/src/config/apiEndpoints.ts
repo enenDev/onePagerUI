@@ -16,4 +16,5 @@ export const API_ENDPOINTS = {
   dashboardOnboarding: "api/v1/dashboard/onboarding",
   dashboardEngagement: "api/v1/dashboard/engagement",
   dashboardAdoption: "api/v1/dashboard/adoption",
+  dashboardCoverage: "api/v1/dashboard/coverage",
 } as const;

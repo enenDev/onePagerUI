@@ -52,6 +52,37 @@ export type AdoptionResponse = {
   total_one_pagers_published: MetricValue;
 };
 
+export type CoverageChannelGroup = {
+  channel: string;
+  rows: string[];
+};
+
+export type CoverageBusinessGroup = {
+  business_group: string;
+  categories: string[];
+};
+
+export type CoverageFilledCell = {
+  channel: string;
+  row: string;
+  business_group: string;
+  category: string;
+};
+
+export type CoverageMarketBlock = {
+  market: string;
+  channels: CoverageChannelGroup[];
+  business_groups: CoverageBusinessGroup[];
+  filled_cells: CoverageFilledCell[];
+  filled: number;
+  possible: number;
+  unmapped_count: number;
+};
+
+export type CoverageResponse = {
+  by_market: CoverageMarketBlock[];
+};
+
 function asRecord(value: unknown): Record<string, unknown> | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   return value as Record<string, unknown>;
@@ -131,6 +162,76 @@ export function emptyAdoption(): AdoptionResponse {
     draft_to_publish: asMetric(null, RATE_ROLES),
     total_one_pagers_published: asMetric(null, RATE_ROLES),
   };
+}
+
+function asText(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function asTextList(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.map(asText).filter(Boolean);
+}
+
+function asCount(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+function asCoverage(data: unknown): CoverageResponse {
+  const record = asRecord(data);
+  const blocks = Array.isArray(record?.by_market) ? record.by_market : [];
+  const by_market: CoverageMarketBlock[] = [];
+  for (const item of blocks) {
+    const marketRecord = asRecord(item);
+    const market = asText(marketRecord?.market);
+    if (!market) continue;
+    const channels: CoverageChannelGroup[] = [];
+    if (Array.isArray(marketRecord?.channels)) {
+      for (const channelItem of marketRecord.channels) {
+        const channelRecord = asRecord(channelItem);
+        const channel = asText(channelRecord?.channel);
+        const rows = asTextList(channelRecord?.rows);
+        if (!channel || rows.length === 0) continue;
+        channels.push({ channel, rows });
+      }
+    }
+    const business_groups: CoverageBusinessGroup[] = [];
+    if (Array.isArray(marketRecord?.business_groups)) {
+      for (const groupItem of marketRecord.business_groups) {
+        const groupRecord = asRecord(groupItem);
+        const business_group = asText(groupRecord?.business_group);
+        const categories = asTextList(groupRecord?.categories);
+        if (!business_group || categories.length === 0) continue;
+        business_groups.push({ business_group, categories });
+      }
+    }
+    const filled_cells: CoverageFilledCell[] = [];
+    if (Array.isArray(marketRecord?.filled_cells)) {
+      for (const cellItem of marketRecord.filled_cells) {
+        const cellRecord = asRecord(cellItem);
+        const channel = asText(cellRecord?.channel);
+        const row = asText(cellRecord?.row);
+        const business_group = asText(cellRecord?.business_group);
+        const category = asText(cellRecord?.category);
+        if (!channel || !row || !business_group || !category) continue;
+        filled_cells.push({ channel, row, business_group, category });
+      }
+    }
+    by_market.push({
+      market,
+      channels,
+      business_groups,
+      filled_cells,
+      filled: asCount(marketRecord?.filled),
+      possible: asCount(marketRecord?.possible),
+      unmapped_count: asCount(marketRecord?.unmapped_count),
+    });
+  }
+  return { by_market };
+}
+
+export function emptyCoverage(): CoverageResponse {
+  return { by_market: [] };
 }
 
 function parseFunnel(data: unknown): FunnelResponse {
@@ -218,4 +319,8 @@ export function getAdoptionEngagement(body: DashboardFilterPayload) {
 
 export function getAdoptionDashboard(body: DashboardFilterPayload) {
   return postDashboard(API_ENDPOINTS.dashboardAdoption, body, parseAdoption);
+}
+
+export function getAdoptionCoverage(body: DashboardFilterPayload) {
+  return postDashboard(API_ENDPOINTS.dashboardCoverage, body, asCoverage);
 }
