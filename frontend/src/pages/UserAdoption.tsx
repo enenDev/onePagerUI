@@ -4,7 +4,7 @@ import { AdoptionFilters } from "@/components/user-adoption/AdoptionFilters";
 import { CoverageGrid } from "@/components/user-adoption/CoverageGrid";
 import { DashboardSection } from "@/components/user-adoption/DashboardSection";
 import { FunnelSummary } from "@/components/user-adoption/FunnelSummary";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PillTabs } from "@/components/user-adoption/PillTabs";
 import { DASHBOARD_TOOLTIPS } from "@/constants/dashboardTooltips";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { fetchMetadata } from "@/redux/landingSlice";
@@ -137,6 +137,7 @@ export function UserAdoption() {
     loading: true,
     data: emptyCoverage(),
   });
+  const [view, setView] = useState("dashboard");
 
   const applyBody = async (
     body: DashboardFilterPayload,
@@ -242,7 +243,7 @@ export function UserAdoption() {
   };
 
   return (
-    <div className="-mx-4 -my-6 min-h-[calc(100svh-3.5rem)] bg-[#edf2f9] px-4 py-6 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+    <div className="-mx-4 -my-6 min-h-[calc(100svh-3.5rem)] max-w-[100vw] overflow-x-hidden bg-[#edf2f9] px-4 py-6 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
       <AdoptionFilters
         markets={markets}
         marketsLoading={marketsLoading && markets.length === 0}
@@ -284,34 +285,25 @@ export function UserAdoption() {
         onClear={clearFilters}
       />
 
-      <Tabs defaultValue="dashboard" className="mt-3 w-full flex-col gap-3">
-        <TabsList
-          variant="line"
-          className="h-10 w-full justify-start gap-1 border-b border-slate-200 bg-transparent"
-        >
-          <TabsTrigger
-            value="dashboard"
-            className="flex-none rounded-none px-3 pb-2 text-sm data-[state=active]:font-semibold data-[state=active]:text-[#004f9e]"
-          >
-            Dashboard
-          </TabsTrigger>
-          <TabsTrigger
-            value="coverage"
-            className="flex-none rounded-none px-3 pb-2 text-sm data-[state=active]:font-semibold data-[state=active]:text-[#004f9e]"
-          >
-            Coverage
-          </TabsTrigger>
-        </TabsList>
+      <div className="mt-3 min-w-0">
+        <PillTabs
+          tabs={[
+            { id: "dashboard", label: "Dashboard" },
+            { id: "coverage", label: "Coverage" },
+          ]}
+          value={view}
+          onChange={setView}
+        />
+      </div>
 
-        <TabsContent value="dashboard">
-      <div>
+      {view === "dashboard" ? (
+      <div className="mt-3 min-w-0">
         <FunnelSummary
           data={funnel.data}
           loading={funnel.loading}
           refreshing={applying || funnel.loading}
           onRefresh={refresh}
         />
-      </div>
 
       <div className="mt-3 grid gap-4 lg:grid-cols-3">
         <DashboardSection
@@ -418,12 +410,12 @@ export function UserAdoption() {
           ]}
         />
       </div>
-        </TabsContent>
-
-        <TabsContent value="coverage">
+      </div>
+      ) : (
+        <div className="mt-3 min-w-0">
           <CoverageGrid data={coverage.data} loading={coverage.loading} />
-        </TabsContent>
-      </Tabs>
+        </div>
+      )}
     </div>
   );
 }

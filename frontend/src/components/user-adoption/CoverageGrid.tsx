@@ -1,4 +1,10 @@
-import type { CoverageMarketBlock, CoverageResponse } from "@/services/adoptionDashboardApi";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+
+import { PillTabs } from "@/components/user-adoption/PillTabs";
+import type {
+  CoverageMarketBlock,
+  CoverageResponse,
+} from "@/services/adoptionDashboardApi";
 
 type CoverageGridProps = {
   data: CoverageResponse;
@@ -19,19 +25,35 @@ function unmappedLabel(count: number) {
   return `${count} published one-pagers are not on this grid.`;
 }
 
+const cellBorder = "border-r border-b border-slate-200";
+
 function MarketGrid({ block }: { block: CoverageMarketBlock }) {
+  const channelHeaderRef = useRef<HTMLTableCellElement>(null);
+  const headerRowRef = useRef<HTMLTableRowElement>(null);
+  const [channelWidth, setChannelWidth] = useState(0);
+  const [headerRowHeight, setHeaderRowHeight] = useState(0);
+
   const filled = new Set(
     block.filled_cells.map((cell) =>
       cellKey(cell.channel, cell.row, cell.business_group, cell.category),
     ),
   );
 
+  useLayoutEffect(() => {
+    const measure = () => {
+      setChannelWidth(channelHeaderRef.current?.offsetWidth ?? 0);
+      setHeaderRowHeight(headerRowRef.current?.offsetHeight ?? 0);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    if (channelHeaderRef.current) observer.observe(channelHeaderRef.current);
+    if (headerRowRef.current) observer.observe(headerRowRef.current);
+    return () => observer.disconnect();
+  }, [block]);
+
   return (
-    <section className="rounded-xl border border-border bg-white p-4 shadow-sm">
-      <h2 className="text-sm font-semibold tracking-wide text-[#004f9e] uppercase">
-        {block.market}
-      </h2>
-      <p className="mt-2 text-sm text-slate-700">
+    <section className="max-w-full overflow-hidden rounded-xl border border-border bg-white p-4 shadow-sm">
+      <p className="text-sm text-slate-700">
         {block.filled} out of {block.possible}
       </p>
       {block.unmapped_count > 0 ? (
@@ -39,32 +61,47 @@ function MarketGrid({ block }: { block: CoverageMarketBlock }) {
           {unmappedLabel(block.unmapped_count)}
         </p>
       ) : null}
-      <div className="mt-4 overflow-x-auto">
-        <table className="min-w-full border-collapse text-left text-xs">
+      <div className="mt-4 max-h-[calc(100vh-16rem)] w-full max-w-full overflow-auto">
+        <table className="w-max border-separate border-spacing-0 text-left text-xs">
           <thead>
-            <tr>
-              <th className="border border-slate-200 bg-slate-50 px-3 py-2" />
-              <th className="border border-slate-200 bg-slate-50 px-3 py-2" />
+            <tr ref={headerRowRef}>
+              <th
+                className={`sticky top-0 left-0 z-30 border-t border-l bg-slate-50 ${cellBorder}`}
+              />
+              <th
+                className={`sticky top-0 z-30 border-t bg-slate-50 ${cellBorder}`}
+                style={{ left: channelWidth }}
+              />
               {block.business_groups.map((group) => (
                 <th
                   key={group.business_group}
                   colSpan={group.categories.length}
-                  className="border border-slate-200 bg-slate-50 px-3 py-2 text-center font-semibold text-slate-700"
+                  className={`sticky top-0 z-20 border-t bg-slate-50 px-2 py-1.5 text-center font-semibold whitespace-nowrap text-slate-700 ${cellBorder}`}
                 >
                   {group.business_group}
                 </th>
               ))}
             </tr>
             <tr>
-              <th className="border border-slate-200 bg-slate-50 px-3 py-2 font-semibold text-slate-700">
+              <th
+                ref={channelHeaderRef}
+                className={`sticky left-0 z-30 border-l bg-slate-50 px-2 py-1.5 font-semibold whitespace-nowrap text-slate-700 ${cellBorder}`}
+                style={{ top: headerRowHeight }}
+              >
                 Channel
               </th>
-              <th className="min-w-28 border border-slate-200 bg-slate-50 px-3 py-2" />
+              <th
+                className={`sticky z-30 bg-slate-50 px-2 py-1.5 font-semibold whitespace-nowrap text-slate-700 ${cellBorder}`}
+                style={{ left: channelWidth, top: headerRowHeight }}
+              >
+                National/Retailer
+              </th>
               {block.business_groups.flatMap((group) =>
                 group.categories.map((category) => (
                   <th
                     key={`${group.business_group}\u0000${category}`}
-                    className="min-w-28 border border-slate-200 bg-white px-3 py-2 text-center font-medium text-slate-600"
+                    className={`sticky z-20 bg-white px-2 py-1.5 text-center font-medium whitespace-nowrap text-slate-600 ${cellBorder}`}
+                    style={{ top: headerRowHeight }}
                   >
                     {category}
                   </th>
@@ -79,26 +116,34 @@ function MarketGrid({ block }: { block: CoverageMarketBlock }) {
                   {rowIndex === 0 ? (
                     <th
                       rowSpan={channel.rows.length}
-                      className="border border-slate-200 bg-white px-3 py-2 align-top font-semibold text-slate-800"
+                      className={`sticky left-0 z-10 border-l bg-white px-2 py-1.5 align-middle font-semibold whitespace-nowrap text-slate-800 ${cellBorder}`}
                     >
                       {channel.channel}
                     </th>
                   ) : null}
-                  <th className="border border-slate-200 bg-white px-3 py-2 font-medium text-slate-700">
+                  <th
+                    className={`sticky z-10 bg-white px-2 py-1.5 font-medium whitespace-nowrap text-slate-700 ${cellBorder}`}
+                    style={{ left: channelWidth }}
+                  >
                     {row}
                   </th>
                   {block.business_groups.flatMap((group) =>
                     group.categories.map((category) => {
                       const green = filled.has(
-                        cellKey(channel.channel, row, group.business_group, category),
+                        cellKey(
+                          channel.channel,
+                          row,
+                          group.business_group,
+                          category,
+                        ),
                       );
                       return (
                         <td
                           key={`${channel.channel}\u0000${row}\u0000${group.business_group}\u0000${category}`}
                           className={
                             green
-                              ? "h-8 border border-slate-200 bg-[#22a06b]"
-                              : "h-8 border border-slate-200 bg-white"
+                              ? `h-7 bg-[#22a06b] ${cellBorder}`
+                              : `h-7 bg-white ${cellBorder}`
                           }
                         />
                       );
@@ -115,6 +160,14 @@ function MarketGrid({ block }: { block: CoverageMarketBlock }) {
 }
 
 export function CoverageGrid({ data, loading }: CoverageGridProps) {
+  const [market, setMarket] = useState(data.by_market[0]?.market ?? "");
+
+  useEffect(() => {
+    if (!data.by_market.some((block) => block.market === market)) {
+      setMarket(data.by_market[0]?.market ?? "");
+    }
+  }, [data.by_market, market]);
+
   if (loading) {
     return (
       <section className="rounded-xl border border-border bg-white p-4 shadow-sm">
@@ -137,11 +190,21 @@ export function CoverageGrid({ data, loading }: CoverageGridProps) {
     );
   }
 
+  const selected =
+    data.by_market.find((block) => block.market === market) ??
+    data.by_market[0];
+
   return (
-    <div className="grid gap-4">
-      {data.by_market.map((block) => (
-        <MarketGrid key={block.market} block={block} />
-      ))}
+    <div className="grid min-w-0 gap-4">
+      <PillTabs
+        tabs={data.by_market.map((block) => ({
+          id: block.market,
+          label: block.market,
+        }))}
+        value={selected.market}
+        onChange={setMarket}
+      />
+      <MarketGrid key={selected.market} block={selected} />
     </div>
   );
 }
