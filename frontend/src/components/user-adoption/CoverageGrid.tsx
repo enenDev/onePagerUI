@@ -1,4 +1,5 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
+import { Check } from "lucide-react";
 
 import { PillTabs } from "@/components/user-adoption/PillTabs";
 import type {
@@ -9,7 +10,25 @@ import type {
 type CoverageGridProps = {
   data: CoverageResponse;
   loading: boolean;
+  /** Market dropdown order. Tabs follow this list. */
+  marketOrder: string[];
 };
+
+function marketsInDropdownOrder(
+  blocks: CoverageMarketBlock[],
+  marketOrder: string[],
+) {
+  if (marketOrder.length === 0) return blocks;
+  const rank = new Map(marketOrder.map((name, index) => [name, index]));
+  return [...blocks].sort((left, right) => {
+    const leftRank = rank.get(left.market);
+    const rightRank = rank.get(right.market);
+    if (leftRank === undefined && rightRank === undefined) return 0;
+    if (leftRank === undefined) return 1;
+    if (rightRank === undefined) return -1;
+    return leftRank - rightRank;
+  });
+}
 
 function cellKey(
   channel: string,
@@ -26,6 +45,18 @@ function unmappedLabel(count: number) {
 }
 
 const cellBorder = "border-r border-b border-slate-200";
+const labelHeaderColor = "#004f9e";
+const stripeColor = "#ebebeb";
+const groupHeaderColor: Record<string, string> = {
+  "beauty & wellbeing": "#8652df",
+  "personal care": "var(--primary)",
+  "home care": "#119511",
+  foods: "#ec4b00",
+};
+
+function headerColor(businessGroup: string) {
+  return groupHeaderColor[businessGroup.trim().toLowerCase()];
+}
 
 function MarketGrid({ block }: { block: CoverageMarketBlock }) {
   const channelHeaderRef = useRef<HTMLTableCellElement>(null);
@@ -51,6 +82,10 @@ function MarketGrid({ block }: { block: CoverageMarketBlock }) {
     return () => observer.disconnect();
   }, [block]);
 
+  const bodyRows = block.channels.flatMap((channel) =>
+    channel.rows.map((row, rowIndex) => ({ channel, row, rowIndex })),
+  );
+
   return (
     <section className="max-w-full overflow-hidden rounded-xl border border-border bg-white p-4 shadow-sm">
       <p className="text-sm text-slate-700">
@@ -66,70 +101,86 @@ function MarketGrid({ block }: { block: CoverageMarketBlock }) {
           <thead>
             <tr ref={headerRowRef}>
               <th
-                className={`sticky top-0 left-0 z-30 border-t border-l bg-slate-50 ${cellBorder}`}
+                className={`sticky top-0 left-0 z-30 border-t border-l text-white ${cellBorder}`}
+                style={{ backgroundColor: labelHeaderColor }}
               />
               <th
-                className={`sticky top-0 z-30 border-t bg-slate-50 ${cellBorder}`}
-                style={{ left: channelWidth }}
+                className={`sticky top-0 z-30 border-t text-white ${cellBorder}`}
+                style={{ left: channelWidth, backgroundColor: labelHeaderColor }}
               />
-              {block.business_groups.map((group) => (
-                <th
-                  key={group.business_group}
-                  colSpan={group.categories.length}
-                  className={`sticky top-0 z-20 border-t bg-slate-50 px-2 py-1.5 text-center font-semibold whitespace-nowrap text-slate-700 ${cellBorder}`}
-                >
-                  {group.business_group}
-                </th>
-              ))}
+              {block.business_groups.map((group) => {
+                const color = headerColor(group.business_group);
+                return (
+                  <th
+                    key={group.business_group}
+                    colSpan={group.categories.length}
+                    className={`sticky top-0 z-20 border-t px-2 py-1 text-center font-semibold whitespace-nowrap ${color ? "text-white" : "text-slate-700"} ${cellBorder}`}
+                    style={{ backgroundColor: color ?? "#f8fafc" }}
+                  >
+                    {group.business_group}
+                  </th>
+                );
+              })}
             </tr>
             <tr>
               <th
                 ref={channelHeaderRef}
-                className={`sticky left-0 z-30 border-l bg-slate-50 px-2 py-1.5 font-semibold whitespace-nowrap text-slate-700 ${cellBorder}`}
-                style={{ top: headerRowHeight }}
+                className={`sticky left-0 z-30 border-l px-2 py-1 font-semibold whitespace-nowrap text-white ${cellBorder}`}
+                style={{ top: headerRowHeight, backgroundColor: labelHeaderColor }}
               >
                 Channel
               </th>
               <th
-                className={`sticky z-30 bg-slate-50 px-2 py-1.5 font-semibold whitespace-nowrap text-slate-700 ${cellBorder}`}
-                style={{ left: channelWidth, top: headerRowHeight }}
+                className={`sticky z-30 px-2 py-1 font-semibold whitespace-nowrap text-white ${cellBorder}`}
+                style={{
+                  left: channelWidth,
+                  top: headerRowHeight,
+                  backgroundColor: labelHeaderColor,
+                }}
               >
                 National/Retailer
               </th>
               {block.business_groups.flatMap((group) =>
-                group.categories.map((category) => (
-                  <th
-                    key={`${group.business_group}\u0000${category}`}
-                    className={`sticky z-20 bg-white px-2 py-1.5 text-center font-medium whitespace-nowrap text-slate-600 ${cellBorder}`}
-                    style={{ top: headerRowHeight }}
-                  >
-                    {category}
-                  </th>
-                )),
+                group.categories.map((category) => {
+                  const color = headerColor(group.business_group);
+                  return (
+                    <th
+                      key={`${group.business_group}\u0000${category}`}
+                      className={`sticky z-20 px-2 py-1 text-center font-medium whitespace-nowrap ${color ? "text-white" : "text-slate-600"} ${cellBorder}`}
+                      style={{
+                        top: headerRowHeight,
+                        backgroundColor: color ?? "#ffffff",
+                      }}
+                    >
+                      {category}
+                    </th>
+                  );
+                }),
               )}
             </tr>
           </thead>
           <tbody>
-            {block.channels.map((channel) =>
-              channel.rows.map((row, rowIndex) => (
+            {bodyRows.map(({ channel, row, rowIndex }, index) => {
+              const rowColor = index % 2 === 1 ? stripeColor : "#ffffff";
+              return (
                 <tr key={`${channel.channel}\u0000${row}`}>
                   {rowIndex === 0 ? (
                     <th
                       rowSpan={channel.rows.length}
-                      className={`sticky left-0 z-10 border-l bg-white px-2 py-1.5 align-middle font-semibold whitespace-nowrap text-slate-800 ${cellBorder}`}
+                      className={`sticky left-0 z-10 border-l bg-white px-2 py-1 align-middle font-semibold whitespace-nowrap text-slate-800 ${cellBorder}`}
                     >
                       {channel.channel}
                     </th>
                   ) : null}
                   <th
-                    className={`sticky z-10 bg-white px-2 py-1.5 font-medium whitespace-nowrap text-slate-700 ${cellBorder}`}
-                    style={{ left: channelWidth }}
+                    className={`sticky z-10 px-2 py-1 font-medium whitespace-nowrap text-slate-700 ${cellBorder}`}
+                    style={{ left: channelWidth, backgroundColor: rowColor }}
                   >
                     {row}
                   </th>
                   {block.business_groups.flatMap((group) =>
                     group.categories.map((category) => {
-                      const green = filled.has(
+                      const published = filled.has(
                         cellKey(
                           channel.channel,
                           row,
@@ -140,18 +191,23 @@ function MarketGrid({ block }: { block: CoverageMarketBlock }) {
                       return (
                         <td
                           key={`${channel.channel}\u0000${row}\u0000${group.business_group}\u0000${category}`}
-                          className={
-                            green
-                              ? `h-7 bg-[#22a06b] ${cellBorder}`
-                              : `h-7 bg-white ${cellBorder}`
-                          }
-                        />
+                          className={`h-6 text-center align-middle ${cellBorder}`}
+                          style={{ backgroundColor: rowColor }}
+                        >
+                          {published ? (
+                            <Check
+                              className="mx-auto size-3.5 text-[#22a06b]"
+                              strokeWidth={3}
+                              aria-label="Published"
+                            />
+                          ) : null}
+                        </td>
                       );
                     }),
                   )}
                 </tr>
-              )),
-            )}
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -159,14 +215,9 @@ function MarketGrid({ block }: { block: CoverageMarketBlock }) {
   );
 }
 
-export function CoverageGrid({ data, loading }: CoverageGridProps) {
-  const [market, setMarket] = useState(data.by_market[0]?.market ?? "");
-
-  useEffect(() => {
-    if (!data.by_market.some((block) => block.market === market)) {
-      setMarket(data.by_market[0]?.market ?? "");
-    }
-  }, [data.by_market, market]);
+export function CoverageGrid({ data, loading, marketOrder }: CoverageGridProps) {
+  const [market, setMarket] = useState("");
+  const blocks = marketsInDropdownOrder(data.by_market, marketOrder);
 
   if (loading) {
     return (
@@ -177,7 +228,7 @@ export function CoverageGrid({ data, loading }: CoverageGridProps) {
     );
   }
 
-  if (data.by_market.length === 0) {
+  if (blocks.length === 0) {
     return (
       <section className="rounded-xl border border-border bg-white p-4 shadow-sm">
         <h2 className="text-sm font-semibold tracking-wide text-[#004f9e] uppercase">
@@ -191,13 +242,12 @@ export function CoverageGrid({ data, loading }: CoverageGridProps) {
   }
 
   const selected =
-    data.by_market.find((block) => block.market === market) ??
-    data.by_market[0];
+    blocks.find((block) => block.market === market) ?? blocks[0];
 
   return (
     <div className="grid min-w-0 gap-4">
       <PillTabs
-        tabs={data.by_market.map((block) => ({
+        tabs={blocks.map((block) => ({
           id: block.market,
           label: block.market,
         }))}

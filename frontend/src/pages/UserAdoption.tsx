@@ -430,7 +430,11 @@ export function UserAdoption() {
       </div>
       ) : (
         <div className="mt-3 min-w-0">
-          <CoverageGrid data={coverage.data} loading={coverage.loading} />
+          <CoverageGrid
+            data={coverage.data}
+            loading={coverage.loading}
+            marketOrder={markets.map((item) => item.value)}
+          />
         </div>
       )}
     </div>
