@@ -4,8 +4,8 @@ import { AdoptionFilters } from "@/components/user-adoption/AdoptionFilters";
 import { CoverageGrid } from "@/components/user-adoption/CoverageGrid";
 import { DashboardSection } from "@/components/user-adoption/DashboardSection";
 import { FunnelSummary } from "@/components/user-adoption/FunnelSummary";
-import { PillTabs } from "@/components/user-adoption/PillTabs";
 import { DASHBOARD_TOOLTIPS } from "@/constants/dashboardTooltips";
+import { cn } from "@/lib/utils";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { fetchMetadata } from "@/redux/landingSlice";
 import {
@@ -285,15 +285,32 @@ export function UserAdoption() {
         onClear={clearFilters}
       />
 
-      <div className="mt-3 min-w-0">
-        <PillTabs
-          tabs={[
-            { id: "dashboard", label: "Dashboard" },
-            { id: "coverage", label: "Coverage" },
-          ]}
-          value={view}
-          onChange={setView}
-        />
+      <div className="mt-3 border-b border-border">
+        <div className="flex gap-6">
+          {(
+            [
+              { id: "dashboard", label: "Dashboard" },
+              { id: "coverage", label: "Coverage" },
+            ] as const
+          ).map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setView(tab.id)}
+              className={cn(
+                "relative cursor-pointer pb-3 text-sm font-medium whitespace-nowrap transition-colors",
+                view === tab.id
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {tab.label}
+              {view === tab.id ? (
+                <span className="absolute inset-x-0 -bottom-px h-0.5 bg-primary" />
+              ) : null}
+            </button>
+          ))}
+        </div>
       </div>
 
       {view === "dashboard" ? (
