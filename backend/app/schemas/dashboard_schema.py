@@ -137,6 +137,7 @@ class CoverageMarketBlock(BaseModel):
     filled: int = 0
     possible: int = 0
     unmapped_count: int = 0
+    published_count: int = 0
 
 
 class CoverageResponse(BaseModel):

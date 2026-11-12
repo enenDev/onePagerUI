@@ -435,3 +435,4 @@ def test_api_dashboard_coverage(client, seed_coverage_data):
     assert us["filled"] == 3
     assert us["possible"] == 6
     assert us["unmapped_count"] == 1
+    assert us["published_count"] == 5

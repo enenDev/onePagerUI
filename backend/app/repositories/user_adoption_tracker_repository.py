@@ -53,8 +53,10 @@ def match_coverage_grid(
     Build one coverage block per market.
 
     Mapping rows draw the empty grid. A published pager fills one cell, and a
-    second pager on that same cell does not increase the count. A pager that
-    fits no cell is counted in unmapped_count.
+    second pager on that same cell, including another year, does not add
+    another tick. published_count is every published pager row for the market,
+    so those two years count as 2. A pager that fits no cell is counted in
+    unmapped_count and still counts in published_count.
     """
     markets: Dict[str, Dict[str, Any]] = {}
 
@@ -99,6 +101,7 @@ def match_coverage_grid(
 
     filled_by_market: Dict[str, set] = {market: set() for market in markets}
     unmapped_by_market: Dict[str, int] = {market: 0 for market in markets}
+    published_by_market: Dict[str, int] = {market: 0 for market in markets}
 
     for row in pager_rows:
         market = _cell_text(row["market"])
@@ -106,7 +109,9 @@ def match_coverage_grid(
             block_for(market)
             filled_by_market[market] = set()
             unmapped_by_market[market] = 0
+            published_by_market[market] = 0
         block = markets[market]
+        published_by_market[market] += 1
         pager_type = _cell_text(row["pager_type"]).lower()
         channel = _cell_text(row["channel"])
         retailer = _cell_text(row["retailer"])
@@ -169,6 +174,7 @@ def match_coverage_grid(
                 "filled": len(filled_set),
                 "possible": row_count * len(category_order),
                 "unmapped_count": unmapped_by_market.get(market, 0),
+                "published_count": published_by_market.get(market, 0),
             }
         )
     return blocks

@@ -77,6 +77,7 @@ export type CoverageMarketBlock = {
   filled: number;
   possible: number;
   unmapped_count: number;
+  published_count: number;
 };
 
 export type CoverageResponse = {
@@ -225,6 +226,7 @@ function asCoverage(data: unknown): CoverageResponse {
       filled: asCount(marketRecord?.filled),
       possible: asCount(marketRecord?.possible),
       unmapped_count: asCount(marketRecord?.unmapped_count),
+      published_count: asCount(marketRecord?.published_count),
     });
   }
   return { by_market };

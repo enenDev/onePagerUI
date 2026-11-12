@@ -434,6 +434,7 @@ export function UserAdoption() {
             data={coverage.data}
             loading={coverage.loading}
             marketOrder={markets.map((item) => item.value)}
+            adoptedUsers={adoption.data.adopted_users}
           />
         </div>
       )}

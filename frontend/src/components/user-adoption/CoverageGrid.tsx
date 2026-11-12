@@ -1,10 +1,15 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { Check } from "lucide-react";
 
+import {
+  formatCount,
+  isMetricNumber,
+} from "@/components/user-adoption/formatMetric";
 import { PillTabs } from "@/components/user-adoption/PillTabs";
 import type {
   CoverageMarketBlock,
   CoverageResponse,
+  MetricValue,
 } from "@/services/adoptionDashboardApi";
 
 type CoverageGridProps = {
@@ -12,7 +17,29 @@ type CoverageGridProps = {
   loading: boolean;
   /** Market dropdown order. Tabs follow this list. */
   marketOrder: string[];
+  /** Adopted Users from the Adoption card. CSP and CBD stay on the filter, not the market pill. */
+  adoptedUsers: MetricValue;
 };
+
+function roleCount(adoptedUsers: MetricValue, role: "CSP" | "CBD") {
+  const count = adoptedUsers.by_role[role];
+  return isMetricNumber(count) ? formatCount(count) : "—";
+}
+
+function categoryCoverage(block: CoverageMarketBlock) {
+  const columns = new Set<string>();
+  for (const group of block.business_groups) {
+    for (const category of group.categories) {
+      columns.add(`${group.business_group}\u0000${category}`);
+    }
+  }
+  const published = new Set<string>();
+  for (const cell of block.filled_cells) {
+    const key = `${cell.business_group}\u0000${cell.category}`;
+    if (columns.has(key)) published.add(key);
+  }
+  return { published: published.size, total: columns.size };
+}
 
 function marketsInDropdownOrder(
   blocks: CoverageMarketBlock[],
@@ -46,6 +73,8 @@ function unmappedLabel(count: number) {
 
 const cellBorder = "border-r border-b border-slate-200";
 const labelHeaderColor = "#004f9e";
+const nationalTickColor = "#004f9e";
+const retailerTickColor = "#ec4b00";
 const stripeColor = "#ebebeb";
 const groupHeaderColor: Record<string, string> = {
   "beauty & wellbeing": "#8652df",
@@ -85,11 +114,16 @@ function MarketGrid({ block }: { block: CoverageMarketBlock }) {
   const bodyRows = block.channels.flatMap((channel) =>
     channel.rows.map((row, rowIndex) => ({ channel, row, rowIndex })),
   );
+  const coverage = categoryCoverage(block);
 
   return (
     <section className="max-w-full overflow-hidden rounded-xl border border-border bg-white p-4 shadow-sm">
       <p className="text-sm text-slate-700">
-        {block.filled} out of {block.possible}
+        Total no. of published One-Pagers: {formatCount(block.published_count)}
+      </p>
+      <p className="mt-1 text-sm text-slate-700">
+        BU Coverage (categories): {formatCount(coverage.published)} vs{" "}
+        {formatCount(coverage.total)}
       </p>
       {block.unmapped_count > 0 ? (
         <p className="mt-1 text-sm text-slate-500">
@@ -196,9 +230,19 @@ function MarketGrid({ block }: { block: CoverageMarketBlock }) {
                         >
                           {published ? (
                             <Check
-                              className="mx-auto size-3.5 text-[#22a06b]"
+                              className="mx-auto size-3.5"
+                              style={{
+                                color:
+                                  row.trim().toLowerCase() === "national"
+                                    ? nationalTickColor
+                                    : retailerTickColor,
+                              }}
                               strokeWidth={3}
-                              aria-label="Published"
+                              aria-label={
+                                row.trim().toLowerCase() === "national"
+                                  ? "Published national one-pager"
+                                  : "Published retailer one-pager"
+                              }
                             />
                           ) : null}
                         </td>
@@ -215,46 +259,56 @@ function MarketGrid({ block }: { block: CoverageMarketBlock }) {
   );
 }
 
-export function CoverageGrid({ data, loading, marketOrder }: CoverageGridProps) {
+export function CoverageGrid({
+  data,
+  loading,
+  marketOrder,
+  adoptedUsers,
+}: CoverageGridProps) {
   const [market, setMarket] = useState("");
   const blocks = marketsInDropdownOrder(data.by_market, marketOrder);
-
-  if (loading) {
-    return (
-      <section className="rounded-xl border border-border bg-white p-4 shadow-sm">
-        <div className="h-4 w-40 rounded bg-slate-100" />
-        <div className="mt-4 h-28 rounded bg-slate-50" />
-      </section>
-    );
-  }
-
-  if (blocks.length === 0) {
-    return (
-      <section className="rounded-xl border border-border bg-white p-4 shadow-sm">
-        <h2 className="text-sm font-semibold tracking-wide text-[#004f9e] uppercase">
-          Published coverage
-        </h2>
-        <p className="mt-2 text-sm text-slate-500">
-          No coverage for the selected markets and dates.
-        </p>
-      </section>
-    );
-  }
-
   const selected =
     blocks.find((block) => block.market === market) ?? blocks[0];
 
   return (
     <div className="grid min-w-0 gap-4">
-      <PillTabs
-        tabs={blocks.map((block) => ({
-          id: block.market,
-          label: block.market,
-        }))}
-        value={selected.market}
-        onChange={setMarket}
-      />
-      <MarketGrid key={selected.market} block={selected} />
+      <div className="grid items-center gap-x-4 gap-y-2 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
+        <p className="text-sm text-slate-700 sm:justify-self-start">
+          CSP: {roleCount(adoptedUsers, "CSP")}
+          <span className="px-2">·</span>
+          CBD: {roleCount(adoptedUsers, "CBD")}
+        </p>
+        {loading || blocks.length === 0 || !selected ? (
+          <span className="hidden sm:block" />
+        ) : (
+          <PillTabs
+            tabs={blocks.map((block) => ({
+              id: block.market,
+              label: block.market,
+            }))}
+            value={selected.market}
+            onChange={setMarket}
+          />
+        )}
+        <span className="hidden sm:block" />
+      </div>
+      {loading ? (
+        <section className="rounded-xl border border-border bg-white p-4 shadow-sm">
+          <div className="h-4 w-40 rounded bg-slate-100" />
+          <div className="mt-4 h-28 rounded bg-slate-50" />
+        </section>
+      ) : blocks.length === 0 || !selected ? (
+        <section className="rounded-xl border border-border bg-white p-4 shadow-sm">
+          <h2 className="text-sm font-semibold tracking-wide text-[#004f9e] uppercase">
+            Published coverage
+          </h2>
+          <p className="mt-2 text-sm text-slate-500">
+            No coverage for the selected markets and dates.
+          </p>
+        </section>
+      ) : (
+        <MarketGrid key={selected.market} block={selected} />
+      )}
     </div>
   );
 }
