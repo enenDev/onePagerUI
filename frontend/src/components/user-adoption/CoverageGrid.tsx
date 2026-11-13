@@ -131,7 +131,7 @@ function MarketGrid({ block }: { block: CoverageMarketBlock }) {
         </p>
       ) : null}
       <div className="mt-4 max-h-[calc(100vh-16rem)] w-full max-w-full overflow-auto">
-        <table className="w-max border-separate border-spacing-0 text-left text-xs">
+        <table className="w-full border-separate border-spacing-0 text-left text-xs">
           <thead>
             <tr ref={headerRowRef}>
               <th
@@ -175,21 +175,15 @@ function MarketGrid({ block }: { block: CoverageMarketBlock }) {
                 National/Retailer
               </th>
               {block.business_groups.flatMap((group) =>
-                group.categories.map((category) => {
-                  const color = headerColor(group.business_group);
-                  return (
-                    <th
-                      key={`${group.business_group}\u0000${category}`}
-                      className={`sticky z-20 px-2 py-1 text-center font-medium whitespace-nowrap ${color ? "text-white" : "text-slate-600"} ${cellBorder}`}
-                      style={{
-                        top: headerRowHeight,
-                        backgroundColor: color ?? "#ffffff",
-                      }}
-                    >
-                      {category}
-                    </th>
-                  );
-                }),
+                group.categories.map((category) => (
+                  <th
+                    key={`${group.business_group}\u0000${category}`}
+                    className={`sticky z-20 bg-[#e0e0e0] px-2 py-1 text-center font-medium whitespace-nowrap text-slate-800 ${cellBorder}`}
+                    style={{ top: headerRowHeight }}
+                  >
+                    {category}
+                  </th>
+                )),
               )}
             </tr>
           </thead>
@@ -240,8 +234,8 @@ function MarketGrid({ block }: { block: CoverageMarketBlock }) {
                               strokeWidth={3}
                               aria-label={
                                 row.trim().toLowerCase() === "national"
-                                  ? "Published national one-pager"
-                                  : "Published retailer one-pager"
+                                  ? "Channel-level one-pager"
+                                  : "Retailer+channel level one-pager"
                               }
                             />
                           ) : null}
@@ -273,11 +267,14 @@ export function CoverageGrid({
   return (
     <div className="grid min-w-0 gap-4">
       <div className="grid items-center gap-x-4 gap-y-2 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
-        <p className="text-sm text-slate-700 sm:justify-self-start">
-          CSP: {roleCount(adoptedUsers, "CSP")}
-          <span className="px-2">·</span>
-          CBD: {roleCount(adoptedUsers, "CBD")}
-        </p>
+        <div className="flex flex-wrap items-center gap-2 sm:justify-self-start">
+          <span className="inline-flex items-center rounded-md bg-[#f5f5f5] px-2 py-0.5 text-sm text-slate-700">
+            CSP: {roleCount(adoptedUsers, "CSP")}
+          </span>
+          <span className="inline-flex items-center rounded-md bg-[#e8e8e8] px-2 py-0.5 text-sm text-slate-700">
+            CBD: {roleCount(adoptedUsers, "CBD")}
+          </span>
+        </div>
         {loading || blocks.length === 0 || !selected ? (
           <span className="hidden sm:block" />
         ) : (
@@ -290,7 +287,30 @@ export function CoverageGrid({
             onChange={setMarket}
           />
         )}
-        <span className="hidden sm:block" />
+        <ul className="space-y-0.5 text-sm text-slate-700 sm:justify-self-end">
+          <li className="flex items-center gap-1.5">
+            <Check
+              className="size-3.5 shrink-0"
+              style={{ color: nationalTickColor }}
+              strokeWidth={3}
+              aria-hidden
+            />
+            Channel-level one-pager
+          </li>
+          <li className="flex items-center gap-1.5">
+            <Check
+              className="size-3.5 shrink-0"
+              style={{ color: retailerTickColor }}
+              strokeWidth={3}
+              aria-hidden
+            />
+            Retailer+channel level one-pager
+          </li>
+          <li className="flex items-center gap-1.5">
+            <span className="inline-block size-3.5 shrink-0" aria-hidden />
+            Blank: No coverage indicated
+          </li>
+        </ul>
       </div>
       {loading ? (
         <section className="rounded-xl border border-border bg-white p-4 shadow-sm">
