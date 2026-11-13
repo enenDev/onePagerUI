@@ -245,6 +245,16 @@ def test_api_dashboard_adoption(client, seed_dashboard_data):
     # Draft to publish: 2 published in Sep, 1 active draft (p4) -> 2 / (1 + 2) * 100 = 66.7%
     assert data["draft_to_publish"]["total"] == 66.7
 
+    # Per-market adopted user counts. roles stays the percentage.
+    markets = {m["market"]: m for m in data["by_market"]}
+    assert markets["US"]["adopted_by_role"]["CSP"] == 1
+    assert markets["US"]["adopted_by_role"]["CBD"] == 0
+    assert markets["US"]["roles"]["CSP"] == 33.3
+    assert markets["Netherlands"]["adopted_by_role"]["CSP"] == 0
+    assert markets["Netherlands"]["adopted_by_role"]["CBD"] == 1
+    assert markets["Belgium"]["adopted_by_role"]["CSP"] == 0
+    assert markets["Belgium"]["adopted_by_role"]["CBD"] == 0
+
 
 def test_api_dashboard_market_filter(client, seed_dashboard_data):
     """Test filtering by specific market ['US']."""

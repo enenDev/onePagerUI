@@ -15,6 +15,11 @@ export type MarketRateRow = {
   market: string;
   csp: number | null;
   cbd: number | null;
+  /** Adopted CSP and CBD user counts. Present on adoption rows only. */
+  adoptedByRole?: {
+    csp: number;
+    cbd: number;
+  };
 };
 
 export type DashboardFilterPayload = {
@@ -119,7 +124,22 @@ function asMarketRows(value: unknown): MarketRateRow[] {
     const csp = asNumber(roles?.CSP);
     const cbd = asNumber(roles?.CBD);
     if (csp === null && cbd === null) continue;
-    rows.push({ market, csp, cbd });
+    const adoptedRaw = asRecord(record?.adopted_by_role);
+    const hasAdoptedCounts =
+      adoptedRaw != null && ("CSP" in adoptedRaw || "CBD" in adoptedRaw);
+    rows.push({
+      market,
+      csp,
+      cbd,
+      ...(hasAdoptedCounts
+        ? {
+            adoptedByRole: {
+              csp: asNumber(adoptedRaw?.CSP) ?? 0,
+              cbd: asNumber(adoptedRaw?.CBD) ?? 0,
+            },
+          }
+        : {}),
+    });
   }
   return rows;
 }

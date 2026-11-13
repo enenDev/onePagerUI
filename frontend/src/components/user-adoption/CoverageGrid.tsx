@@ -9,6 +9,7 @@ import { PillTabs } from "@/components/user-adoption/PillTabs";
 import type {
   CoverageMarketBlock,
   CoverageResponse,
+  MarketRateRow,
   MetricValue,
 } from "@/services/adoptionDashboardApi";
 
@@ -17,13 +18,31 @@ type CoverageGridProps = {
   loading: boolean;
   /** Market dropdown order. Tabs follow this list. */
   marketOrder: string[];
-  /** Adopted Users from the Adoption card. CSP and CBD stay on the filter, not the market pill. */
+  /** Combined Adopted Users. Used when no market pill is open. */
   adoptedUsers: MetricValue;
+  /** Per-market adopted CSP and CBD counts from the adoption response. */
+  adoptedByMarket: MarketRateRow[];
 };
 
 function roleCount(adoptedUsers: MetricValue, role: "CSP" | "CBD") {
   const count = adoptedUsers.by_role[role];
   return isMetricNumber(count) ? formatCount(count) : "—";
+}
+
+function marketRoleCount(
+  adoptedByMarket: MarketRateRow[],
+  market: string | undefined,
+  adoptedUsers: MetricValue,
+  role: "CSP" | "CBD",
+) {
+  if (!market) return roleCount(adoptedUsers, role);
+  const target = market.trim().toLowerCase();
+  const row = adoptedByMarket.find(
+    (item) => item.market.trim().toLowerCase() === target,
+  );
+  const count =
+    role === "CSP" ? row?.adoptedByRole?.csp : row?.adoptedByRole?.cbd;
+  return formatCount(count ?? 0);
 }
 
 function categoryCoverage(block: CoverageMarketBlock) {
@@ -293,6 +312,7 @@ export function CoverageGrid({
   loading,
   marketOrder,
   adoptedUsers,
+  adoptedByMarket,
 }: CoverageGridProps) {
   const [market, setMarket] = useState("");
   const blocks = marketsInDropdownOrder(data.by_market, marketOrder);
@@ -304,10 +324,10 @@ export function CoverageGrid({
       <div className="grid items-center gap-x-4 gap-y-2 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
         <div className="flex flex-wrap items-center gap-2 sm:justify-self-start">
           <span className="inline-flex items-center rounded-md bg-[#f5f5f5] px-2 py-0.5 text-sm text-slate-700">
-            CSP: {roleCount(adoptedUsers, "CSP")}
+            CSP: {marketRoleCount(adoptedByMarket, selected?.market, adoptedUsers, "CSP")}
           </span>
           <span className="inline-flex items-center rounded-md bg-[#e8e8e8] px-2 py-0.5 text-sm text-slate-700">
-            CBD: {roleCount(adoptedUsers, "CBD")}
+            CBD: {marketRoleCount(adoptedByMarket, selected?.market, adoptedUsers, "CBD")}
           </span>
         </div>
         {loading || blocks.length === 0 || !selected ? (

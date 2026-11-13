@@ -398,6 +398,7 @@ class UserAdoptionTrackerRepository:
                     "active_users": 0,
                     "rate": None,
                     "roles": {},
+                    "adopted_by_role": {"CSP": 0, "CBD": 0},
                 }
             if role == "__TOTAL__":
                 market_dict[m]["provisioned_users"] = int(r["prov_count"] or 0)
@@ -405,6 +406,11 @@ class UserAdoptionTrackerRepository:
                 market_dict[m]["rate"] = float(r["rate"]) if r["rate"] is not None else None
             else:
                 market_dict[m]["roles"][role] = float(r["rate"]) if r["rate"] is not None else None
+                # active_count is adopted users of this role in this market.
+                # roles stays the percentage used by the market chart.
+                normalized = str(role).strip().upper()
+                if normalized in ("CSP", "CBD"):
+                    market_dict[m]["adopted_by_role"][normalized] = int(r["active_count"] or 0)
 
         by_market = [MarketRateItem(**v) for v in market_dict.values()]
 
