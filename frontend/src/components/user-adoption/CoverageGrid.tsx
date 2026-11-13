@@ -87,6 +87,35 @@ function headerColor(businessGroup: string) {
   return groupHeaderColor[businessGroup.trim().toLowerCase()];
 }
 
+function CoverageLegend() {
+  return (
+    <ul className="shrink-0 space-y-0.5 text-sm text-slate-700">
+      <li className="flex items-center gap-1.5">
+        <Check
+          className="size-3.5 shrink-0"
+          style={{ color: nationalTickColor }}
+          strokeWidth={3}
+          aria-hidden
+        />
+        Channel-level one-pager
+      </li>
+      <li className="flex items-center gap-1.5">
+        <Check
+          className="size-3.5 shrink-0"
+          style={{ color: retailerTickColor }}
+          strokeWidth={3}
+          aria-hidden
+        />
+        Retailer+channel level one-pager
+      </li>
+      <li className="flex items-center gap-1.5">
+        <span className="inline-block size-3.5 shrink-0" aria-hidden />
+        Blank: No coverage indicated
+      </li>
+    </ul>
+  );
+}
+
 function MarketGrid({ block }: { block: CoverageMarketBlock }) {
   const channelHeaderRef = useRef<HTMLTableCellElement>(null);
   const headerRowRef = useRef<HTMLTableRowElement>(null);
@@ -118,18 +147,24 @@ function MarketGrid({ block }: { block: CoverageMarketBlock }) {
 
   return (
     <section className="max-w-full overflow-hidden rounded-xl border border-border bg-white p-4 shadow-sm">
-      <p className="text-sm text-slate-700">
-        Total no. of published One-Pagers: {formatCount(block.published_count)}
-      </p>
-      <p className="mt-1 text-sm text-slate-700">
-        BU Coverage (categories): {formatCount(coverage.published)} vs{" "}
-        {formatCount(coverage.total)}
-      </p>
-      {block.unmapped_count > 0 ? (
-        <p className="mt-1 text-sm text-slate-500">
-          {unmappedLabel(block.unmapped_count)}
-        </p>
-      ) : null}
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-sm text-slate-700">
+            Total no. of published One-Pagers:{" "}
+            {formatCount(block.published_count)}
+          </p>
+          <p className="mt-1 text-sm text-slate-700">
+            BU Coverage (categories): {formatCount(coverage.published)} vs{" "}
+            {formatCount(coverage.total)}
+          </p>
+          {block.unmapped_count > 0 ? (
+            <p className="mt-1 text-sm text-slate-500">
+              {unmappedLabel(block.unmapped_count)}
+            </p>
+          ) : null}
+        </div>
+        <CoverageLegend />
+      </div>
       <div className="mt-4 max-h-[calc(100vh-16rem)] w-full max-w-full overflow-auto">
         <table className="w-full border-separate border-spacing-0 text-left text-xs">
           <thead>
@@ -287,30 +322,7 @@ export function CoverageGrid({
             onChange={setMarket}
           />
         )}
-        <ul className="space-y-0.5 text-sm text-slate-700 sm:justify-self-end">
-          <li className="flex items-center gap-1.5">
-            <Check
-              className="size-3.5 shrink-0"
-              style={{ color: nationalTickColor }}
-              strokeWidth={3}
-              aria-hidden
-            />
-            Channel-level one-pager
-          </li>
-          <li className="flex items-center gap-1.5">
-            <Check
-              className="size-3.5 shrink-0"
-              style={{ color: retailerTickColor }}
-              strokeWidth={3}
-              aria-hidden
-            />
-            Retailer+channel level one-pager
-          </li>
-          <li className="flex items-center gap-1.5">
-            <span className="inline-block size-3.5 shrink-0" aria-hidden />
-            Blank: No coverage indicated
-          </li>
-        </ul>
+        <span className="hidden sm:block" />
       </div>
       {loading ? (
         <section className="rounded-xl border border-border bg-white p-4 shadow-sm">
