@@ -15,8 +15,9 @@ export type MarketRateRow = {
   market: string;
   csp: number | null;
   cbd: number | null;
-  /** Adopted CSP and CBD user counts. Present on adoption rows only. */
-  adoptedByRole?: {
+  /** Onboarded General, CSP, and CBD counts. Present on onboarding rows only. */
+  onboardedByRole?: {
+    general: number;
     csp: number;
     cbd: number;
   };
@@ -123,19 +124,23 @@ function asMarketRows(value: unknown): MarketRateRow[] {
     const roles = asRecord(record?.roles);
     const csp = asNumber(roles?.CSP);
     const cbd = asNumber(roles?.CBD);
-    if (csp === null && cbd === null) continue;
-    const adoptedRaw = asRecord(record?.adopted_by_role);
-    const hasAdoptedCounts =
-      adoptedRaw != null && ("CSP" in adoptedRaw || "CBD" in adoptedRaw);
+    const onboardedRaw = asRecord(record?.onboarded_by_role);
+    const hasOnboardedCounts =
+      onboardedRaw != null &&
+      ("General" in onboardedRaw ||
+        "CSP" in onboardedRaw ||
+        "CBD" in onboardedRaw);
+    if (csp === null && cbd === null && !hasOnboardedCounts) continue;
     rows.push({
       market,
       csp,
       cbd,
-      ...(hasAdoptedCounts
+      ...(hasOnboardedCounts
         ? {
-            adoptedByRole: {
-              csp: asNumber(adoptedRaw?.CSP) ?? 0,
-              cbd: asNumber(adoptedRaw?.CBD) ?? 0,
+            onboardedByRole: {
+              general: asNumber(onboardedRaw?.General) ?? 0,
+              csp: asNumber(onboardedRaw?.CSP) ?? 0,
+              cbd: asNumber(onboardedRaw?.CBD) ?? 0,
             },
           }
         : {}),

@@ -161,7 +161,8 @@ def build_onboarding_market_query(
                 p.role,
                 p.email,
                 CASE WHEN UPPER(p.role) IN ('CSP', 'CBD') THEN p.email END AS rate_email,
-                CASE WHEN UPPER(p.role) IN ('CSP', 'CBD') AND o.email IS NOT NULL THEN 1 ELSE 0 END AS is_active
+                CASE WHEN UPPER(p.role) IN ('CSP', 'CBD') AND o.email IS NOT NULL THEN 1 ELSE 0 END AS is_active,
+                CASE WHEN o.email IS NOT NULL THEN 1 ELSE 0 END AS is_onboarded
             FROM prov_users p
             LEFT JOIN onb_users o ON p.email = o.email
         )
@@ -170,6 +171,7 @@ def build_onboarding_market_query(
             role,
             COUNT(DISTINCT email) AS prov_count,
             SUM(is_active) AS active_count,
+            SUM(is_onboarded) AS onboarded_count,
             ROUND(100.0 * SUM(is_active) / NULLIF(COUNT(DISTINCT rate_email), 0), 1) AS rate
         FROM user_mkt_role
         GROUP BY market, role
@@ -181,6 +183,7 @@ def build_onboarding_market_query(
             '__TOTAL__' AS role,
             COUNT(DISTINCT email) AS prov_count,
             SUM(is_active) AS active_count,
+            SUM(is_onboarded) AS onboarded_count,
             ROUND(100.0 * SUM(is_active) / NULLIF(COUNT(DISTINCT rate_email), 0), 1) AS rate
         FROM user_mkt_role
         GROUP BY market

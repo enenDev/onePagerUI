@@ -61,9 +61,9 @@ class MarketRateItem(BaseModel):
     active_users: int = 0  # Represents onboarded / engaged / adopted users for the respective section
     rate: Optional[float] = None
     roles: Dict[str, Optional[float]] = Field(default_factory=dict)
-    # Adopted user counts per role for this market. Only the adoption API fills this.
-    # Onboarding and engagement leave it empty. Chart percentages stay in roles.
-    adopted_by_role: Dict[str, int] = Field(default_factory=dict)
+    # Onboarded user counts per role for this market. Only the onboarding API fills this.
+    # Includes General, CSP, and CBD. Chart percentages stay in roles.
+    onboarded_by_role: Dict[str, int] = Field(default_factory=dict)
 
 
 # ---------------------------------------------------------------------------

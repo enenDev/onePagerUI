@@ -180,6 +180,9 @@ def test_api_dashboard_onboarding(client, seed_dashboard_data):
     # Check by_market
     markets = {m["market"]: m for m in data["by_market"]}
     assert "US" in markets
+    assert markets["US"]["onboarded_by_role"] == {"General": 1, "CSP": 2, "CBD": 1}
+    assert markets["Netherlands"]["onboarded_by_role"] == {"General": 0, "CSP": 1, "CBD": 0}
+    assert markets["Belgium"]["onboarded_by_role"] == {"General": 0, "CSP": 0, "CBD": 0}
     assert markets["US"]["provisioned_users"] == 4
     assert markets["US"]["active_users"] == 4  # 4 logged in
     assert markets["US"]["rate"] == 100.0
@@ -245,15 +248,10 @@ def test_api_dashboard_adoption(client, seed_dashboard_data):
     # Draft to publish: 2 published in Sep, 1 active draft (p4) -> 2 / (1 + 2) * 100 = 66.7%
     assert data["draft_to_publish"]["total"] == 66.7
 
-    # Per-market adopted user counts. roles stays the percentage.
+    # Chart percentages stay on roles. Per-market adopted counts are not returned.
     markets = {m["market"]: m for m in data["by_market"]}
-    assert markets["US"]["adopted_by_role"]["CSP"] == 1
-    assert markets["US"]["adopted_by_role"]["CBD"] == 0
     assert markets["US"]["roles"]["CSP"] == 33.3
-    assert markets["Netherlands"]["adopted_by_role"]["CSP"] == 0
-    assert markets["Netherlands"]["adopted_by_role"]["CBD"] == 1
-    assert markets["Belgium"]["adopted_by_role"]["CSP"] == 0
-    assert markets["Belgium"]["adopted_by_role"]["CBD"] == 0
+    assert "adopted_by_role" not in markets["US"]
 
 
 def test_api_dashboard_market_filter(client, seed_dashboard_data):

@@ -539,6 +539,7 @@ async def get_dashboard_onboarding(
     """
     Returns Section 1 Onboarding metrics:
     - Market-wise onboarding rate and role breakdown bars
+    - Per-market onboarded user counts for General, CSP, and CBD
     - Onboarded users (total & by role)
     - Onboarded users growth rate (total & by role)
     - Total one-pager views (total & by role)

@@ -1,47 +1,44 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { Check } from "lucide-react";
 
-import {
-  formatCount,
-  isMetricNumber,
-} from "@/components/user-adoption/formatMetric";
+import { formatCount } from "@/components/user-adoption/formatMetric";
 import { PillTabs } from "@/components/user-adoption/PillTabs";
 import type {
   CoverageMarketBlock,
   CoverageResponse,
   MarketRateRow,
-  MetricValue,
 } from "@/services/adoptionDashboardApi";
+
+type CoverageRole = "General" | "CSP" | "CBD";
+
+const COVERAGE_ROLES: CoverageRole[] = ["General", "CSP", "CBD"];
 
 type CoverageGridProps = {
   data: CoverageResponse;
   loading: boolean;
   /** Market dropdown order. Tabs follow this list. */
   marketOrder: string[];
-  /** Combined Adopted Users. Used when no market pill is open. */
-  adoptedUsers: MetricValue;
-  /** Per-market adopted CSP and CBD counts from the adoption response. */
-  adoptedByMarket: MarketRateRow[];
+  /** Per-market onboarded General, CSP, and CBD counts from onboarding. */
+  onboardedByMarket: MarketRateRow[];
 };
 
-function roleCount(adoptedUsers: MetricValue, role: "CSP" | "CBD") {
-  const count = adoptedUsers.by_role[role];
-  return isMetricNumber(count) ? formatCount(count) : "—";
-}
-
 function marketRoleCount(
-  adoptedByMarket: MarketRateRow[],
+  onboardedByMarket: MarketRateRow[],
   market: string | undefined,
-  adoptedUsers: MetricValue,
-  role: "CSP" | "CBD",
+  role: CoverageRole,
 ) {
-  if (!market) return roleCount(adoptedUsers, role);
+  if (!market) return formatCount(0);
   const target = market.trim().toLowerCase();
-  const row = adoptedByMarket.find(
+  const row = onboardedByMarket.find(
     (item) => item.market.trim().toLowerCase() === target,
   );
+  const counts = row?.onboardedByRole;
   const count =
-    role === "CSP" ? row?.adoptedByRole?.csp : row?.adoptedByRole?.cbd;
+    role === "General"
+      ? counts?.general
+      : role === "CSP"
+        ? counts?.csp
+        : counts?.cbd;
   return formatCount(count ?? 0);
 }
 
@@ -311,8 +308,7 @@ export function CoverageGrid({
   data,
   loading,
   marketOrder,
-  adoptedUsers,
-  adoptedByMarket,
+  onboardedByMarket,
 }: CoverageGridProps) {
   const [market, setMarket] = useState("");
   const blocks = marketsInDropdownOrder(data.by_market, marketOrder);
@@ -323,12 +319,15 @@ export function CoverageGrid({
     <div className="grid min-w-0 gap-4">
       <div className="grid items-center gap-x-4 gap-y-2 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
         <div className="flex flex-wrap items-center gap-2 sm:justify-self-start">
-          <span className="inline-flex items-center rounded-md bg-[#f5f5f5] px-2 py-0.5 text-sm text-slate-700">
-            CSP: {marketRoleCount(adoptedByMarket, selected?.market, adoptedUsers, "CSP")}
-          </span>
-          <span className="inline-flex items-center rounded-md bg-[#e8e8e8] px-2 py-0.5 text-sm text-slate-700">
-            CBD: {marketRoleCount(adoptedByMarket, selected?.market, adoptedUsers, "CBD")}
-          </span>
+          {COVERAGE_ROLES.map((role) => (
+            <span
+              key={role}
+              className="inline-flex items-center rounded-md bg-[#f5f5f5] px-2 py-0.5 text-sm text-slate-700"
+            >
+              {role}:{" "}
+              {marketRoleCount(onboardedByMarket, selected?.market, role)}
+            </span>
+          ))}
         </div>
         {loading || blocks.length === 0 || !selected ? (
           <span className="hidden sm:block" />

@@ -432,10 +432,9 @@ export function UserAdoption() {
         <div className="mt-3 min-w-0">
           <CoverageGrid
             data={coverage.data}
-            loading={coverage.loading}
+            loading={coverage.loading || onboarding.loading}
             marketOrder={markets.map((item) => item.value)}
-            adoptedUsers={adoption.data.adopted_users}
-            adoptedByMarket={adoption.data.by_market}
+            onboardedByMarket={onboarding.data.by_market}
           />
         </div>
       )}
