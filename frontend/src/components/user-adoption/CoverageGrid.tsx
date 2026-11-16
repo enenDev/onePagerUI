@@ -82,10 +82,10 @@ function cellKey(
   return `${channel}\u0000${row}\u0000${businessGroup}\u0000${category}`;
 }
 
-function unmappedLabel(count: number) {
-  if (count === 1) return "1 published one-pager is not on this grid.";
-  return `${count} published one-pagers are not on this grid.`;
-}
+// function unmappedLabel(count: number) {
+//   if (count === 1) return "1 published one-pager is not on this grid.";
+//   return `${count} published one-pagers are not on this grid.`;
+// }
 
 const cellBorder = "border-r border-b border-slate-200";
 const labelHeaderColor = "#004f9e";
@@ -132,7 +132,13 @@ function CoverageLegend() {
   );
 }
 
-function MarketGrid({ block }: { block: CoverageMarketBlock }) {
+function MarketGrid({
+  block,
+  onboardedByMarket,
+}: {
+  block: CoverageMarketBlock;
+  onboardedByMarket: MarketRateRow[];
+}) {
   const channelHeaderRef = useRef<HTMLTableCellElement>(null);
   const headerRowRef = useRef<HTMLTableRowElement>(null);
   const [channelWidth, setChannelWidth] = useState(0);
@@ -165,7 +171,18 @@ function MarketGrid({ block }: { block: CoverageMarketBlock }) {
     <section className="max-w-full overflow-hidden rounded-xl border border-border bg-white p-4 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-sm text-slate-700">
+          <div className="flex flex-wrap items-center gap-2">
+            {COVERAGE_ROLES.map((role) => (
+              <span
+                key={role}
+                className="inline-flex items-center rounded-md bg-[#f5f5f5] px-2 py-0.5 text-sm text-slate-700"
+              >
+                {role}:{" "}
+                {marketRoleCount(onboardedByMarket, block.market, role)}
+              </span>
+            ))}
+          </div>
+          <p className="mt-2 text-sm text-slate-700">
             Total no. of published One-Pagers:{" "}
             {formatCount(block.published_count)}
           </p>
@@ -173,11 +190,13 @@ function MarketGrid({ block }: { block: CoverageMarketBlock }) {
             BU Coverage (categories): {formatCount(coverage.published)} vs{" "}
             {formatCount(coverage.total)}
           </p>
+          {/*
           {block.unmapped_count > 0 ? (
             <p className="mt-1 text-sm text-slate-500">
               {unmappedLabel(block.unmapped_count)}
             </p>
           ) : null}
+          */}
         </div>
         <CoverageLegend />
       </div>
@@ -317,21 +336,8 @@ export function CoverageGrid({
 
   return (
     <div className="grid min-w-0 gap-4">
-      <div className="grid items-center gap-x-4 gap-y-2 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
-        <div className="flex flex-wrap items-center gap-2 sm:justify-self-start">
-          {COVERAGE_ROLES.map((role) => (
-            <span
-              key={role}
-              className="inline-flex items-center rounded-md bg-[#f5f5f5] px-2 py-0.5 text-sm text-slate-700"
-            >
-              {role}:{" "}
-              {marketRoleCount(onboardedByMarket, selected?.market, role)}
-            </span>
-          ))}
-        </div>
-        {loading || blocks.length === 0 || !selected ? (
-          <span className="hidden sm:block" />
-        ) : (
+      {loading || blocks.length === 0 || !selected ? null : (
+        <div className="flex justify-center">
           <PillTabs
             tabs={blocks.map((block) => ({
               id: block.market,
@@ -340,9 +346,8 @@ export function CoverageGrid({
             value={selected.market}
             onChange={setMarket}
           />
-        )}
-        <span className="hidden sm:block" />
-      </div>
+        </div>
+      )}
       {loading ? (
         <section className="rounded-xl border border-border bg-white p-4 shadow-sm">
           <div className="h-4 w-40 rounded bg-slate-100" />
@@ -358,7 +363,11 @@ export function CoverageGrid({
           </p>
         </section>
       ) : (
-        <MarketGrid key={selected.market} block={selected} />
+        <MarketGrid
+          key={selected.market}
+          block={selected}
+          onboardedByMarket={onboardedByMarket}
+        />
       )}
     </div>
   );
