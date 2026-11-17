@@ -109,6 +109,7 @@ import {
 } from "@/components/form/fieldLimits";
 import { exportDynamicOnePagerPpt } from "./exportOnePagerPptDynamic";
 import { USE_DYNAMIC_PPT_EXPORT } from "@/config/dynamicPPTExport";
+import { saveBlobFile } from "@/services/saveBlobFile";
 
 type Slide = ReturnType<PptxGenJS["addSlide"]>;
 
@@ -889,17 +890,6 @@ export async function buildOnePagerPptBlob(
   })) as Blob;
 }
 
-function triggerDownload(blob: Blob, fileName: string) {
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = fileName;
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-  URL.revokeObjectURL(url);
-}
-
 /**
  * Build and download the PPT from a payload already in memory (View / Preview).
  * Fetches images first, then draws header + 5 columns on a single LAYOUT_WIDE slide.
@@ -915,7 +905,7 @@ export async function exportOnePagerPpt(input: ExportOnePagerInput) {
   try {
     const fileName = safeFileName(composeTitle(input.pagerType, input.payload));
     const blob = await buildOnePagerPptBlob(input);
-    triggerDownload(blob, fileName);
+    saveBlobFile(blob, fileName, "pptx");
     if (input.pagerId) {
       logPagerActivity({ pager_id: input.pagerId, action: "export" });
     }

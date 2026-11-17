@@ -9,6 +9,7 @@ import {
 } from "@/services/exportOnePagerPpt";
 import { buildDynamicOnePagerPptBlob } from "@/services/exportOnePagerPptDynamic";
 import { logPagerActivity } from "@/services/pagerActivityApi";
+import { saveBlobFile } from "@/services/saveBlobFile";
 import {
   mapGetOnePagerResponse,
   type GetOnePagerApiResponse,
@@ -55,14 +56,7 @@ export async function exportMultipleOnePagersAsZip(pagerIds: string[]) {
   }
 
   const zipBlob = await zip.generateAsync({ type: "blob" });
-  const zipUrl = URL.createObjectURL(zipBlob);
-  const anchor = document.createElement("a");
-  anchor.href = zipUrl;
-  anchor.download = "one-pagers-export.zip";
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-  URL.revokeObjectURL(zipUrl);
+  saveBlobFile(zipBlob, "one-pagers-export.zip", "zip");
 
   for (const pagerId of exportedIds) {
     logPagerActivity({ pager_id: pagerId, action: "export" });

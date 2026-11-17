@@ -84,3 +84,9 @@ Each line says what changed and what to check. Phone means under 640px unless th
 - Phone header shows CATEGORY ONE-PAGER APP at 10px, check it lines up with the two logos, the tops of the letters are complete, and it does not touch the profile. From 640px the 14px title and the larger logos are back.
 - Import names scroll sideways on a phone, open Create New, then Retailer, then Import and check a long name stays on one line and can be swiped. The status badge stays on the right. From 640px the name is cut with an ellipsis again.
 - Landscape details sit on one line, turn a phone sideways (about 874 by 402) and open View or Track. Check More Options is at the right, then the status badge, then Published, then Owner. The fields stay in a row under that line. A portrait phone still stacks the date and the owner. A taller screen, and from 1024px, that block stays in a column on the right.
+
+## Phone downloads
+
+- Single download stays one PowerPoint, export a one-pager on a phone and check one .pptx starts saving. Desktop still downloads on the same Export tap.
+- Bulk download stays one zip, select one-pagers and check one .zip downloads. Duplicate names inside the zip stay Title.pptx, then Title_1.pptx.
+- Phone fallback bar, if the file does not start saving, check File ready sits centered above the floating Export and Create buttons, with Download and an X. Download saves that file. X closes the bar. The same bar is used on View and Track. It does not appear on desktop.

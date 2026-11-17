@@ -2,6 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { Outlet, useLocation, useNavigate, useMatches } from "react-router-dom";
 
 import { Loading } from "@/components/common/Loading";
+import { ManualDownloadBar } from "@/components/common/ManualDownloadBar";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Button } from "@/components/ui/button";
@@ -121,6 +122,7 @@ const MainLayout = () => {
         </div>
       ) : null}
       <main className="flex flex-1 flex-col">
+        <ManualDownloadBar />
         {isFullBleedPage ? (
           <Outlet
             context={

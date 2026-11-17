@@ -32,6 +32,7 @@ import {
   fontSizeForLength,
 } from "@/components/form/fieldLimits";
 import type { ExportOnePagerInput } from "@/services/exportOnePagerPpt";
+import { saveBlobFile } from "@/services/saveBlobFile";
 
 type Slide = ReturnType<PptxGenJS["addSlide"]>;
 
@@ -839,17 +840,6 @@ function addHeader(
   });
 }
 
-function triggerDownload(blob: Blob, fileName: string) {
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = fileName;
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-  URL.revokeObjectURL(url);
-}
-
 export async function buildDynamicOnePagerPptBlob(input: DynamicExportInput) {
   const images = await loadImages(input.payload);
   const pptx = new PptxGenJS();
@@ -892,7 +882,7 @@ export async function exportDynamicOnePager(
   exportBusy = true;
   try {
     const blob = await buildDynamicOnePagerPptBlob(input);
-    triggerDownload(blob, dynamicSafeFileName(slideTitle(input)));
+    saveBlobFile(blob, dynamicSafeFileName(slideTitle(input)), "pptx");
     if (input.pagerId) {
       recordDynamicExport(input.pagerId);
     }
