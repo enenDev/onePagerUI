@@ -89,4 +89,4 @@ Each line says what changed and what to check. Phone means under 640px unless th
 
 - Single download stays one PowerPoint, export a one-pager on a phone and check one .pptx starts saving. Desktop still downloads on the same Export tap.
 - Bulk download stays one zip, select one-pagers and check one .zip downloads. Duplicate names inside the zip stay Title.pptx, then Title_1.pptx.
-- Phone fallback bar, if the file does not start saving, check File ready sits centered above the floating Export and Create buttons, with Download and an X. Download saves that file. X closes the bar. The same bar is used on View and Track. It does not appear on desktop.
+- Phone fallback bar stays hidden when Export itself starts the save. In the device toolbar, export a one-pager and check the file downloads with no File ready bar. The bar appears only if that tap has already expired. It then sits centered above the floating Export and Create buttons, with Download and an X. Download saves that file. X closes the bar. The same bar is used on View and Track. It does not appear on desktop.

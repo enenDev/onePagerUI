@@ -30,6 +30,10 @@ function isTouchPrimary() {
   return window.matchMedia("(hover: none) and (pointer: coarse)").matches;
 }
 
+function exportTapCanSave() {
+  return navigator.userActivation?.isActive === true;
+}
+
 function startDownload(blob: Blob, fileName: string, kind: SaveBlobKind) {
   const { extension, mime } = FILE_KIND[kind];
   const downloadName = fileName.toLowerCase().endsWith(extension)
@@ -50,12 +54,19 @@ function startDownload(blob: Blob, fileName: string, kind: SaveBlobKind) {
 /**
  * Start a browser download for a finished file.
  * The temporary link stays for one minute so a phone can begin the save.
- * Desktop still starts the save on this click. A phone also keeps the file
- * for the manual Download bar, because that first click can be blocked.
+ * Desktop, and a phone whose Export tap is still active, save on this click
+ * and do not show the manual bar. The bar is only kept when that tap has
+ * expired, because a phone can ignore the click after that.
  */
 export function saveBlobFile(blob: Blob, fileName: string, kind: SaveBlobKind) {
+  const tapCanSave = exportTapCanSave();
   const saved = startDownload(blob, fileName, kind);
-  if (!isTouchPrimary()) return;
+  if (tapCanSave || !isTouchPrimary()) {
+    if (!pendingDownload) return;
+    pendingDownload = null;
+    notifyPendingDownload();
+    return;
+  }
   pendingDownload = saved;
   notifyPendingDownload();
 }
