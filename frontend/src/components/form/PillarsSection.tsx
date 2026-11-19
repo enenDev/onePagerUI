@@ -473,11 +473,17 @@ export function PillarsSection({
                               {initiative.accountable_function_department}
                             </h4>
                           </div>
-                          <DropdownMenu>
+                          {/*
+                            Non-modal + no focus return: the Edit dialog opens
+                            as this menu closes. Returning focus to the trigger
+                            counts as "focus outside" for the dialog, which then
+                            closes itself on iOS.
+                          */}
+                          <DropdownMenu modal={false}>
                             <DropdownMenuTrigger asChild>
                               <button
                                 type="button"
-                                className="cursor-pointer text-muted-foreground hover:text-foreground"
+                                className="-mt-2 -mr-2 flex size-9 shrink-0 cursor-pointer touch-manipulation items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
                                 aria-label="Initiative actions"
                               >
                                 <MoreVertical className="size-4" />
@@ -485,13 +491,20 @@ export function PillarsSection({
                             </DropdownMenuTrigger>
                             <DropdownMenuContent
                               align="end"
+                              avoidCollisions
+                              collisionPadding={8}
                               className="min-w-36 p-0"
+                              onCloseAutoFocus={(event) =>
+                                event.preventDefault()
+                              }
                             >
                               <DropdownMenuItem
-                                className="cursor-pointer rounded-none px-3 py-2"
-                                onClick={() => {
-                                  setActivePillarNumber(pillar.pillar_number);
-                                  setEditingInitiative(initiative);
+                                className="cursor-pointer rounded-none px-3 py-2.5"
+                                onSelect={() => {
+                                  window.setTimeout(() => {
+                                    setActivePillarNumber(pillar.pillar_number);
+                                    setEditingInitiative(initiative);
+                                  }, 0);
                                 }}
                               >
                                 <Pencil className="size-4" />
@@ -500,8 +513,8 @@ export function PillarsSection({
                               <DropdownMenuSeparator className="m-0" />
                               <DropdownMenuItem
                                 variant="destructive"
-                                className="cursor-pointer rounded-none px-3 py-2"
-                                onClick={() =>
+                                className="cursor-pointer rounded-none px-3 py-2.5"
+                                onSelect={() =>
                                   deleteInitiative(
                                     pillar.pillar_number,
                                     initiative.initiative_number,

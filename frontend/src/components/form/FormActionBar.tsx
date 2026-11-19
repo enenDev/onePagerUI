@@ -2,6 +2,8 @@ import { Save, Send } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { useOnScreenKeyboardOpen } from "@/hooks/useOnScreenKeyboardOpen";
+import { cn } from "@/lib/utils";
 
 type FormActionBarProps = {
   onCancel?: () => void;
@@ -28,9 +30,17 @@ export function FormActionBar({
 }: FormActionBarProps) {
   const busy = savingDraft || publishing;
   const previewDisabled = busy || !canSubmit;
+  const keyboardOpen = useOnScreenKeyboardOpen();
 
   return (
-    <div className="sticky bottom-0 z-30 w-full border-t border-border bg-white/95 backdrop-blur-sm">
+    <div
+      className={cn(
+        // backdrop-filter on a sticky layer repaints late on iOS while
+        // scrolling, so mobile gets a solid background.
+        "z-30 w-full border-t border-border bg-white sm:bg-white/95 sm:backdrop-blur-sm",
+        keyboardOpen ? "relative" : "sticky bottom-0",
+      )}
+    >
       <PageContainer className="flex flex-col gap-2 py-3">
         {submitBlockedReason ? (
           <p className="text-left text-xs text-muted-foreground sm:text-right">

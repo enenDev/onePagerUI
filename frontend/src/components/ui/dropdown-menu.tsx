@@ -4,10 +4,41 @@ import { DropdownMenu as DropdownMenuPrimitive } from "radix-ui"
 import { cn } from "@/lib/utils"
 import { CheckIcon, ChevronRightIcon } from "lucide-react"
 
+type DropdownMenuOpenState = {
+  open: boolean
+  setOpen: (open: boolean) => void
+}
+
+const DropdownMenuOpenContext =
+  React.createContext<DropdownMenuOpenState | null>(null)
+
 function DropdownMenu({
+  open: openProp,
+  defaultOpen = false,
+  onOpenChange,
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Root>) {
-  return <DropdownMenuPrimitive.Root data-slot="dropdown-menu" {...props} />
+  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(defaultOpen)
+  const open = openProp ?? uncontrolledOpen
+  const setOpen = React.useCallback(
+    (next: boolean) => {
+      if (openProp === undefined) setUncontrolledOpen(next)
+      onOpenChange?.(next)
+    },
+    [openProp, onOpenChange]
+  )
+  const openState = React.useMemo(() => ({ open, setOpen }), [open, setOpen])
+
+  return (
+    <DropdownMenuOpenContext.Provider value={openState}>
+      <DropdownMenuPrimitive.Root
+        data-slot="dropdown-menu"
+        open={open}
+        onOpenChange={setOpen}
+        {...props}
+      />
+    </DropdownMenuOpenContext.Provider>
+  )
 }
 
 function DropdownMenuPortal({
@@ -19,11 +50,36 @@ function DropdownMenuPortal({
 }
 
 function DropdownMenuTrigger({
+  onPointerDown,
+  onClick,
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Trigger>) {
+  const openState = React.useContext(DropdownMenuOpenContext)
+  const touchTapRef = React.useRef<{ wasOpen: boolean } | null>(null)
+
   return (
     <DropdownMenuPrimitive.Trigger
       data-slot="dropdown-menu-trigger"
+      onPointerDown={(event) => {
+        onPointerDown?.(event)
+        if (event.defaultPrevented || !openState) return
+        if (event.pointerType === "mouse") {
+          touchTapRef.current = null
+          return
+        }
+        // Radix opens on pointerdown. On iOS Safari the rest of the tap then
+        // closes the menu again (or a scroll starts it), so for touch/pen we
+        // skip Radix's handler and toggle on the click that ends the tap.
+        touchTapRef.current = { wasOpen: openState.open }
+        event.preventDefault()
+      }}
+      onClick={(event) => {
+        onClick?.(event)
+        const tap = touchTapRef.current
+        touchTapRef.current = null
+        if (event.defaultPrevented || !openState || !tap) return
+        openState.setOpen(!tap.wasOpen)
+      }}
       {...props}
     />
   )

@@ -5,6 +5,7 @@ import { Dialog as DialogPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { useKeyboardSafeFrame } from "@/hooks/useKeyboardSafeFrame"
 import { XIcon } from "lucide-react"
 
 function Dialog({
@@ -51,10 +52,13 @@ function DialogContent({
   className,
   children,
   showCloseButton = true,
+  style,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean
 }) {
+  const keyboardFrame = useKeyboardSafeFrame()
+
   return (
     <DialogPortal>
       <DialogOverlay />
@@ -65,6 +69,16 @@ function DialogContent({
           showCloseButton && "[&_[data-slot=dialog-header]]:pr-12",
           className
         )}
+        style={
+          keyboardFrame
+            ? {
+                ...style,
+                top: keyboardFrame.centerY,
+                maxHeight: keyboardFrame.height - 16,
+                overflowY: "auto",
+              }
+            : style
+        }
         {...props}
       >
         {children}

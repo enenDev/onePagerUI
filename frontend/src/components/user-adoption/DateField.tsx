@@ -75,11 +75,14 @@ export function DateField({
           Native date pickers anchor to this input's box. `sr-only` left a 1px
           hit-target on the right, so the popup opened at the far right.
           Match the visible field so the calendar opens under the input.
+          iOS Safari will not open the picker from showPicker()/click() on an
+          inert input, so on touch screens this input takes the tap itself.
+          text-base (16px) stops iOS zooming the page on focus.
         */}
         <input
           ref={ref}
           type="date"
-          className="pointer-events-none absolute inset-0 h-full w-full opacity-0"
+          className="pointer-events-none absolute inset-0 z-30 h-full w-full appearance-none text-base opacity-0 pointer-coarse:pointer-events-auto pointer-coarse:cursor-pointer"
           value={displayToIso(value)}
           min={minIso}
           onChange={(event) => onChange(isoToDisplay(event.target.value))}
