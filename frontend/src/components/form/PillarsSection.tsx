@@ -3,8 +3,6 @@ import {
   ChevronDown,
   ChevronUp,
   Minus,
-  MoreVertical,
-  Pencil,
   Plus,
   Scale,
   Store,
@@ -13,12 +11,12 @@ import {
   ShoppingBag,
   MonitorSmartphone,
   PackageCheck,
-  Trash2,
 } from "lucide-react";
 
 import { AddInitiativeModal } from "@/components/form/AddInitiativeModal";
 import { CharCount } from "@/components/form/CharCount";
 import { FIELD_LIMITS } from "@/components/form/fieldLimits";
+import { InitiativeActionsMenu } from "@/components/form/InitiativeActionsMenu";
 import {
   MAX_INITIATIVES_PER_PILLAR,
   nextPriorityLevel,
@@ -28,13 +26,6 @@ import {
   type ScoringMode,
 } from "@/components/form/pillars";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -406,7 +397,7 @@ export function PillarsSection({
                           }
                         }}
                         aria-label={`${pillar.pillar_name} pillar score`}
-                        className="h-7 w-10 min-w-0 rounded-none border-0 bg-white px-0 text-center text-sm font-semibold shadow-none focus-visible:border-transparent focus-visible:ring-0"
+                        className="h-7 w-10 min-w-0 rounded-none border-0 bg-white px-0 text-center text-base font-semibold md:text-sm shadow-none focus-visible:border-transparent focus-visible:ring-0"
                       />
                       <button
                         type="button"
@@ -473,59 +464,18 @@ export function PillarsSection({
                               {initiative.accountable_function_department}
                             </h4>
                           </div>
-                          {/*
-                            Non-modal + no focus return: the Edit dialog opens
-                            as this menu closes. Returning focus to the trigger
-                            counts as "focus outside" for the dialog, which then
-                            closes itself on iOS.
-                          */}
-                          <DropdownMenu modal={false}>
-                            <DropdownMenuTrigger asChild>
-                              <button
-                                type="button"
-                                className="-mt-2 -mr-2 flex size-9 shrink-0 cursor-pointer touch-manipulation items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
-                                aria-label="Initiative actions"
-                              >
-                                <MoreVertical className="size-4" />
-                              </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent
-                              align="end"
-                              avoidCollisions
-                              collisionPadding={8}
-                              className="min-w-36 p-0"
-                              onCloseAutoFocus={(event) =>
-                                event.preventDefault()
-                              }
-                            >
-                              <DropdownMenuItem
-                                className="cursor-pointer rounded-none px-3 py-2.5"
-                                onSelect={() => {
-                                  window.setTimeout(() => {
-                                    setActivePillarNumber(pillar.pillar_number);
-                                    setEditingInitiative(initiative);
-                                  }, 0);
-                                }}
-                              >
-                                <Pencil className="size-4" />
-                                Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator className="m-0" />
-                              <DropdownMenuItem
-                                variant="destructive"
-                                className="cursor-pointer rounded-none px-3 py-2.5"
-                                onSelect={() =>
-                                  deleteInitiative(
-                                    pillar.pillar_number,
-                                    initiative.initiative_number,
-                                  )
-                                }
-                              >
-                                <Trash2 className="size-4" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                          <InitiativeActionsMenu
+                            onEdit={() => {
+                              setActivePillarNumber(pillar.pillar_number);
+                              setEditingInitiative(initiative);
+                            }}
+                            onDelete={() =>
+                              deleteInitiative(
+                                pillar.pillar_number,
+                                initiative.initiative_number,
+                              )
+                            }
+                          />
                         </div>
                         <p className="mb-3 line-clamp-3 flex-1 text-sm text-muted-foreground">
                           {initiative.initiative_description}

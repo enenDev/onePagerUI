@@ -1,4 +1,4 @@
-import { useRef, type RefObject } from "react";
+import { useRef, useState, type RefObject } from "react";
 import { CalendarDays } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
@@ -26,6 +26,19 @@ export function DateField({
 }: DateFieldProps) {
   const localRef = useRef<HTMLInputElement>(null);
   const ref = pickerRef ?? localRef;
+  const [rejectedForMin, setRejectedForMin] = useState<string | null>(null);
+  const belowMin = Boolean(minIso) && rejectedForMin === minIso;
+
+  // iOS Safari's date picker ignores `min`, so earlier dates can still be
+  // picked there. Keep the previous value instead of accepting them.
+  const handlePick = (iso: string) => {
+    if (iso && minIso && iso < minIso) {
+      setRejectedForMin(minIso);
+      return;
+    }
+    setRejectedForMin(null);
+    onChange(isoToDisplay(iso));
+  };
 
   const openPicker = () => {
     const picker = ref.current;
@@ -85,11 +98,16 @@ export function DateField({
           className="pointer-events-none absolute inset-0 z-30 h-full w-full appearance-none text-base opacity-0 pointer-coarse:pointer-events-auto pointer-coarse:cursor-pointer"
           value={displayToIso(value)}
           min={minIso}
-          onChange={(event) => onChange(isoToDisplay(event.target.value))}
+          onChange={(event) => handlePick(event.target.value)}
           tabIndex={-1}
           aria-hidden
         />
       </div>
+      {belowMin && minIso ? (
+        <p className="text-xs text-destructive" role="alert">
+          Pick a date on or after {isoToDisplay(minIso)}.
+        </p>
+      ) : null}
     </div>
   );
 }
