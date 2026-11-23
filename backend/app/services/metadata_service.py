@@ -75,37 +75,6 @@ class MetadataService:
 
         return list(seen.values())
 
-    @staticmethod
-    def _merge_campaign_table_options(
-        existing: Optional[List[MetadataOptionItem]],
-        campaign_names: Optional[List[str]],
-    ) -> List[MetadataOptionItem]:
-        """Campaign options follow the pre-metadata_items source: the campaign table.
-
-        A metadata_items row with the same name keeps its label. Names that exist
-        only in the campaign table are appended as value=label so a newly added
-        campaign shows up in GET /api/v1/metadata-items.
-        """
-        merged: List[MetadataOptionItem] = list(existing or [])
-        seen = set()
-        for item in merged:
-            value = item.get("value") if isinstance(item, dict) else getattr(item, "value", None)
-            if value is None:
-                continue
-            clean = str(value).strip().lower()
-            if clean:
-                seen.add(clean)
-
-        for name in campaign_names or []:
-            if name is None:
-                continue
-            clean = str(name).strip()
-            if not clean or clean.lower() in seen:
-                continue
-            merged.append({"value": clean, "label": clean})
-            seen.add(clean.lower())
-        return merged
-
     def get_cascading_filters(
         self, db: Session, request: Optional[MetadataFilterRequest] = None
     ) -> Dict[str, MarketMetadataItem]:
@@ -179,9 +148,8 @@ class MetadataService:
     ) -> Dict[str, MetadataItemMarketResponse]:
         """
         Return metadata_items in the normalized form for /api/v1/metadata-items.
-        Campaign options are filled from the campaign table, same as
-        get_cascading_filters did before metadata_items. Other groups stay on
-        metadata_items.
+        Campaign options come only from the campaign table, using the same
+        name list as get_cascading_filters. Other groups stay on metadata_items.
         """
         flattened_markets: List[str] = []
         if markets:
@@ -211,9 +179,8 @@ class MetadataService:
                 retailer=self._to_option_items_from_rows(groups.get("retailer", [])),
                 channel=self._to_option_items_from_rows(groups.get("channel", [])),
                 category=self._to_option_items_from_rows(groups.get("category", [])),
-                campaign=self._merge_campaign_table_options(
-                    self._to_option_items_from_rows(groups.get("campaign", [])),
-                    campaigns_by_market.get(market, []),
+                campaign=self._to_option_items(
+                    self._clean_string_list(campaigns_by_market.get(market, []))
                 ),
                 accountable_team=self._to_option_items_from_rows(groups.get("accountable_team", [])),
                 pillar_kpi_1=self._to_option_items_from_rows(groups.get("pillar_kpi_1", [])),
@@ -230,7 +197,7 @@ class MetadataService:
             if c_market in response:
                 continue
             response[c_market] = MetadataItemMarketResponse(
-                campaign=self._to_option_items(c_list),
+                campaign=self._to_option_items(self._clean_string_list(c_list)),
             )
 
         return response

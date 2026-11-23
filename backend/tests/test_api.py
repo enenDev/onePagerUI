@@ -1481,8 +1481,9 @@ def test_get_metadata_items_returns_market_keyed_option_objects(client, db):
 def test_metadata_items_includes_campaigns_from_campaign_table(client, db):
     """GET /api/v1/metadata-items campaign list comes from the campaign table.
 
-    Newly added campaigns are stored only in `campaign`. The dropdown must still
-    see them. An existing metadata_items label for the same name is kept.
+    The dropdown uses campaign_name as both value and label. A metadata_items
+    campaign row does not add or rename that option. Other groups still come
+    from metadata_items.
     """
     from app.models.campaign import Campaign
     from app.models.metadata_item import MetadataItem
@@ -1501,8 +1502,8 @@ def test_metadata_items_includes_campaigns_from_campaign_table(client, db):
         market="Belgium",
         group_name="campaign",
         key_name="campaign",
-        value="Spring Promo",
-        label="Spring Promo Label",
+        value="Metadata Only Promo",
+        label="Metadata Only Label",
         sort_order=1,
         is_active=True,
     ))
@@ -1536,8 +1537,9 @@ def test_metadata_items_includes_campaigns_from_campaign_table(client, db):
     payload = resp.json()
 
     belgium_campaigns = payload["Belgium"]["campaign"]
-    assert {"value": "Spring Promo", "label": "Spring Promo Label"} in belgium_campaigns
+    assert {"value": "Spring Promo", "label": "Spring Promo"} in belgium_campaigns
     assert {"value": "New Festive 2026", "label": "New Festive 2026"} in belgium_campaigns
+    assert {"value": "Metadata Only Promo", "label": "Metadata Only Label"} not in belgium_campaigns
     assert payload["Belgium"]["retailer"][0]["value"] == "Carrefour"
 
     assert payload["Portugal"]["campaign"] == [
