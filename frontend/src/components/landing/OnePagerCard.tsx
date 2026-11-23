@@ -171,23 +171,27 @@ export function OnePagerCard({
   return (
     <article className="relative overflow-hidden rounded-xl border border-border bg-card-surface shadow-sm transition-shadow hover:shadow-md">
       {onSelectToggle && (
-        <div className="absolute h-6 w-6 top-3 left-3 z-20 flex items-center">
+        // Larger hit area on phones so the tap does not fall through to the
+        // card Link. top/left match the cover inset (px-3 pt-3).
+        <div className="absolute top-3 left-3 z-20 flex size-10 items-start justify-start sm:size-6">
           <Tooltip>
             <TooltipTrigger asChild>
-              <span className="inline-block">
+              <label
+                className="flex size-10 cursor-pointer items-start justify-start p-1 sm:size-6 sm:p-0"
+                onPointerDown={(event) => event.stopPropagation()}
+                onClick={(event) => event.stopPropagation()}
+              >
                 <input
                   type="checkbox"
                   checked={selected}
                   aria-label={`Select ${item.title}`}
-                  onPointerDown={(event) => event.stopPropagation()}
-                  onClick={(event) => event.stopPropagation()}
                   onChange={(event) => {
                     event.stopPropagation();
                     onSelectToggle?.(item.pager_id);
                   }}
-                  className="pointer-events-auto h-4 w-4 cursor-pointer rounded border-border bg-white accent-primary px-1.5"
+                  className="pointer-events-auto size-5 shrink-0 cursor-pointer rounded border-border bg-white accent-primary sm:size-4"
                 />
-              </span>
+              </label>
             </TooltipTrigger>
             <TooltipContent>
               <p>{selected ? "Added to ZIP export" : "Add to ZIP export"}</p>

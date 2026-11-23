@@ -1,12 +1,10 @@
-import { Fragment } from "react";
+import { useState, type KeyboardEvent } from "react";
 
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Tooltip,
   TooltipContent,
@@ -43,12 +41,20 @@ type TrackStatusDotProps = {
   onChange: (status: TrackRagStatus) => void;
 };
 
+/**
+ * RAG status control for Track. Popover (not DropdownMenu): same open-on-tap
+ * path as searchable selects / initiative menu. DropdownMenu's shared iOS
+ * pointerdown preventDefault plus avoidCollisions=false left the menu
+ * unreachable or off-screen on iPhone (especially landscape).
+ */
 export function TrackStatusDot({
   value,
   canUpdate,
   ariaLabel,
   onChange,
 }: TrackStatusDotProps) {
+  const [open, setOpen] = useState(false);
+
   const dot = (
     <span
       className={cn("inline-block size-2.5 shrink-0 rounded-full", DOT_CLASS[value])}
@@ -62,7 +68,7 @@ export function TrackStatusDot({
         <TooltipTrigger asChild>
           <span
             aria-label={ariaLabel}
-            className="inline-flex cursor-not-allowed rounded-full p-2 lg:p-0.5"
+            className="inline-flex cursor-not-allowed rounded-full p-2.5 lg:p-0.5"
           >
             {dot}
           </span>
@@ -74,36 +80,82 @@ export function TrackStatusDot({
     );
   }
 
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    const items = Array.from(
+      event.currentTarget.querySelectorAll<HTMLButtonElement>(
+        '[role="menuitem"]',
+      ),
+    );
+    if (items.length === 0) return;
+    const current = items.indexOf(document.activeElement as HTMLButtonElement);
+    let next: number;
+    switch (event.key) {
+      case "ArrowDown":
+        next = current < 0 ? 0 : (current + 1) % items.length;
+        break;
+      case "ArrowUp":
+        next =
+          current < 0
+            ? items.length - 1
+            : (current - 1 + items.length) % items.length;
+        break;
+      case "Home":
+        next = 0;
+        break;
+      case "End":
+        next = items.length - 1;
+        break;
+      default:
+        return;
+    }
+    event.preventDefault();
+    items[next].focus();
+  };
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
+    <Popover modal open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
         <button
           type="button"
           aria-label={ariaLabel}
-          className="inline-flex cursor-pointer rounded-full p-2 hover:opacity-80 lg:p-0.5"
+          aria-haspopup="menu"
+          className="inline-flex size-9 cursor-pointer touch-manipulation items-center justify-center rounded-full hover:opacity-80 lg:size-auto lg:p-0.5"
         >
           {dot}
         </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="min-w-28 w-auto p-0">
+      </PopoverTrigger>
+      <PopoverContent
+        align="start"
+        collisionPadding={8}
+        role="menu"
+        aria-label={ariaLabel}
+        className="w-auto min-w-28 overflow-hidden p-0"
+        onKeyDown={handleKeyDown}
+        onCloseAutoFocus={(event) => event.preventDefault()}
+      >
         {OPTIONS.map((option, index) => (
-          <Fragment key={option.value}>
-            {index > 0 ? <DropdownMenuSeparator className="m-0" /> : null}
-            <DropdownMenuItem
+          <div key={option.value}>
+            {index > 0 ? <div role="separator" className="h-px bg-border" /> : null}
+            <button
+              type="button"
+              role="menuitem"
               className={cn(
-                "cursor-pointer rounded-none px-3 py-2",
+                "flex w-full cursor-pointer items-center gap-1.5 px-3 py-2.5 text-left text-sm outline-none hover:bg-accent focus-visible:bg-accent",
                 option.text,
               )}
-              onClick={() => onChange(option.value)}
+              onClick={() => {
+                onChange(option.value);
+                setOpen(false);
+              }}
             >
               <span
                 className={cn("size-2.5 shrink-0 rounded-full", option.dot)}
               />
               {option.label}
-            </DropdownMenuItem>
-          </Fragment>
+            </button>
+          </div>
         ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+      </PopoverContent>
+    </Popover>
   );
 }
