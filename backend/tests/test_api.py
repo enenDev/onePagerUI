@@ -1478,6 +1478,74 @@ def test_get_metadata_items_returns_market_keyed_option_objects(client, db):
     assert payload["Belgium"]["channel"][0] == {"value": "Supermarket", "label": "Supermarket"}
 
 
+def test_metadata_items_includes_campaigns_from_campaign_table(client, db):
+    """GET /api/v1/metadata-items campaign list comes from the campaign table.
+
+    Newly added campaigns are stored only in `campaign`. The dropdown must still
+    see them. An existing metadata_items label for the same name is kept.
+    """
+    from app.models.campaign import Campaign
+    from app.models.metadata_item import MetadataItem
+    from app.utils.helpers import generate_uuid, utcnow
+
+    db.add(MetadataItem(
+        market="Belgium",
+        group_name="retailer",
+        key_name="retailer",
+        value="Carrefour",
+        label="Carrefour",
+        sort_order=1,
+        is_active=True,
+    ))
+    db.add(MetadataItem(
+        market="Belgium",
+        group_name="campaign",
+        key_name="campaign",
+        value="Spring Promo",
+        label="Spring Promo Label",
+        sort_order=1,
+        is_active=True,
+    ))
+    db.add_all([
+        Campaign(
+            campaign_id=generate_uuid(),
+            market="Belgium",
+            campaign_name="Spring Promo",
+            created_by="tester",
+            created_at=utcnow(),
+        ),
+        Campaign(
+            campaign_id=generate_uuid(),
+            market="Belgium",
+            campaign_name="New Festive 2026",
+            created_by="tester",
+            created_at=utcnow(),
+        ),
+        Campaign(
+            campaign_id=generate_uuid(),
+            market="Portugal",
+            campaign_name="Porto Push",
+            created_by="tester",
+            created_at=utcnow(),
+        ),
+    ])
+    db.commit()
+
+    resp = client.get("/api/v1/metadata-items?market=Belgium&market=Portugal")
+    assert resp.status_code == 200
+    payload = resp.json()
+
+    belgium_campaigns = payload["Belgium"]["campaign"]
+    assert {"value": "Spring Promo", "label": "Spring Promo Label"} in belgium_campaigns
+    assert {"value": "New Festive 2026", "label": "New Festive 2026"} in belgium_campaigns
+    assert payload["Belgium"]["retailer"][0]["value"] == "Carrefour"
+
+    assert payload["Portugal"]["campaign"] == [
+        {"value": "Porto Push", "label": "Porto Push"}
+    ]
+    assert payload["Portugal"]["retailer"] == []
+
+
 def test_metadata_upsert_syncs_metadata_items_for_legacy_compatibility(client, db):
     """POST /api/v1/metadata should keep metadata_items in sync without changing stored pager values."""
     from app.models.metadata_item import MetadataItem

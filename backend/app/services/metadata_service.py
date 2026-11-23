@@ -75,6 +75,37 @@ class MetadataService:
 
         return list(seen.values())
 
+    @staticmethod
+    def _merge_campaign_table_options(
+        existing: Optional[List[MetadataOptionItem]],
+        campaign_names: Optional[List[str]],
+    ) -> List[MetadataOptionItem]:
+        """Campaign options follow the pre-metadata_items source: the campaign table.
+
+        A metadata_items row with the same name keeps its label. Names that exist
+        only in the campaign table are appended as value=label so a newly added
+        campaign shows up in GET /api/v1/metadata-items.
+        """
+        merged: List[MetadataOptionItem] = list(existing or [])
+        seen = set()
+        for item in merged:
+            value = item.get("value") if isinstance(item, dict) else getattr(item, "value", None)
+            if value is None:
+                continue
+            clean = str(value).strip().lower()
+            if clean:
+                seen.add(clean)
+
+        for name in campaign_names or []:
+            if name is None:
+                continue
+            clean = str(name).strip()
+            if not clean or clean.lower() in seen:
+                continue
+            merged.append({"value": clean, "label": clean})
+            seen.add(clean.lower())
+        return merged
+
     def get_cascading_filters(
         self, db: Session, request: Optional[MetadataFilterRequest] = None
     ) -> Dict[str, MarketMetadataItem]:
@@ -148,22 +179,31 @@ class MetadataService:
     ) -> Dict[str, MetadataItemMarketResponse]:
         """
         Return metadata_items in the normalized form for /api/v1/metadata-items.
-        This contract is intentionally separate from the legacy metadata API.
+        Campaign options are filled from the campaign table, same as
+        get_cascading_filters did before metadata_items. Other groups stay on
+        metadata_items.
         """
-        stmt = select(MetadataItem).where(MetadataItem.is_active.is_(True))
+        flattened_markets: List[str] = []
         if markets:
-            flattened_markets = []
             for market in markets:
                 if not market:
                     continue
-                flattened_markets.extend([x.strip() for x in str(market).split(",") if x.strip()])
-            if flattened_markets:
-                stmt = stmt.where(MetadataItem.market.in_(flattened_markets))
+                flattened_markets.extend(
+                    [x.strip() for x in str(market).split(",") if x.strip()]
+                )
+
+        stmt = select(MetadataItem).where(MetadataItem.is_active.is_(True))
+        if flattened_markets:
+            stmt = stmt.where(MetadataItem.market.in_(flattened_markets))
 
         rows = db.scalars(stmt).all()
         grouped: Dict[str, Dict[str, List[MetadataItem]]] = {}
         for row in rows:
             grouped.setdefault(row.market, {}).setdefault(row.group_name, []).append(row)
+
+        campaigns_by_market = campaign_repository.get_campaign_names_by_market(
+            db, market=flattened_markets or None
+        )
 
         response: Dict[str, MetadataItemMarketResponse] = {}
         for market, groups in grouped.items():
@@ -171,7 +211,10 @@ class MetadataService:
                 retailer=self._to_option_items_from_rows(groups.get("retailer", [])),
                 channel=self._to_option_items_from_rows(groups.get("channel", [])),
                 category=self._to_option_items_from_rows(groups.get("category", [])),
-                campaign=self._to_option_items_from_rows(groups.get("campaign", [])),
+                campaign=self._merge_campaign_table_options(
+                    self._to_option_items_from_rows(groups.get("campaign", [])),
+                    campaigns_by_market.get(market, []),
+                ),
                 accountable_team=self._to_option_items_from_rows(groups.get("accountable_team", [])),
                 pillar_kpi_1=self._to_option_items_from_rows(groups.get("pillar_kpi_1", [])),
                 pillar_kpi_2=self._to_option_items_from_rows(groups.get("pillar_kpi_2", [])),
@@ -180,6 +223,14 @@ class MetadataService:
                 pillar_kpi_5=self._to_option_items_from_rows(groups.get("pillar_kpi_5", [])),
                 business_group=self._to_option_items_from_rows(groups.get("business_group", [])),
                 year=self._to_option_items_from_rows(groups.get("year", [])),
+            )
+
+        # Markets that exist only in the campaign table, same as get_cascading_filters.
+        for c_market, c_list in campaigns_by_market.items():
+            if c_market in response:
+                continue
+            response[c_market] = MetadataItemMarketResponse(
+                campaign=self._to_option_items(c_list),
             )
 
         return response
