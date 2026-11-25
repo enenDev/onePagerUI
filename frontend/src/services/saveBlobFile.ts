@@ -54,9 +54,8 @@ function startDownload(blob: Blob, fileName: string, kind: SaveBlobKind) {
 /**
  * Start a browser download for a finished file.
  * The temporary link stays for one minute so a phone can begin the save.
- * Desktop, and a phone whose Export tap is still active, save on this click
- * and do not show the manual bar. The bar is only kept when that tap has
- * expired, because a phone can ignore the click after that.
+ * Desktop, and a phone whose Export tap is still active, save on this click.
+ * The download bar lines stay commented below so they can be restored.
  */
 export function saveBlobFile(blob: Blob, fileName: string, kind: SaveBlobKind) {
   const tapCanSave = exportTapCanSave();
@@ -67,8 +66,11 @@ export function saveBlobFile(blob: Blob, fileName: string, kind: SaveBlobKind) {
     notifyPendingDownload();
     return;
   }
-  pendingDownload = saved;
-  notifyPendingDownload();
+  // Download bar backup. Uncomment both lines to show it again on touch
+  // devices after the original tap has expired.
+  // pendingDownload = saved;
+  // notifyPendingDownload();
+  void saved;
 }
 
 export function getManualDownload() {
