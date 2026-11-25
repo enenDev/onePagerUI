@@ -79,7 +79,9 @@ export function getManualDownload() {
 
 export function subscribeManualDownload(listener: () => void) {
   pendingListeners.add(listener);
-  return () => pendingListeners.delete(listener);
+  return () => {
+    pendingListeners.delete(listener);
+  };
 }
 
 /** Fresh tap from the Download bar. Does not open the bar again. */
